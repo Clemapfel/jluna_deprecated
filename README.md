@@ -1,4 +1,4 @@
-# jlwrap: A modern and convenient C++ <-> Julia Wrapper
+# `jlwrap`: A modern and convenient C++ ⇔ Julia Wrapper
 
 (this documentation is still in development)
 
