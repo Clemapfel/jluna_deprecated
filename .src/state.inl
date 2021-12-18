@@ -24,6 +24,8 @@ namespace jlwrap
 
     void State::create_reference(jl_value_t* in)
     {
+        std::cout << "create: " << in << std::endl;
+
         if (_reference_counter.find(in) == _reference_counter.end())
             _reference_counter.insert({in, 1});
         else
@@ -37,6 +39,8 @@ namespace jlwrap
 
     void State::free_reference(jl_value_t* in)
     {
+        std::cout << "free: " << in << std::endl;
+
         assert(_reference_counter.find(in) != _reference_counter.end());
         _reference_counter.at(in) -= 1;
 

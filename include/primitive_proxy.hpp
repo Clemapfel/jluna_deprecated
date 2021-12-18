@@ -119,7 +119,7 @@ namespace jlwrap
             template<typename T>
             PrimitiveProxy& assign(T);
 
-        protected:
+        //protected:
             /// @brief ctor
             /// @param value: pointer to julia-side value
             /// @param symbol: pointer to julia-side symbol or nullptr

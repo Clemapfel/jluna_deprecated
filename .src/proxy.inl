@@ -13,11 +13,15 @@ namespace jlwrap
     {
         assert(symbol != nullptr and type != nullptr);
         State::create_reference(value);
+        State::create_reference(reinterpret_cast<jl_value_t*>(symbol));
+        State::create_reference(reinterpret_cast<jl_value_t*>(type));
     }
     
     Proxy::~Proxy()
     {
         State::free_reference(_value);
+        State::free_reference(reinterpret_cast<jl_value_t*>(_symbol));
+        State::free_reference(reinterpret_cast<jl_value_t*>(_type));
     }
     
     Proxy::Proxy(Proxy&& other) noexcept

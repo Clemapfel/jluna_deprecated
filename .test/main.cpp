@@ -17,10 +17,10 @@ int main()
     auto state = State();
     state.initialize();
 
-    jl_value_t* float16 = state.script("return Char(123)");
-    auto proxy = PrimitiveProxy(nullptr, float16);
+    jl_value_t* float16 = state.script("x = Char(123)");
+    auto proxy = PrimitiveProxy(jl_symbol("x"), float16);
 
-    //State::script("print(abc);");
+    State::script("print(x);");
     proxy.assign<float>(1.0);
-    //State::script("print(abc);");
+    State::script("print(x);");
 }
