@@ -53,7 +53,6 @@ namespace jlwrap
         : Proxy(symbol, value, get_type(value))
     {}
 
-
     template<typename T>
     T PrimitiveProxy::cast_to() const
     {
@@ -227,6 +226,7 @@ namespace jlwrap
 
         std::stringstream code;
         State::free_reference(_value);
+        State::free_reference(reinterpret_cast<jl_value_t*>(_type));
 
         auto* c_symbol = jl_symbol_name_(_symbol);
         code << c_symbol << " = " << cast << "(" << value << ")" << std::endl;
@@ -235,70 +235,84 @@ namespace jlwrap
         _type = get_type(_value);
 
         State::create_reference(_value);
+        State::create_reference(reinterpret_cast<jl_value_t*>(_type));
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(bool v)
     {
         assign<bool>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(char v)
     {
         assign<char>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(float v)
     {
         assign<float>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(double v)
     {
         assign<double>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(uint8_t v)
     {
         assign<uint8_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(uint16_t v)
     {
         assign<uint16_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(uint32_t v)
     {
         assign<uint32_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(uint64_t v)
     {
         assign<uint64_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(int8_t v)
     {
         assign<int8_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(int16_t v)
     {
         assign<int16_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(int32_t v)
     {
         assign<int32_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(int64_t v)
     {
         assign<int64_t>(v);
+        return *this;
     }
 
     PrimitiveProxy& PrimitiveProxy::operator=(nullptr_t v)
     {
         assign<nullptr_t>(v);
+        return *this;
     }
 }

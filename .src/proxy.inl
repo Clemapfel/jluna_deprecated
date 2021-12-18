@@ -19,23 +19,34 @@ namespace jlwrap
     
     Proxy::~Proxy()
     {
-        State::free_reference(_value);
-        State::free_reference(reinterpret_cast<jl_value_t*>(_symbol));
-        State::free_reference(reinterpret_cast<jl_value_t*>(_type));
+        if (_value != nullptr)
+            State::free_reference(_value);
+
+        if (_symbol != nullptr)
+            State::free_reference(reinterpret_cast<jl_value_t*>(_symbol));
+
+        if (_type != nullptr)
+            State::free_reference(reinterpret_cast<jl_value_t*>(_type));
     }
     
     Proxy::Proxy(Proxy&& other) noexcept
         : _value(other._value),
+          _symbol(other._symbol),
           _type(other._type)
     {
         other._value = nullptr;
+        other._symbol = nullptr;
+        other._type = nullptr;
     }
 
     Proxy::Proxy(const Proxy& other)
         : _value(other._value),
+          _symbol(other._symbol),
           _type(other._type)
     {
         State::create_reference(_value);
+        State::create_reference(reinterpret_cast<jl_value_t*>(_symbol));
+        State::create_reference(reinterpret_cast<jl_value_t*>(_type));
     }
 
     Proxy& Proxy::operator=(Proxy&& other) noexcept
@@ -44,9 +55,12 @@ namespace jlwrap
             return *this;
 
         _value = other._value;
-        other._value = nullptr;
+        _type = other._type;
+        _symbol = other._symbol;
 
-        _type = std::move(other._type);
+        other._value = nullptr;
+        other._type = nullptr;
+        other._symbol = nullptr;
 
         return *this;
     }
@@ -58,9 +72,11 @@ namespace jlwrap
 
         _value = other._value;
         _type = other._type;
+        _symbol = other._symbol;
 
-        // multiplicity handled safely in state
         State::create_reference(_value);
+        State::create_reference(reinterpret_cast<jl_value_t*>(_type));
+        State::create_reference(reinterpret_cast<jl_value_t*>(_symbol));
 
         return *this;
     }
