@@ -11,7 +11,7 @@
 
 namespace jlwrap
 {
-    jl_datatype_t * PrimitiveProxy::get_type(jl_value_t* v)
+    jl_datatype_t * Primitive::get_type(jl_value_t* v)
     {
         if (jl_typeis(v, jl_bool_type))
             return jl_bool_type;
@@ -49,12 +49,12 @@ namespace jlwrap
             return nullptr;
     }
 
-    PrimitiveProxy::PrimitiveProxy(jl_sym_t* symbol, jl_value_t* value)
-        : Proxy(symbol, value, get_type(value))
+    Primitive::Primitive(jl_value_t* value)
+        : _value(value), _type(get_type(value))
     {}
 
     template<typename T>
-    T PrimitiveProxy::cast_to() const
+    T Primitive::cast_to() const
     {
         static_assert(std::is_fundamental_v<T> or std::is_same_v<T, nullptr_t>);
 
@@ -129,68 +129,68 @@ namespace jlwrap
         }
     }
 
-    PrimitiveProxy::operator bool()
+    Primitive::operator bool()
     {
         return cast_to<bool>();
     }
 
-    PrimitiveProxy::operator char()
+    Primitive::operator char()
     {
         return cast_to<char>();
     }
 
-    PrimitiveProxy::operator float()
+    Primitive::operator float()
     {
         return cast_to<float>();
     }
 
-    PrimitiveProxy::operator double()
+    Primitive::operator double()
     {
         return cast_to<double>();
     }
 
-    PrimitiveProxy::operator uint8_t()
+    Primitive::operator uint8_t()
     {
         return cast_to<uint8_t>();
     }
 
-    PrimitiveProxy::operator uint16_t()
+    Primitive::operator uint16_t()
     {
         return cast_to<uint16_t>();
     }
 
-    PrimitiveProxy::operator uint32_t()
+    Primitive::operator uint32_t()
     {
         return cast_to<uint32_t>();
     }
 
-    PrimitiveProxy::operator uint64_t()
+    Primitive::operator uint64_t()
     {
         return cast_to<uint64_t>();
     }
 
-    PrimitiveProxy::operator int8_t()
+    Primitive::operator int8_t()
     {
         return cast_to<int8_t>();
     }
 
-    PrimitiveProxy::operator int16_t()
+    Primitive::operator int16_t()
     {
         return cast_to<int16_t>();
     }
 
-    PrimitiveProxy::operator int32_t()
+    Primitive::operator int32_t()
     {
         return cast_to<int32_t>();
     }
 
-    PrimitiveProxy::operator int64_t()
+    Primitive::operator int64_t()
     {
         return cast_to<int64_t>();
     }
 
     template<typename T>
-    PrimitiveProxy & PrimitiveProxy::assign(T value)
+    Primitive & Primitive::assign(T value)
     {
         static_assert(std::is_fundamental_v<T> or std::is_same_v<T, nullptr_t>);
 
@@ -228,89 +228,91 @@ namespace jlwrap
         State::free_reference(_value);
         State::free_reference(reinterpret_cast<jl_value_t*>(_type));
 
-        auto* c_symbol = jl_symbol_name_(_symbol);
-        code << c_symbol << " = " << cast << "(" << value << ")" << std::endl;
+        //auto* c_symbol = jl_symbol_name_(_symbol);
+        //code << c_symbol << " = " << cast << "(" << value << ")" << std::endl;
 
         _value = State::script(code.str());
         _type = get_type(_value);
 
         State::create_reference(_value);
         State::create_reference(reinterpret_cast<jl_value_t*>(_type));
+
+        return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(bool v)
+    Primitive& Primitive::operator=(bool v)
     {
         assign<bool>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(char v)
+    Primitive& Primitive::operator=(char v)
     {
         assign<char>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(float v)
+    Primitive& Primitive::operator=(float v)
     {
         assign<float>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(double v)
+    Primitive& Primitive::operator=(double v)
     {
         assign<double>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(uint8_t v)
+    Primitive& Primitive::operator=(uint8_t v)
     {
         assign<uint8_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(uint16_t v)
+    Primitive& Primitive::operator=(uint16_t v)
     {
         assign<uint16_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(uint32_t v)
+    Primitive& Primitive::operator=(uint32_t v)
     {
         assign<uint32_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(uint64_t v)
+    Primitive& Primitive::operator=(uint64_t v)
     {
         assign<uint64_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(int8_t v)
+    Primitive& Primitive::operator=(int8_t v)
     {
         assign<int8_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(int16_t v)
+    Primitive& Primitive::operator=(int16_t v)
     {
         assign<int16_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(int32_t v)
+    Primitive& Primitive::operator=(int32_t v)
     {
         assign<int32_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(int64_t v)
+    Primitive& Primitive::operator=(int64_t v)
     {
         assign<int64_t>(v);
         return *this;
     }
 
-    PrimitiveProxy& PrimitiveProxy::operator=(nullptr_t v)
+    Primitive& Primitive::operator=(nullptr_t v)
     {
         assign<nullptr_t>(v);
         return *this;

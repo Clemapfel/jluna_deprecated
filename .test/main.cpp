@@ -14,13 +14,10 @@ using namespace jlwrap;
 
 int main()
 {
-    auto state = State();
-    state.initialize();
+    State::initialize();
+    State::script("x = function() print(1) end");
 
-    jl_value_t* float16 = state.script("x = Char(123)");
-    auto proxy = PrimitiveProxy(jl_symbol("x"), float16);
+    for (auto& s : State::get_module_names())
+        std::cout << s << std::endl;
 
-    State::script("print(x);");
-    proxy.assign<float>(1.0);
-    State::script("print(x);");
 }

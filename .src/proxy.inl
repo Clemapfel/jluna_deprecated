@@ -8,16 +8,24 @@
 
 namespace jlwrap
 {
-    Proxy::Proxy(jl_sym_t* symbol, jl_value_t* value, jl_datatype_t* type)
+    template<typename T>
+    Proxy<T>::Proxy(jl_sym_t* symbol, T* value, jl_datatype_t* type)
         : _symbol(symbol), _value(value), _type(type)
     {
-        assert(symbol != nullptr and type != nullptr);
-        State::create_reference(value);
-        State::create_reference(reinterpret_cast<jl_value_t*>(symbol));
-        State::create_reference(reinterpret_cast<jl_value_t*>(type));
+        assert(value != nullptr);
+
+        if (_value != nullptr)
+            State::create_reference(value);
+
+        if (_symbol != nullptr)
+            State::create_reference(reinterpret_cast<jl_value_t*>(symbol));
+
+        if (_type != nullptr)
+            State::create_reference(reinterpret_cast<jl_value_t*>(type));
     }
-    
-    Proxy::~Proxy()
+
+    template<typename T>
+    Proxy<T>::~Proxy()
     {
         if (_value != nullptr)
             State::free_reference(_value);
@@ -28,8 +36,9 @@ namespace jlwrap
         if (_type != nullptr)
             State::free_reference(reinterpret_cast<jl_value_t*>(_type));
     }
-    
-    Proxy::Proxy(Proxy&& other) noexcept
+
+    template<typename T>
+    Proxy<T>::Proxy(Proxy&& other) noexcept
         : _value(other._value),
           _symbol(other._symbol),
           _type(other._type)
@@ -39,7 +48,8 @@ namespace jlwrap
         other._type = nullptr;
     }
 
-    Proxy::Proxy(const Proxy& other)
+    template<typename T>
+    Proxy<T>::Proxy(const Proxy& other)
         : _value(other._value),
           _symbol(other._symbol),
           _type(other._type)
@@ -49,7 +59,8 @@ namespace jlwrap
         State::create_reference(reinterpret_cast<jl_value_t*>(_type));
     }
 
-    Proxy& Proxy::operator=(Proxy&& other) noexcept
+    template<typename T>
+    Proxy<T>& Proxy<T>::operator=(Proxy&& other) noexcept
     {
         if (&other == this)
             return *this;
@@ -65,7 +76,8 @@ namespace jlwrap
         return *this;
     }
 
-    Proxy& Proxy::operator=(const Proxy& other)
+    template<typename T>
+    Proxy<T>& Proxy<T>::operator=(const Proxy& other)
     {
         if (&other == this)
             return *this;

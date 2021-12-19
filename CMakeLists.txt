@@ -14,7 +14,7 @@ include_directories(/usr/include/julia/) # modify this if julia is located somew
 ### jlwrap #######################################################################################
 
 add_library(jlwrap STATIC
-    include/state.hpp include/primitive_proxy.hpp .src/primitive_proxy.inl .src/state.inl include/type.hpp include/proxy.hpp .src/proxy.inl include/julia_extension.h)
+    include/state.hpp include/primitive_proxy.hpp .src/primitive_proxy.inl .src/state.inl include/type.hpp include/proxy.hpp .src/proxy.inl include/julia_extension.h include/function_proxy.hpp include/exceptions.hpp)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jlwrap julia)
