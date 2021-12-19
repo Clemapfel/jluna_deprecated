@@ -6,11 +6,14 @@
 #pragma once
 
 #include <julia.h>
+#include <proxy.hpp>
 
 namespace jlwrap
 {
+    union State;
+
     /// @brief proxy holding ownership of a primitive typed variable julia-side. Modifying the proxy modifies the julia-side variable at the same time
-    class Primitive
+    class Primitive : protected Proxy<State>
     {
         friend union State;
 
@@ -62,64 +65,6 @@ namespace jlwrap
             template<typename T>
             T cast_to() const;
 
-            /// @brief cast bool argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(bool);
-
-            /// @brief cast char argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(char);
-
-            /// @brief cast float argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(float);
-
-            /// @brief cast double argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(double);
-
-            /// @brief cast uint8_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(uint8_t);
-
-            /// @brief cast uint16_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(uint16_t);
-
-            /// @brief cast uint32_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(uint32_t);
-
-            /// @brief cast uint64_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(uint64_t);
-
-            /// @brief cast int8_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(int8_t);
-
-            /// @brief cast int16_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(int16_t);
-
-            /// @brief cast int32_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(int32_t);
-
-            /// @brief cast int64_t argument to the underlying type, then assign. Will change value julia-side
-            /// @param arg
-            Primitive& operator=(int64_t);
-
-            /// @brief assign null (or the underlying types version of null
-            /// @param arg
-            Primitive& operator=(nullptr_t);
-
-            /// @brief cast argument to the underlying type, then assign. Will change value julia-side
-            /// @tparam type of argument to be assigned
-            /// @param arg
-            template<typename T>
-            Primitive& assign(T);
-
         protected:
             /// @brief ctor
             /// @param value: pointer to julia-side value
@@ -130,7 +75,7 @@ namespace jlwrap
             static jl_datatype_t* get_type(jl_value_t*);
 
         private:
-            jl_value_t* _value;
+            using Proxy::_value;
             jl_datatype_t* _type;
     };
 }

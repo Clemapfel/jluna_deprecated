@@ -50,7 +50,7 @@ namespace jlwrap
     }
 
     Primitive::Primitive(jl_value_t* value)
-        : _value(value), _type(get_type(value))
+        : Proxy(value), _type(get_type(value))
     {}
 
     template<typename T>
@@ -189,6 +189,68 @@ namespace jlwrap
         return cast_to<int64_t>();
     }
 
+    /*
+            /// @brief cast bool argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(bool);
+
+            /// @brief cast char argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(char);
+
+            /// @brief cast float argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(float);
+
+            /// @brief cast double argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(double);
+
+            /// @brief cast uint8_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(uint8_t);
+
+            /// @brief cast uint16_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(uint16_t);
+
+            /// @brief cast uint32_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(uint32_t);
+
+            /// @brief cast uint64_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(uint64_t);
+
+            /// @brief cast int8_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(int8_t);
+
+            /// @brief cast int16_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(int16_t);
+
+            /// @brief cast int32_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(int32_t);
+
+            /// @brief cast int64_t argument to the underlying type, then assign. Will change value julia-side
+            /// @param arg
+            Primitive& operator=(int64_t);
+
+            /// @brief assign null (or the underlying types version of null
+            /// @param arg
+            Primitive& operator=(nullptr_t);
+
+            /// @brief cast argument to the underlying type, then assign. Will change value julia-side
+            /// @tparam type of argument to be assigned
+            /// @param arg
+            template<typename T>
+            Primitive& assign(T);
+             */
+
+    /*
+
     template<typename T>
     Primitive & Primitive::assign(T value)
     {
@@ -317,4 +379,5 @@ namespace jlwrap
         assign<nullptr_t>(v);
         return *this;
     }
+     */
 }

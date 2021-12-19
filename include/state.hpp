@@ -19,8 +19,6 @@
 
 namespace jlwrap
 {
-    class Primitive;
-
     union State
     {
         public:

@@ -8,6 +8,7 @@
 #include <primitive_proxy.hpp>
 #include <state.hpp>
 #include <julia_extension.h>
+#include <function_proxy.hpp>
 
 
 using namespace jlwrap;
@@ -16,8 +17,8 @@ int main()
 {
     State::initialize();
     State::script("x = function() print(1) end");
+    auto* f = jl_eval_string("return x");
+    jl_function_t* as_f = (jl_function_t*) f;
 
-    for (auto& s : State::get_module_names())
-        std::cout << s << std::endl;
-
+    jl_call0(as_f);
 }

@@ -7,8 +7,7 @@
 
 #include <julia.h>
 
-/// this file adds functionality to julia.h, however it is not part of the julia c-api
-
+/// this file adds functionality to julia.h, however it is not part of the julia C-API
 
 /// @brief unbox float16 by converting it to float32 first
 float jl_unbox_float16(jl_value_t* v)

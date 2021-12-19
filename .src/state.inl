@@ -6,7 +6,6 @@
 #include <julia.h>
 #include <state.hpp>
 #include <sstream>
-#include <primitive_proxy.hpp>
 #include <exceptions.hpp>
 
 namespace jlwrap
@@ -30,10 +29,10 @@ namespace jlwrap
     {
         std::stringstream str;
         (str << ... << args);
-        jl_eval_string(str.str().c_str());
+        return jl_eval_string(str.str().c_str());
     }
 
-    Primitive State::get_primitive(std::string& var_name, std::string& module_name)
+    inline Primitive State::get_primitive(std::string& var_name, std::string& module_name)
     {
         throw_if_undefined(var_name, module_name);
 
