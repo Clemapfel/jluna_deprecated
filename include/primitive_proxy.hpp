@@ -13,7 +13,7 @@ namespace jlwrap
     union State;
 
     /// @brief proxy holding ownership of a primitive typed variable julia-side. Modifying the proxy modifies the julia-side variable at the same time
-    class Primitive : protected Proxy<State>
+    class Primitive : public Proxy<State>
     {
         friend union State;
 

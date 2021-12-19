@@ -16,9 +16,10 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    State::script("x = function(a::Int64) print(a) end");
+    State::script("function x(a::Int64) print(a) end");
     auto f = Function(jl_eval_string("return x"));
 
+    auto* res = State::script("return typeof(x)");
 
-    f(Proxy<State>(jl_box_int32(12)));
+    f(State::wrap_primitive<int32_t>(12));
 }

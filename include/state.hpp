@@ -42,6 +42,9 @@ namespace jlwrap
 
             [[nodiscard]] static Primitive get_primitive(std::string&, std::string& module_name);
 
+            template<typename T>
+            [[nodiscard]] static Primitive wrap_primitive(T);
+
         //protected:
             template<typename T>
             static T* get(std::string&) noexcept;

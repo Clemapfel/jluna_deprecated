@@ -16,7 +16,7 @@ namespace jlwrap
     decltype(auto) Function::operator()(Args_t... args)
     {
         std::vector<jl_value_t*> as_args;
-        (as_args.push_back(static_cast<Proxy*>(&args)->data()), ...);
+        (as_args.push_back(args.data()), ...);
 
         jl_call(reinterpret_cast<jl_function_t*>(_value), &as_args[0], as_args.size());
     }

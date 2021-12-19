@@ -32,12 +32,60 @@ namespace jlwrap
         return jl_eval_string(str.str().c_str());
     }
 
-    inline Primitive State::get_primitive(std::string& var_name, std::string& module_name)
+    Primitive State::get_primitive(std::string& var_name, std::string& module_name)
     {
         throw_if_undefined(var_name, module_name);
 
         auto* res = execute("return ", var_name);
         return Primitive(res);
+    }
+
+    template<typename T>
+    Primitive State::wrap_primitive(T v)
+    {
+        static_assert(
+            std::is_same_v<T, bool> or
+            std::is_same_v<T, char> or
+            std::is_same_v<T, float> or
+            std::is_same_v<T, double> or
+            std::is_same_v<T, uint8_t> or
+            std::is_same_v<T, uint16_t> or
+            std::is_same_v<T, uint32_t> or
+            std::is_same_v<T, uint64_t> or
+            std::is_same_v<T, int8_t> or
+            std::is_same_v<T, int16_t> or
+            std::is_same_v<T, int32_t> or
+            std::is_same_v<T, int64_t> or
+            std::is_same_v<T, nullptr_t>,
+            "Only fundamental types are available to be wrapped in jlwrap::Primitive"
+        );
+
+        if (std::is_same_v<T, bool>)
+            return Primitive(jl_box_bool(v));
+        else if (std::is_same_v<T, char>)
+            return Primitive(jl_box_char(v));
+        else if (std::is_same_v<T, float>)
+            return Primitive(jl_box_float32(v));
+        else if (std::is_same_v<T, double>)
+            return Primitive(jl_box_float64(v));
+        else if (std::is_same_v<T, uint8_t>)
+            return Primitive(jl_box_uint8(v));
+        else if (std::is_same_v<T, uint16_t>)
+            return Primitive(jl_box_uint16(v));
+        else if (std::is_same_v<T, uint32_t>)
+            return Primitive(jl_box_uint32(v));
+        else if (std::is_same_v<T, uint64_t>)
+            return Primitive(jl_box_uint64(v));
+        else if (std::is_same_v<T, int8_t>)
+            return Primitive(jl_box_int8(v));
+        else if (std::is_same_v<T, int16_t>)
+            return Primitive(jl_box_int16(v));
+        else if (std::is_same_v<T, int32_t>)
+            return Primitive(jl_box_int32(v));
+        else if (std::is_same_v<T, int64_t>)
+            return Primitive(jl_box_int64(v));
+        else if (std::is_same_v<T, nullptr_t>)
+            return Primitive(jl_box_voidpointer((void*) NULL));
     }
 
     template<typename T>
@@ -55,10 +103,10 @@ namespace jlwrap
     void State::throw_if_undefined(std::string& var_name, std::string& module_name)
     {
         if (not is_defined(module_name, "Main"))
-            throw UndefinedBindingException("module_name", "Main");
+            throw UndefVarException("module_name", "Main");
 
         if (not is_defined(var_name, module_name))
-            throw UndefinedBindingException(var_name, module_name);
+            throw UndefVarException(var_name, module_name);
     }
 
     void State::create_reference(jl_value_t* in)
