@@ -48,10 +48,8 @@ namespace jlwrap
             template<typename T>
             static T* get(std::string&) noexcept;
 
-
-            static bool is_defined(std::string& var_name, std::string& module_name);
-
-            static std::set<std::string> get_module_names();
+            static bool is_defined(std::string var_name, std::string module_name);
+            static void throw_if_undefined(std::string& var_name, std::string& module_name);
 
         private:
             template<typename... T>

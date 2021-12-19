@@ -15,12 +15,20 @@ namespace jlwrap
     class UndefinedBindingException : public std::exception
     {
         public:
-            explicit UndefinedBindingException(std::string& var_name, jl_module_t* module)
+            explicit UndefinedBindingException(std::string var_name, jl_module_t* module)
                 : _message()
             {
                 auto* name = jl_symbol_name_(module->name);
                 std::stringstream str;
                 str << "[JULIA] Symbol :" << var_name << " is undefined in module " << name << std::endl;
+                _message = str.str();
+            }
+
+            explicit UndefinedBindingException(std::string var_name, std::string module)
+                : _message()
+            {
+                std::stringstream str;
+                str << "[JULIA] Symbol :" << var_name << " is undefined in module " << module << std::endl;
                 _message = str.str();
             }
 

@@ -18,8 +18,6 @@ namespace jlwrap
         _reference_dict_insert = jl_get_function(jl_base_module, "setindex!");
         _reference_dict_erase = jl_get_function(jl_base_module, "delete!");
         _reference_wrapper = reinterpret_cast<jl_datatype_t*>(jl_eval_string("Base.RefValue{Any}"));
-
-
     }
 
     auto State::script(std::string str)
@@ -37,9 +35,10 @@ namespace jlwrap
 
     Primitive State::get_primitive(std::string& var_name, std::string& module_name)
     {
-        auto* module = get<jl_module_t>(module_name);
-        //auto* isdefined =
+        throw_if_undefined(var_name, module_name);
 
+        auto* res = execute("return ", var_name);
+        return Primitive(res);
     }
 
     template<typename T>
@@ -48,30 +47,19 @@ namespace jlwrap
         return reinterpret_cast<T*>(execute("return ", var_name));
     }
 
-    std::string State::get_module_name(jl_module_t*)
+    bool State::is_defined(std::string var_name, std::string module_name)
     {
-
+        auto* res = execute("isdefined(", module_name, ",", var_name, ")");
+        return jl_unbox_bool(res);
     }
 
-    std::set<std::string> State::get_module_names()
+    void State::throw_if_undefined(std::string& var_name, std::string& module_name)
     {
-        auto* array = (jl_array_t*) jl_eval_string("names(Main)");
-        std::set<std::string> out;
+        if (not is_defined(module_name, "Main"))
+            throw UndefinedBindingException("module_name", "Main");
 
-        for (size_t i = 0; i < array->length; ++i)
-        {
-            std::stringstream str;
-            str << jl_symbol_name_(reinterpret_cast<jl_sym_t*>(jl_arrayref(array, i)));
-            out.insert(str.str());
-        }
-
-        return out;
-    }
-
-    bool State::is_defined(std::string& var_name, std::string& module_name)
-    {
-        auto* res = execute("isdefined(", module_name);
-
+        if (not is_defined(var_name, module_name))
+            throw UndefinedBindingException(var_name, module_name);
     }
 
     void State::create_reference(jl_value_t* in)
