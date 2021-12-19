@@ -12,10 +12,12 @@ namespace jlwrap
         : Proxy((jl_value_t*) f)
     {}
 
-    template<typename... Arg_ts>
-    decltype(auto) Function::operator()(Arg_ts... args)
+    template<typename... Args_t>
+    decltype(auto) Function::operator()(Args_t... args)
     {
-        std::vector<jl_value_t*> as_args = {static_cast<Proxy*>(&args)->_value, ...};
+        std::vector<jl_value_t*> as_args;
+        (as_args.push_back(static_cast<Proxy*>(&args)->data()), ...);
 
+        jl_call(reinterpret_cast<jl_function_t*>(_value), &as_args[0], as_args.size());
     }
 }

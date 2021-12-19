@@ -18,6 +18,12 @@ namespace jlwrap
     }
 
     template<typename State_t>
+    jl_value_t * Proxy<State_t>::data()
+    {
+        return _value;
+    }
+
+    template<typename State_t>
     Proxy<State_t>::~Proxy()
     {
         if (_value != nullptr)

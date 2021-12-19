@@ -19,7 +19,9 @@ namespace jlwrap
             /// @brief ctor deleted
             Proxy() = delete;
 
-        protected:
+            jl_value_t* data();
+
+        //protected:
             /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
             /// @param symbol: name of the variable as julia symbol
             /// @param value: pointer to the value of the variable

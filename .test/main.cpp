@@ -16,9 +16,9 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    State::script("x = function() print(1) end");
-    auto* f = jl_eval_string("return x");
-    jl_function_t* as_f = (jl_function_t*) f;
+    State::script("x = function(a::Int64) print(a) end");
+    auto f = Function(jl_eval_string("return x"));
 
-    jl_call0(as_f);
+
+    f(Proxy<State>(jl_box_int32(12)));
 }

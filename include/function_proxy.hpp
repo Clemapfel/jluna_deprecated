@@ -16,13 +16,15 @@ namespace jlwrap
         public:
             Function() = delete;
 
-            template<typename... Arg_ts>
-            decltype(auto) operator()(Arg_ts...);
+            template<typename... Args_t>
+            decltype(auto) operator()(Args_t...);
 
-        protected:
+        //protected:
             Function(jl_function_t*);
 
         private:
             using Proxy::_value;
     };
 }
+
+#include ".src/function_proxy.inl"
