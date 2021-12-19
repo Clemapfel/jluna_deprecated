@@ -9,10 +9,18 @@
 
 namespace jlwrap
 {
-    class FunctionProxy : public Proxy<jl_function_t>
+    union State;
+
+    class Function : protected Proxy<State>
     {
         public:
+            Function() = delete;
 
+            template<typename... Arg_ts>
+            decltype(auto) operator()(Arg_ts...);
+
+        protected:
+            Function(jl_function_t*);
 
         private:
             using Proxy::_value;
