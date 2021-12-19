@@ -8,59 +8,75 @@
 #include <exception>
 #include <string>
 #include <iostream>
+#include <vector>
 
 namespace jlwrap
 {
-    /// @brief exception thrown in safe mode when a value is undefined
-    class UndefinedBindingException : public std::exception
+    /// @brief general exception
+    class Exception : public std::exception
     {
         public:
-            explicit UndefinedBindingException(std::string var_name, jl_module_t* module)
-                : _message()
-            {
-                auto* name = jl_symbol_name_(module->name);
-                std::stringstream str;
-                str << "[JULIA] Symbol :" << var_name << " is undefined in module " << name << std::endl;
-                _message = str.str();
-            }
+            Exception() = default;
 
-            explicit UndefinedBindingException(std::string var_name, std::string module)
-                : _message()
-            {
-                std::stringstream str;
-                str << "[JULIA] Symbol :" << var_name << " is undefined in module " << module << std::endl;
-                _message = str.str();
-            }
-
-            const char* what() const noexcept override
+            virtual const char* what() const noexcept override final
             {
                 return _message.c_str();
             }
 
-        private:
+        protected:
             std::string _message;
     };
 
     /// @brief exception thrown in safe mode when a value is undefined
-    class TypeError : public std::exception
+    class UndefVarException : public Exception
     {
         public:
-            explicit TypeError(std::string& in, std::string& expected, std::string& actual)
-                : _message()
+            explicit UndefVarException(std::string var_name, jl_module_t* module)
+                : Exception()
+            {
+                auto* name = jl_symbol_name_(module->name);
+                std::stringstream str;
+                str << "[JULIA] UndefVarError:" << var_name << " is undefined in module " << name << std::endl;
+                _message = str.str();
+            }
+
+            explicit UndefVarException(std::string var_name, std::string module)
+                : Exception()
+            {
+                std::stringstream str;
+                str << "[JULIA] UndefVarError:" << var_name << " is undefined in module " << module << std::endl;
+                _message = str.str();
+            }
+    };
+
+    /// @brief exception thrown in safe mode type does not match expected type
+    class TypeException : public Exception
+    {
+        public:
+            explicit TypeException(std::string in, std::string expected, std::string actual)
+                : Exception()
             {
                 std::stringstream str;
                 str << "[JULIA] TypeError: in " << in << ", expected " << expected << ", got a value of type " << actual << std::endl;
                 _message = str.str();
             }
-
-            const char* what() const noexcept override
-            {
-                return _message.c_str();
-            }
-
-        private:
-            std::string _message;
     };
 
+    /// @brief exception thrown in safe mode if there is no method of a function for the given argument types
+    class MethodException : public Exception
+    {
+        public:
+            explicit MethodException(std::string function_name, std::vector<std::string> types)
+                : Exception()
+            {
+                std::stringstream str;
+                str << "[JULIA] MethodError: no method matching " << function_name << "(";
 
+                for (size_t i = 0; i < types.size(); ++i)
+                    str << "::" << types.at(i) << (i == types.size() - 1 ? "" : ",");
+
+                str << ")" << std::endl;
+                _message = str.str();
+            }
+    };
 }
