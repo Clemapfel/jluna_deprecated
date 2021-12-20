@@ -23,7 +23,7 @@ namespace jlwrap
             Function(jl_function_t*);
 
         private:
-            using Proxy::_value;
+            jl_function_t* _value;
     };
 }
 

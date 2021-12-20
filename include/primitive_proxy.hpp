@@ -75,7 +75,7 @@ namespace jlwrap
             static jl_datatype_t* get_type(jl_value_t*);
 
         private:
-            using Proxy::_value;
+            jl_value_t* _value;
             jl_datatype_t* _type;
     };
 }

@@ -18,7 +18,7 @@ namespace jlwrap
     }
 
     template<typename State_t>
-    jl_value_t * Proxy<State_t>::data()
+    Proxy<State_t>::operator jl_value_t*()
     {
         return _value;
     }

@@ -19,7 +19,7 @@ namespace jlwrap
             /// @brief ctor deleted
             Proxy() = delete;
 
-            jl_value_t* data();
+            [[implicit]] operator jl_value_t*();
 
         //protected:
             /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
@@ -47,6 +47,7 @@ namespace jlwrap
             /// @param other
             Proxy& operator=(Proxy&&) noexcept;
 
+        private:
             jl_value_t* _value;
     };
 }

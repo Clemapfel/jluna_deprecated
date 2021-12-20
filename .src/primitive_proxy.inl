@@ -51,7 +51,9 @@ namespace jlwrap
 
     Primitive::Primitive(jl_value_t* value)
         : Proxy(value), _type(get_type(value))
-    {}
+    {
+        _value = Proxy<State>::operator _jl_value_t *();
+    }
 
     template<typename T>
     T Primitive::cast_to() const
