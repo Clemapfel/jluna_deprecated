@@ -129,62 +129,62 @@ namespace jlwrap
         }
     }
 
-    Primitive::operator bool()
+    Primitive::operator bool() const
     {
         return cast_to<bool>();
     }
 
-    Primitive::operator char()
+    Primitive::operator char() const
     {
         return cast_to<char>();
     }
 
-    Primitive::operator float()
+    Primitive::operator float() const
     {
         return cast_to<float>();
     }
 
-    Primitive::operator double()
+    Primitive::operator double() const
     {
         return cast_to<double>();
     }
 
-    Primitive::operator uint8_t()
+    Primitive::operator uint8_t() const
     {
         return cast_to<uint8_t>();
     }
 
-    Primitive::operator uint16_t()
+    Primitive::operator uint16_t() const
     {
         return cast_to<uint16_t>();
     }
 
-    Primitive::operator uint32_t()
+    Primitive::operator uint32_t() const
     {
         return cast_to<uint32_t>();
     }
 
-    Primitive::operator uint64_t()
+    Primitive::operator uint64_t() const
     {
         return cast_to<uint64_t>();
     }
 
-    Primitive::operator int8_t()
+    Primitive::operator int8_t() const
     {
         return cast_to<int8_t>();
     }
 
-    Primitive::operator int16_t()
+    Primitive::operator int16_t() const
     {
         return cast_to<int16_t>();
     }
 
-    Primitive::operator int32_t()
+    Primitive::operator int32_t() const
     {
         return cast_to<int32_t>();
     }
 
-    Primitive::operator int64_t()
+    Primitive::operator int64_t() const
     {
         return cast_to<int64_t>();
     }

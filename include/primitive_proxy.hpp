@@ -22,43 +22,43 @@ namespace jlwrap
             Primitive() = delete;
 
             /// @brief cast to bool
-            operator bool();
+            operator bool() const;
 
             /// @brief cast to char
-            operator char();
+            operator char() const;
 
             /// @brief cast to float
-            operator float();
+            operator float() const;
 
             /// @brief cast to double
-            operator double();
+            operator double() const;
 
             /// @brief cast to uint8_t
-            operator uint8_t();
+            operator uint8_t() const;
 
             /// @brief cast to uint16_t
-            operator uint16_t();
+            operator uint16_t() const;
 
             /// @brief cast to uint32_t
-            operator uint32_t();
+            operator uint32_t() const;
 
             /// @brief cast to uint64_t
-            operator uint64_t();
+            operator uint64_t() const;
 
             /// @brief cast to int8_t
-            operator int8_t();
+            operator int8_t() const;
 
             /// @brief cast to int16_t
-            operator int16_t();
+            operator int16_t() const;
 
             /// @brief cast to int32_t
-            operator int32_t();
+            operator int32_t() const;
 
             /// @brief cast to int64_t
-            operator int64_t();
+            operator int64_t() const;
 
             /// @brief cast to nullptr
-            operator nullptr_t();
+            operator nullptr_t() const;
 
             /// @brief cast
             /// @tparam type to cast to, must be primitive
