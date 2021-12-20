@@ -65,7 +65,7 @@ namespace jlwrap
             template<typename T>
             T cast_to() const;
 
-        protected:
+        //protected:
             /// @brief ctor
             /// @param value: pointer to julia-side value
             /// @param symbol: pointer to julia-side symbol or nullptr

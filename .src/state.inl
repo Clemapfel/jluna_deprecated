@@ -32,7 +32,7 @@ namespace jlwrap
         return jl_eval_string(str.str().c_str());
     }
 
-    Primitive State::get_primitive(std::string& var_name, std::string& module_name)
+    Primitive State::get_primitive(std::string var_name, std::string module_name)
     {
         throw_if_undefined(var_name, module_name);
 
