@@ -13,6 +13,7 @@ namespace jlwrap
 {
     template<typename T, size_t R>
     Array<T, R>::Array(jl_value_t* value)
+        : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {
         if (not jl_typeis(value, jl_array_t))
         {
@@ -20,6 +21,8 @@ namespace jlwrap
             str << jl_typeof(value) << std::endl;
             throw TypeException("Array<T, R>(jl_value_t*)", "jl_array_t", "str.str()");
         }
+
+        _value = (jl_array_t*) Proxy<State>::operator _jl_value_t *();
     }
 
     template<typename T, size_t R>

@@ -16,6 +16,14 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
+    auto& Array<T, R>::Iterator::operator=(T value)
+    {
+        auto* v = (jl_value_t*) value;
+        auto* i = jl_box_uint64(_index);
+        jl_call3(_replace, reinterpret_cast<jl_value_t*>(_data), v, i);
+    }
+
+    template<typename T, size_t R>
     Array<T, R>::Iterator::operator jl_value_t*()
     {
         return jl_arrayref(_data, _index);
