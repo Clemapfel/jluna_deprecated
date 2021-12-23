@@ -8,6 +8,7 @@
 #include <array_proxy.hpp>
 #include <exceptions.hpp>
 #include <proxy.hpp>
+#include <unbox_any.hpp>
 
 namespace jlwrap
 {
@@ -15,7 +16,7 @@ namespace jlwrap
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {
-        if (not jl_typeis(value, jl_array_t))
+        if (not jl_is_array(value))
         {
             std::stringstream str;
             str << jl_typeof(value) << std::endl;
@@ -27,6 +28,7 @@ namespace jlwrap
 
     template<typename T, size_t R>
     Array<T, R>::Array(jl_array_t* value)
+        : Array((jl_value_t*) value)
     {}
 
     template<typename T, size_t R>
@@ -36,7 +38,13 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
-    auto Array<T, R>::at(size_t i)
+    auto Array<T, R>::get(size_t i) const
+    {
+        return unbox<T>((jl_value_t*) jl_arrayref((jl_array_t*) _value, i));
+    }
+
+    template<typename T, size_t R>
+    auto Array<T, R>::at(size_t i) const
     {
         if (reinterpret_cast<jl_array_t*>(_value)->length >= i)
         {
@@ -45,32 +53,19 @@ namespace jlwrap
             throw std::out_of_range(str.str());
         }
 
-        return Iterator(_value, i);
+        return get(i);
     }
 
     template<typename T, size_t R>
-    const auto Array<T, R>::at(size_t i) const
+    size_t Array<T, R>::length() const
     {
-        if (reinterpret_cast<jl_array_t*>(_value)->length >= i)
-        {
-            std::stringstream str;
-            str << "In Array<T, R>::at(size_t i): index out of range for an array of size " << reinterpret_cast<jl_array_t*>(_value)->length << std::endl;
-            throw std::out_of_range(str.str());
-        }
-
-        return ConstIterator(_value, i);
+        return ((jl_array_t*) _value)->length;
     }
 
     template<typename T, size_t R>
-    auto Array<T, R>::operator[](size_t i)
+    auto Array<T, R>::operator[](size_t i) const
     {
-        return Iterator(_value, i);
-    }
-
-    template<typename T, size_t R>
-    const auto Array<T, R>::operator[](size_t i) const
-    {
-        return ConstIterator(_value, i);
+        return get(i);
     }
 
     template<typename T, size_t R>

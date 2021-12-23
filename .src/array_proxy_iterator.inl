@@ -30,6 +30,12 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
+    Array<T, R>::Iterator::operator T()
+    {
+
+    }
+
+    template<typename T, size_t R>
     void Array<T, R>::Iterator::operator++()
     {
         if (_index + 1 <= _data->length)

@@ -23,11 +23,12 @@ namespace jlwrap
 
             [[implicit]] operator jl_array_t*();
 
-            auto at(size_t);
-            const auto at(size_t) const;
+            /// @param i: overall index in all dimensions
+            auto at(size_t) const;
+            auto operator[](size_t) const;
+            auto get(size_t) const;
 
-            auto operator[](size_t);
-            const auto operator[](size_t) const;
+            size_t length() const;
 
             auto begin();
             auto begin() const;
@@ -81,9 +82,11 @@ namespace jlwrap
             bool operator==(const Iterator&) const;
             bool operator!=(const Iterator&) const;
 
+            operator jl_value_t*();
+            operator T();
+
         protected:
             Iterator(jl_array_t*, size_t);
-            operator jl_value_t*();
 
         private:
             jl_array_t* _data;
@@ -108,9 +111,10 @@ namespace jlwrap
             bool operator==(const ConstIterator&) const;
             bool operator!=(const ConstIterator&) const;
 
+            operator const jl_value_t*() const;
+
         protected:
             ConstIterator(jl_array_t*, size_t);
-            operator const jl_value_t*() const;
 
         private:
             const jl_array_t* _data;

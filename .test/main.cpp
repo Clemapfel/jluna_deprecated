@@ -10,19 +10,34 @@
 #include <julia_extension.h>
 #include <function_proxy.hpp>
 #include <array_proxy.hpp>
-
+#include <unbox_any.hpp>
 
 using namespace jlwrap;
 
 int main()
 {
     State::initialize();
+    State::script("include(\"/home/clem/Workspace/jlwrap/.src/common.jl\")");
 
-    auto* res = State::script("return Main");
-    auto* type = jl_typeof(res);
+    std::cout << unbox<std::string>(State::script("return [1, 2, 3, 4]")) << std::endl;
+    std::cout << unbox<std::string>(State::script("return \"abcdef\"")) << std::endl;
+
+
+    auto arr = Array<int64_t, 1>(State::script("return Array{Int64}([1, 2, 3, 4, 5])"));
+
+    for (size_t i = 0; i < arr.length(); ++i)
+    {
+        std::cout << arr.get(i) << std::endl;
+    }
+
+    /*
+    auto array = Array<int64_t, 1>(State::script("return [1, 2, 3, 4, 5]"));
+    unbox<int64_t>(nullptr);
+    std::cout << array.at(2) << std::endl;*/
 
     return 0;
 
+    /*
     {
         auto* res = State::script(R"(return "abcdef")");
 
@@ -44,4 +59,5 @@ int main()
             std::cout << jl_unbox_float32(jl_arrayref(res, i)) << std::endl;
         }
     }
+     */
 }

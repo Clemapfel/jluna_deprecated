@@ -13,6 +13,7 @@ namespace jlwrap
     void State::initialize(std::string path)
     {
         jl_init_with_image(path.c_str(), NULL);
+        jl_eval_string(R"(include("/home/clem/Workspace/jlwrap/.src/common.jl")");
         _reference_dict = jl_eval_string("global __jlwrap_refs = IdDict()");
         _reference_dict_insert = jl_get_function(jl_base_module, "setindex!");
         _reference_dict_erase = jl_get_function(jl_base_module, "delete!");

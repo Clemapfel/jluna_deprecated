@@ -31,7 +31,7 @@ add_library(jlwrap STATIC
     include/array_proxy.hpp
     .src/array_proxy.inl
     .src/array_proxy_iterator.inl
-    .src/array_vector.inl)
+    .src/array_vector.inl include/unbox_any.hpp)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jlwrap julia)
