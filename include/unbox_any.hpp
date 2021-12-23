@@ -24,10 +24,7 @@ namespace jlwrap
             std::is_same_v<T, int64_t> or
             std::is_same_v<T, uint64_t> or
             std::is_same_v<T, float> or
-            std::is_same_v<T, double> or
-            std::is_same_v<T, void> or
-            std::is_same_v<T, void*> or
-            std::is_same_v<T, nullptr_t>,
+            std::is_same_v<T, double>,
                     std::true_type,
                     std::false_type>::type;
 
@@ -35,71 +32,96 @@ namespace jlwrap
     template<typename T, std::enable_if_t<is_primitive<T>::value, bool> = true>
     T unbox(jl_value_t* value)
     {
-        if (jl_isa(value, jl_bool_type))
+        static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
+
+        if (std::is_same_v<T, bool>)
         {
-            auto temp = jl_unbox_bool(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_bool_type))
+                return jl_unbox_bool(value);
+            else
+                return jl_unbox_bool(jl_call2(convert, (jl_value_t*) jl_bool_type, value));
         }
-        else if (jl_isa(value, jl_char_type))
+        else if (std::is_same_v<T, char>)
         {
-            auto temp = jl_unbox_int8(value);
-            return static_cast<T>(static_cast<char>(temp));
+            if (jl_isa(value, jl_bool_type))
+                return jl_unbox_int8(value);
+            else
+                return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_char_type, value));
         }
-        else if (jl_isa(value, jl_int8_type))
+        else if (std::is_same_v<T, int8_t>)
         {
-            auto temp = jl_unbox_int8(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_int8_type))
+                return jl_unbox_int8(value);
+            else
+                return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_int8_type, value));
         }
-        else if (jl_isa(value, jl_int16_type))
+        else if (std::is_same_v<T, int16_t>)
         {
-            auto temp = jl_unbox_int16(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_int16_type))
+                return jl_unbox_int16(value);
+            else
+                return jl_unbox_int16(jl_call2(convert, (jl_value_t*) jl_int16_type, value));
         }
-        else if (jl_isa(value, jl_int32_type))
+        else if (std::is_same_v<T, int32_t>)
         {
-            auto temp = jl_unbox_int32(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_int32_type))
+                return jl_unbox_int32(value);
+            else
+                return jl_unbox_int32(jl_call2(convert, (jl_value_t*) jl_int32_type, value));
         }
-        else if (jl_isa(value, jl_int64_type))
+        else if (std::is_same_v<T, int64_t>)
         {
-            auto temp = jl_unbox_int64(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_int64_type))
+                return jl_unbox_int64(value);
+            else
+                return jl_unbox_int64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
         }
-        else if (jl_isa(value, jl_uint8_type))
+        else if (std::is_same_v<T, uint8_t>)
         {
-            auto temp = jl_unbox_uint8(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_uint8_type))
+                return jl_unbox_uint8(value);
+            else
+                return jl_unbox_uint8(jl_call2(convert, (jl_value_t*) jl_uint8_type, value));
         }
-        else if (jl_isa(value, jl_uint16_type))
+        else if (std::is_same_v<T, uint16_t>)
         {
-            auto temp = jl_unbox_uint16(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_uint16_type))
+                return jl_unbox_uint16(value);
+            else
+                return jl_unbox_uint16(jl_call2(convert, (jl_value_t*) jl_uint16_type, value));
         }
-        else if (jl_isa(value, jl_uint32_type))
+        else if (std::is_same_v<T, uint32_t>)
         {
-            auto temp = jl_unbox_uint32(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_uint32_type))
+                return jl_unbox_uint32(value);
+            else
+                return jl_unbox_uint32(jl_call2(convert, (jl_value_t*) jl_uint32_type, value));
         }
-        else if (jl_isa(value, jl_uint64_type))
+        else if (std::is_same_v<T, uint64_t>)
         {
-            auto temp = jl_unbox_int64(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_uint64_type))
+                return jl_unbox_uint64(value);
+            else
+                return jl_unbox_uint64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
         }
-        else if (jl_isa(value, jl_float16_type))
+        else if (std::is_same_v<T, float>)
         {
-            auto temp = jl_unbox_float16(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_float16_type))
+                return jl_unbox_float16(value);
+            else if (jl_isa(value, jl_float32_type))
+                return jl_unbox_float32(value);
+            else
+                return jl_unbox_float32(jl_call2(convert, (jl_value_t*) jl_float32_type, value));
         }
-        else if (jl_isa(value, jl_float32_type))
+        else if (std::is_same_v<T, double>)
         {
-            auto temp = jl_unbox_float32(value);
-            return static_cast<T>(temp);
+            if (jl_isa(value, jl_float64_type))
+                return jl_unbox_float64(value);
+            else
+                return jl_unbox_float64(jl_call2(convert, (jl_value_t*) jl_float64_type, value));
         }
-        else if (jl_isa(value, jl_float64_type))
-        {
-            auto temp = jl_unbox_float64(value);
-            return static_cast<T>(temp);
-        }
+        else
+            return reinterpret_cast<T>(nullptr);  // unreachable code
     }
 
     /// @brief unbox to string

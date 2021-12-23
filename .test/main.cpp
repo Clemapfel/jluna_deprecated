@@ -21,6 +21,7 @@ int main()
 
     std::cout << unbox<std::string>(State::script("return [1, 2, 3, 4]")) << std::endl;
     std::cout << unbox<std::string>(State::script("return \"abcdef\"")) << std::endl;
+    std::cout << unbox<std::string>(State::script("return Main")) << std::endl;
 
 
     auto arr = Array<int64_t, 1>(State::script("return Array{Int64}([1, 2, 3, 4, 5])"));
