@@ -53,23 +53,20 @@ module jlwrap
     end
 
     """
-    offers verbose exception interface
-
-    Example:
-        try
-            # function call here
-            jlwrap.ExceptionHandler.update()
-        catch x
-            jlwrap.ExceptionHandler.update(x)
-        end
+    offers verbose exception interface. Any call with safe_call will store
+    the last exception and full stack trace as string in _last_exception and
+    _last_message respectively
     """
     module ExceptionHandler
 
         global _last_message = String("")
-        global _occurred = Bool(false)
-        global _type
+        global _last_exception
 
         """
+        call any line of code, update the handler then forward the result, if any
+
+        @param command: julia code as string
+        @returns result of expression or nothing if an exception was thrown
         """
         function safe_call(command::String) #::Auto
 
@@ -87,21 +84,44 @@ module jlwrap
         end
 
         """
+        update the handler after an exception was thrown
+        @param exception
         """
         function update(exception::Exception) ::Nothing
+
             global _last_message = sprint(Base.showerror, exception, catch_backtrace());
-            global _occurred = true
-            global _type = typeof(exception)
+            global _last_exception = exception
             return nothing
         end
 
         """
+        update the handler after *no* exception was thrown
         """
         function update() ::Nothing
+
             global _last_message = ""
-            global _occurred = false
-            global _type = Nothing
+            global _last_exception = nothing
             return nothing
+        end
+
+        struct State
+            _last_exception
+            _last_message::String
+        end
+
+        """
+        safe the current state of the handler
+
+        @returns jlwrap.ExceptionHandler.State
+        """
+        function state() ::State
+
+            return State(_last_exception, _last_message)
+        end
+
+        function has_exception_occurred() ::Bool
+
+            return _last_exception == Nothing
         end
     end
 end
