@@ -21,10 +21,40 @@ int main()
     State::initialize();
     State::script("include(\"/home/clem/Workspace/jlwrap/.src/common.jl\")");
 
-    State::script("askhjash()");
+    jl_function_t* ptr = jl_get_function(jl_main_module, "sprint");
+    assert(ptr != nullptr);
+
+    auto* res = State::safe_script("return true");
+
+    std::cout << jl_unbox_bool(res) << std::endl;
+
+    std::cout << jl_string_data(jl_eval_string("return jlwrap.ExceptionHandler._last_message")) << std::endl;
+
+    /*
+    static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");
+    static jl_value_t* showerror = jl_eval_string("return Base.showerror");//jl_get_function(jl_base_module, "showerror");
+    static jl_function_t* current_exceptions = jl_get_function(jl_base_module, "current_exceptions");
+    static jl_function_t* backtrace = jl_get_function(jl_base_module, "catch_backtrace");
+
+    auto res = std::string(jl_string_data(
+    jl_call3(
+            sprint,
+            showerror,
+            jl_exception_occurred(),
+            jl_call0(backtrace)
+            )));
+
+    std::cout << res << std::endl;
+
+
+
+    //State::script("askhjash()");
+    //check_for_exceptions();
+    return 0;
+
+    /*
     auto* exception = jl_exception_occurred();
     std::cout << jl_typeof_str(exception) << std::endl;
-    return 0;
 
     State::script(R"(
     mutable struct Struct

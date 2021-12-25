@@ -25,6 +25,21 @@ namespace jlwrap
         return jl_eval_string(str.c_str());
     }
 
+    auto State::safe_script(std::string command)
+    {
+        std::stringstream str;
+
+        str << "try\n" << command << "\n";
+        str << R"(
+            jlwrap.ExceptionHandler.update()
+        catch exception
+            jlwrap.ExceptionHandler.update(exception)
+        end)";
+
+        auto* result = jl_eval_string(str.str().c_str());
+        return result;
+    }
+
     template<typename... T>
     jl_value_t* State::execute(T... args)
     {

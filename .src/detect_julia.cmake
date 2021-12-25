@@ -17,7 +17,8 @@ execute_process(
 )
 
 if ("${JULIA_VERSION}" LESS "1.7.0")
-    message(WARNING "julia version is ${JULIA_VERSION} but jlwrap requires version 1.7.0 or higher. Some features may not work correctly.\nYou can download the latest version at https://julialang.org/downloads/#current_stable_release")
+    message(WARNING "julia version is ${JULIA_VERSION} but jlwrap uses version 1.7.0 or higher. Some features may not work correctly.\nYou can download the latest version at https://julialang.org/downloads/#current_stable_release")
 endif()
 
-# set include dir
+# include dir of julia.h
+include_directories(${JULIA_DIR}/include/julia/)

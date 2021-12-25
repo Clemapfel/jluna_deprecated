@@ -49,6 +49,59 @@ module jlwrap
     """
     function is_method_available(f::Function, variable) ::Bool
 
-        return hasmethod(f, Tuple{typeof(variable)});
+        return hasmethod(f, Tuple{typeof(variable)})
+    end
+
+    """
+    offers verbose exception interface
+
+    Example:
+        try
+            # function call here
+            jlwrap.ExceptionHandler.update()
+        catch x
+            jlwrap.ExceptionHandler.update(x)
+        end
+    """
+    module ExceptionHandler
+
+        global _last_message = String("")
+        global _occurred = Bool(false)
+        global _type
+
+        """
+        """
+        function safe_call(command::String) #::Auto
+
+            as_expression = Meta.parse(command)
+            result = undef;
+            try
+                result = eval(as_expression)
+                update()
+            catch exc
+                result = nothing
+                update(exc)
+            end
+
+            return result
+        end
+
+        """
+        """
+        function update(exception::Exception) ::Nothing
+            global _last_message = sprint(Base.showerror, exception, catch_backtrace());
+            global _occurred = true
+            global _type = typeof(exception)
+            return nothing
+        end
+
+        """
+        """
+        function update() ::Nothing
+            global _last_message = ""
+            global _occurred = false
+            global _type = Nothing
+            return nothing
+        end
     end
 end

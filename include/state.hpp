@@ -30,6 +30,9 @@ namespace jlwrap
             /// @brief execute line of code
             static auto script(std::string);
 
+            /// @brief execute line of code with exception handling
+            static auto safe_script(std::string);
+
             /// @brief execute line of code, may throw exception
 
             /// @brief add a value to be safeguarded from the garbage collector

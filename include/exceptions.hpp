@@ -18,6 +18,10 @@ namespace jlwrap
         public:
             Exception() = default;
 
+            Exception(std::string msg)
+                : _message(msg)
+            {}
+
             virtual const char* what() const noexcept override final
             {
                 return _message.c_str();
@@ -26,6 +30,30 @@ namespace jlwrap
         protected:
             std::string _message;
     };
+
+    /// @brief checks if a julia-side exception was thrown and if it was, propagates it into the corresponding C++ exception
+    void check_for_exceptions()
+    {
+        auto* exception = jl_exception_occurred();
+        if (exception == nullptr)
+            return;
+
+        static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");
+        static jl_value_t* showerror = jl_eval_string("return Base.showerror");//jl_get_function(jl_base_module, "showerror");
+        static jl_function_t* current_exceptions = jl_get_function(jl_base_module, "current_exceptions");
+        static jl_function_t* backtrace = jl_get_function(jl_base_module, "backtrace");
+
+        auto res = std::string(jl_string_data(jl_call3(
+                sprint,
+                showerror,
+                jl_call0(current_exceptions),
+                jl_call0(backtrace)
+                )));
+
+        std::cout << res << std::endl;
+
+        //std::cout << std::string(jl_string_data(jl_eval_string("return sprint(Base.showerror, current_exceptions(), backtrace())"))) << std::endl;
+    }
 
     /// @brief exception thrown in safe mode when a value is undefined
     class UndefVarException : public Exception
