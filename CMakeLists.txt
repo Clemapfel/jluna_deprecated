@@ -1,20 +1,20 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -lstdc++fs -pthread -lpthread -lGL -Wl,--export-dynamic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -pthread -lpthread -lGL -Wl,--export-dynamic")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
 project(jlwrap)
 
-### DEPENDENCIES ################################################################################
+### DEPENDENCIES #######################################################################################
 
-# Julia
-set(JULIA_DIR /home/clem/Applications/julia)
-include_directories(${JULIA_DIR}/include/julia) # modify this if julia is located somewhere else
+set(JULIA_EXECUTABLE /home/clem/Applications/julia/bin/julia) # modify this if necessary
+include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
 
-### jlwrap #######################################################################################
+### JLWRAP #############################################################################################
 
 add_library(jlwrap STATIC
+
     include/state.hpp
     .src/state.inl
 
@@ -32,7 +32,11 @@ add_library(jlwrap STATIC
     include/array_proxy.hpp
     .src/array_proxy.inl
     .src/array_proxy_iterator.inl
-    .src/array_vector.inl include/unbox_any.hpp)
+    .src/array_vector.inl
+
+    include/unbox_any.hpp
+    include/box_any.hpp
+)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)
@@ -40,7 +44,9 @@ target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)
 include_directories("./include")
 include_directories("./")
 
-add_executable(JULIA .test/main.cpp)
-target_link_libraries(JULIA jlwrap)
+### EXECUTABLES ########################################################################################
+
+add_executable(TEST .test/main.cpp)
+target_link_libraries(TEST jlwrap)
 
 

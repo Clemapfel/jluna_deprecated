@@ -18,7 +18,7 @@ using namespace jlwrap;
 
 int main()
 {
-    State::initialize("/home/clem/Applications/julia/bin");
+    State::initialize();
     State::script("include(\"/home/clem/Workspace/jlwrap/.src/common.jl\")");
 
     State::script("askhjash()");
@@ -33,10 +33,8 @@ int main()
        field_3
     end
 
-
     instance = Struct(1, 2, 3)
     )");
-
 
     auto* res = State::script("return instance");
     jl_datatype_t* as_type = (jl_datatype_t*) jl_typeof(res);
@@ -48,10 +46,6 @@ int main()
     jl_set_nth_field(res, 1, box('a'));
     std::cout << unbox<int32_t>(jl_get_field(res, "field_2")) << std::endl;
     //int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
-
-
-
-
 
     return 0;
 

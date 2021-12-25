@@ -25,8 +25,7 @@ namespace jlwrap
             State() = delete;
 
             /// @brief init environment
-            /// @param path: path to image (/usr/bin/ by default on unix)
-            static void initialize(std::string path);
+            static void initialize();
 
             /// @brief execute line of code
             static auto script(std::string);
