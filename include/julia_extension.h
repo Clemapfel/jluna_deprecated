@@ -8,8 +8,7 @@
 #include <julia.h>
 
 //
-// this file adds functionality to julia.h, however it is not part of
-// the julia C-API and has no official affiliation with julias creators or rights holders
+// this file adds functionality to julia.h, however it is not part of the julia C-API
 //
 
 /// @brief unbox float16 by converting it to float32 first
@@ -33,6 +32,12 @@ bool jl_isa(jl_value_t* variable, jl_datatype_t* type)
     return (bool) jl_types_equal(jl_typeof(variable), (jl_value_t*) type);
 }
 
+/// @brief return value as string
+char* jl_to_string(jl_value_t* v)
+{
+    static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
+    return jl_string_data(jl_call1(to_string, v));
+}
 
 
 

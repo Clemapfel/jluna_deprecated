@@ -11,13 +11,60 @@
 #include <function_proxy.hpp>
 #include <array_proxy.hpp>
 #include <unbox_any.hpp>
+#include <box_any.hpp>
 
+#include <array>
 using namespace jlwrap;
 
 int main()
 {
-    State::initialize();
+    State::initialize("/home/clem/Applications/julia/bin");
     State::script("include(\"/home/clem/Workspace/jlwrap/.src/common.jl\")");
+
+    State::script("askhjash()");
+    auto* exception = jl_exception_occurred();
+    std::cout << jl_typeof_str(exception) << std::endl;
+    return 0;
+
+    State::script(R"(
+    mutable struct Struct
+       field_1::Float32
+       field_2::Int64
+       field_3
+    end
+
+
+    instance = Struct(1, 2, 3)
+    )");
+
+
+    auto* res = State::script("return instance");
+    jl_datatype_t* as_type = (jl_datatype_t*) jl_typeof(res);
+
+    //std::cout << jl_symbol_name(jl_field_names(as_type, 1)) << std::endl;
+    std::cout << "n_fields: " << jl_nfields(res) << std::endl;
+    std::cout << unbox<int32_t>(jl_get_field(res, "field_2")) << std::endl;
+
+    jl_set_nth_field(res, 1, box('a'));
+    std::cout << unbox<int32_t>(jl_get_field(res, "field_2")) << std::endl;
+    //int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27};
+
+
+
+
+
+    return 0;
+
+    /*
+    State::script("test_array = Matrix(undef, 5, 5)");
+    State::script("test_array .= reshape(collect(1:25), 5, 5)");
+    auto res = unbox<std::vector<std::vector<float>>>(State::script("test_array"));
+
+    for (auto& s : res)
+        for (auto& t : s)
+            std::cout << t << std::endl;
+
+    return 0;
 
     std::cout << unbox<std::string>(State::script("return [1, 2, 3, 4]")) << std::endl;
     std::cout << unbox<std::string>(State::script("return \"abcdef\"")) << std::endl;
@@ -31,12 +78,6 @@ int main()
         std::cout << arr.get(i) << std::endl;
     }
 
-    /*
-    auto array = Array<int64_t, 1>(State::script("return [1, 2, 3, 4, 5]"));
-    unbox<int64_t>(nullptr);
-    std::cout << array.at(2) << std::endl;*/
-
-    return 0;
 
     /*
     {

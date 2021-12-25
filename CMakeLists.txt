@@ -9,7 +9,8 @@ project(jlwrap)
 ### DEPENDENCIES ################################################################################
 
 # Julia
-include_directories(/usr/include/julia/) # modify this if julia is located somewhere else
+set(JULIA_DIR /home/clem/Applications/julia)
+include_directories(${JULIA_DIR}/include/julia) # modify this if julia is located somewhere else
 
 ### jlwrap #######################################################################################
 
@@ -34,7 +35,7 @@ add_library(jlwrap STATIC
     .src/array_vector.inl include/unbox_any.hpp)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(jlwrap julia)
+target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)
 
 include_directories("./include")
 include_directories("./")

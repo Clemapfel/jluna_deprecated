@@ -118,6 +118,7 @@ namespace jlwrap
             _reference_counter.at(in) += 1;
 
         jl_value_t* wrapped = jl_new_struct(_reference_wrapper, in);
+
         JL_GC_PUSH1(wrapped)
         jl_call3(_reference_dict_insert, _reference_dict, wrapped, in);
         JL_GC_POP();

@@ -26,10 +26,12 @@ namespace jlwrap
 
             /// @brief init environment
             /// @param path: path to image (/usr/bin/ by default on unix)
-            static void initialize(std::string path = "/usr/bin/");
+            static void initialize(std::string path);
 
             /// @brief execute line of code
             static auto script(std::string);
+
+            /// @brief execute line of code, may throw exception
 
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value

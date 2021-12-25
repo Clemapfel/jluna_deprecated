@@ -11,25 +11,28 @@
 
 namespace jlwrap
 {
-    template<typename T>
-    using is_primitive = typename std::conditional<
-            std::is_same_v<T, bool> or
-            std::is_same_v<T, char> or
-            std::is_same_v<T, int8_t> or
-            std::is_same_v<T, uint8_t> or
-            std::is_same_v<T, int16_t> or
-            std::is_same_v<T, uint16_t> or
-            std::is_same_v<T, int32_t> or
-            std::is_same_v<T, uint32_t> or
-            std::is_same_v<T, int64_t> or
-            std::is_same_v<T, uint64_t> or
-            std::is_same_v<T, float> or
-            std::is_same_v<T, double>,
-                    std::true_type,
-                    std::false_type>::type;
+    namespace detail
+    {
+        template<typename T>
+        using is_primitive = typename std::conditional<
+                std::is_same_v<T, bool> or
+                std::is_same_v<T, char> or
+                std::is_same_v<T, int8_t> or
+                std::is_same_v<T, uint8_t> or
+                std::is_same_v<T, int16_t> or
+                std::is_same_v<T, uint16_t> or
+                std::is_same_v<T, int32_t> or
+                std::is_same_v<T, uint32_t> or
+                std::is_same_v<T, int64_t> or
+                std::is_same_v<T, uint64_t> or
+                std::is_same_v<T, float> or
+                std::is_same_v<T, double>,
+                std::true_type,
+                std::false_type>::type;
+    }
 
     /// @brief unbox to primitive
-    template<typename T, std::enable_if_t<is_primitive<T>::value, bool> = true>
+    template<typename T, std::enable_if_t<detail::is_primitive<T>::value, bool> = true>
     T unbox(jl_value_t* value)
     {
         static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
@@ -121,7 +124,7 @@ namespace jlwrap
                 return jl_unbox_float64(jl_call2(convert, (jl_value_t*) jl_float64_type, value));
         }
         else
-            return reinterpret_cast<T>(nullptr);  // unreachable code
+            return T();  // unreachable code
     }
 
     /// @brief unbox to string
@@ -135,11 +138,54 @@ namespace jlwrap
         static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
 
         if (not jl_unbox_bool(jl_call2(is_method_available, (jl_value_t*) to_string, value)))
-        {
-            char* type_name = jl_string_data(jl_call1(to_string, jl_typeof(value)));
-            throw MethodException("string", {type_name});
-        }
+            throw MethodException("string", {jl_to_string(jl_typeof(value))});
 
         return std::string(jl_string_data(jl_call1(to_string, value)));
+    }
+
+    /// @brief unbox to vector
+    template<typename T,
+        typename Value_t = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::vector<Value_t>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        if (not jl_is_array(value))
+            throw TypeException("unbox<vector<T>>", "Array{T}", jl_to_string(jl_typeof(value)));
+
+        auto* as_array = (jl_array_t*) value;
+
+        std::vector<Value_t> out;
+        out.reserve(as_array->length);
+
+        for (size_t i = 0; i < as_array->length; ++i)
+            out.push_back(unbox<Value_t>(jl_arrayref(as_array, i)));
+
+        return out;
+    }
+
+    /// @brief unbox to array
+    template<typename T,
+        typename Value_t = typename T::value_type,
+        size_t N = sizeof(T) / sizeof(Value_t),
+        std::enable_if_t<std::is_same_v<T, std::array<Value_t, N>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        if (not jl_is_array(value))
+            throw TypeException("unbox<array<T, N>>", "Array{T}", jl_to_string(jl_typeof(value)));
+
+        auto* as_array = (jl_array_t*) value;
+
+        if (as_array->length != N)
+        {
+            std::stringstream str;
+            str << "[C++] Trying to unbox julia array of size " << as_array->length << " into C++ array of size " << N << std::endl;
+            throw std::length_error(str.str().c_str());
+        }
+
+        std::array<Value_t, N> out;
+        for (size_t i = 0; i < N; ++i)
+            out.at(i) = unbox<Value_t>(jl_arrayref(as_array, i));
+
+        return out;
     }
 }

@@ -120,7 +120,6 @@ namespace jlwrap
             const jl_array_t* _data;
             size_t _index;
     };
-
 }
 
 #include ".src/array_proxy.inl"
