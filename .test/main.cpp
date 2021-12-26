@@ -19,30 +19,9 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    State::script("include(\"/home/clem/Workspace/jlwrap/include/jlwrap.jl\")");
-
-    jl_function_t* ptr = jl_get_function(jl_main_module, "sprint");
-    assert(ptr != nullptr);
-
-    //auto* res = State::safe_script("sqrt(-1)");
-
-    /*
-    static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");
-    static jl_value_t* showerror = jl_eval_string("return Base.showerror");//jl_get_function(jl_base_module, "showerror");
-    static jl_function_t* current_exceptions = jl_get_function(jl_base_module, "current_exceptions");
-    static jl_function_t* backtrace = jl_get_function(jl_base_module, "catch_backtrace");
-
-    auto res = std::string(jl_string_data(
-    jl_call3(
-            sprint,
-            showerror,
-            jl_exception_occurred(),
-            jl_call0(backtrace)
-            )));
-
-    std::cout << res << std::endl;
-
-
+    jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
+    jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
+    assert(jl_exception_occurred());
 
     //State::script("askhjash()");
     //check_for_exceptions();

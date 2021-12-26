@@ -12,103 +12,67 @@
 
 namespace jlwrap
 {
+    /// @brief julia exception type
+    enum JuliaExceptionType
+    {
+        // error thrown via jl_error() c-side
+        ERROR_EXCEPTION = -1,
+
+        // no exception placeholder
+        NO_EXCEPTION = NULL,
+
+        //
+        ARGUMENT_ERROR ,
+        BOUNDS_ERROR,
+        COMPOSITE_EXCEPTION,
+        DIMENSION_MISMATCH,
+        DIVIDE_ERROR,
+        DOMAIN_ERROR,
+        EOF_ERROR,
+        INEXACT_ERROR,
+        INIT_ERROR,
+        INTERRUPT_EXCEPTION,
+        INVALID_STATE_EXCEPTION,
+        KEY_ERROR,
+        LOAD_ERROR,
+        OUT_OF_MEMORY_ERROR,
+        READ_ONLY_MEMORY_ERROR,
+        REMOTE_EXCEPTION,
+        METHOD_ERROR,
+        OVERFLOW_ERROR,
+        META_PARSE_ERROR,
+        SYSTEM_ERROR,
+        TYPE_ERROR,
+        UNDEF_REF_ERROR,
+        UNDEF_VAR_ERROR,
+        STRING_INDEX_ERROR
+    };
+
     /// @brief wrapper for julia exceptions
     class JuliaException : public std::exception
     {
         public:
+            /// @brief default ctor
             JuliaException() = default;
 
-            JuliaException(jl_value_t* exception, std::string stacktrace)
-                : _value(exception), _message(stacktrace)
-            {}
+            /// @brief ctor
+            /// @param exception: value pointing to a julia-side instance of the exception
+            /// @param stacktrace: string describing the exception and the stacktrace
+            JuliaException(jl_value_t* exception, std::string stacktrace);
 
-            virtual const char* what() const noexcept override final
-            {
-                return _message.c_str();
-            }
+            /// @brief get description
+            /// @returns c-string
+            virtual const char* what() const noexcept override final;
+
+            /// @brief get type
+            /// @returns type
+            JuliaExceptionType get_type();
 
         protected:
             jl_value_t* _value;
             std::string _message;
+            JuliaExceptionType _type;
     };
-
-    /*
-
-    /// @brief checks if a julia-side exception was thrown and if it was, propagates it into the corresponding C++ exception
-    void check_for_exceptions()
-    {
-        auto* exception = jl_exception_occurred();
-        if (exception == nullptr)
-            return;
-
-        static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");
-        static jl_value_t* showerror = jl_eval_string("return Base.showerror");//jl_get_function(jl_base_module, "showerror");
-        static jl_function_t* current_exceptions = jl_get_function(jl_base_module, "current_exceptions");
-        static jl_function_t* backtrace = jl_get_function(jl_base_module, "backtrace");
-
-        auto res = std::string(jl_string_data(jl_call3(
-                sprint,
-                showerror,
-                jl_call0(current_exceptions),
-                jl_call0(backtrace)
-                )));
-
-        std::cout << res << std::endl;
-
-        //std::cout << std::string(jl_string_data(jl_eval_string("return sprint(Base.showerror, current_exceptions(), backtrace())"))) << std::endl;
-    }
-
-    /// @brief exception thrown in safe mode when a value is undefined
-    class UndefVarException : public Exception
-    {
-        public:
-            explicit UndefVarException(std::string var_name, jl_module_t* module)
-                : Exception()
-            {
-                auto* name = jl_symbol_name_(module->name);
-                std::stringstream str;
-                str << "[JULIA] UndefVarError:" << var_name << " is undefined in module " << name << std::endl;
-                _message = str.str();
-            }
-
-            explicit UndefVarException(std::string var_name, std::string module)
-                : Exception()
-            {
-                std::stringstream str;
-                str << "[JULIA] UndefVarError:" << var_name << " is undefined in module " << module << std::endl;
-                _message = str.str();
-            }
-    };
-
-    /// @brief exception thrown in safe mode type does not match expected type
-    class TypeException : public Exception
-    {
-        public:
-            explicit TypeException(std::string in, std::string expected, std::string actual)
-                : Exception()
-            {
-                std::stringstream str;
-                str << "[JULIA] TypeError: in " << in << ", expected " << expected << ", got a value of type " << actual << std::endl;
-                _message = str.str();
-            }
-    };
-
-    /// @brief exception thrown in safe mode if there is no method of a function for the given argument types
-    class MethodException : public Exception
-    {
-        public:
-            explicit MethodException(std::string function_name, std::vector<std::string> types)
-                : Exception()
-            {
-                std::stringstream str;
-                str << "[JULIA] MethodError: no method matching " << function_name << "(";
-
-                for (size_t i = 0; i < types.size(); ++i)
-                    str << "::" << types.at(i) << (i == types.size() - 1 ? "" : ",");
-
-                str << ")" << std::endl;
-                _message = str.str();
-            }
-    };
-     */
 }
+
+#include ".src/exceptions.inl"

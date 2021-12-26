@@ -12,9 +12,7 @@ namespace jlwrap
 {
     void State::initialize()
     {
-        jl_init();
-        jl_atexit_hook(0);
-        jl_eval_string(R"(include("/home/clem/Workspace/jlwrap/.src/common.jl")");
+        jl_init_with_image("/home/clem/Applications/julia/bin", NULL);
         _reference_dict = jl_eval_string("global __jlwrap_refs = IdDict()");
         _reference_dict_insert = jl_get_function(jl_base_module, "setindex!");
         _reference_dict_erase = jl_get_function(jl_base_module, "delete!");

@@ -2,8 +2,7 @@
 # Copyright 2021 Clemens Cords
 # Created on 26.12.2021 by clem (mail@clemens-cords.com)
 #
-
-begin
+begin # included into module jlwrap
 
     """
     offers verbose exception interface. Any call with safe_call will store
@@ -15,8 +14,12 @@ begin
         struct NoException <: Exception end
         export NoException
 
-        _last_message = Ref{String}("")
-        _last_exception = Ref{Exception}(NoException())
+        struct State
+            _last_exception
+            _last_message::String
+        end
+
+        _state = Ref{State(NoException(), "")};
 
         """
         call any line of code, update the handler then forward the result, if any
@@ -45,8 +48,8 @@ begin
         """
         function update(exception::Exception) ::Nothing
 
-            global _last_message = sprint(Base.showerror, exception, catch_backtrace());
-            global _last_exception = exception
+            global _state._last_message = sprint(Base.showerror, exception, catch_backtrace());
+            global _state._last_exception = exception
             return nothing
         end
 
@@ -55,14 +58,9 @@ begin
         """
         function update() ::Nothing
 
-            global _last_message = ""
-            global _last_exception = NoException()
+            global _state._last_message = ""
+            global _state._last_exception = NoException()
             return nothing
-        end
-
-        struct State
-            _last_exception
-            _last_message::String
         end
 
         """
@@ -80,5 +78,4 @@ begin
             return typeof(_last_exception) != NoException
         end
     end
-
 end
