@@ -138,7 +138,7 @@ namespace jlwrap
         static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
 
         if (not jl_unbox_bool(jl_call2(is_method_available, (jl_value_t*) to_string, value)))
-            throw MethodException("string", {jl_to_string(jl_typeof(value))});
+            assert(false);
 
         return std::string(jl_string_data(jl_call1(to_string, value)));
     }
@@ -150,7 +150,7 @@ namespace jlwrap
     T unbox(jl_value_t* value)
     {
         if (not jl_is_array(value))
-            throw TypeException("unbox<vector<T>>", "Array{T}", jl_to_string(jl_typeof(value)));
+            assert(false);
 
         auto* as_array = (jl_array_t*) value;
 
@@ -171,7 +171,7 @@ namespace jlwrap
     T unbox(jl_value_t* value)
     {
         if (not jl_is_array(value))
-            throw TypeException("unbox<array<T, N>>", "Array{T}", jl_to_string(jl_typeof(value)));
+            assert(false);
 
         auto* as_array = (jl_array_t*) value;
 

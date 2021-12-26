@@ -1,66 +1,22 @@
 #
 # Copyright 2021 Clemens Cords
-# Created on 17.12.21 by clem (mail@clemens-cords.com)
+# Created on 26.12.2021 by clem (mail@clemens-cords.com)
 #
 
-"""
-internal julia-side functions for jlwrap C++ binding
-"""
-module jlwrap
-
-    """
-    list all submodules in Main
-
-    @returns array of modules
-    """
-    function list_submodules() ::Array{Module, 1}
-
-        return map(x -> convert(Module, x), filter(x->isa(x, Module), map(x -> eval(x), names(Main))))
-    end
-
-    """
-    add expression to already existing module
-
-    @param m: module
-    @param expr: expression
-    """
-    function add_to_module(m::Module, expr::Expr) ::Nothing
-
-        m.eval(expr)
-    end
-
-    """
-    get value type of array
-
-    @param _: array of any rank
-    @returns value type T
-    """
-    function get_value_type_of_array(_::Array{T}) where {T}
-
-        return T
-    end
-
-    """
-    check if method of given function is available for a specific variable
-
-    @param f: function
-    @param variable
-    @returns true if method is available, false otherwise
-    """
-    function is_method_available(f::Function, variable) ::Bool
-
-        return hasmethod(f, Tuple{typeof(variable)})
-    end
+begin
 
     """
     offers verbose exception interface. Any call with safe_call will store
     the last exception and full stack trace as string in _last_exception and
     _last_message respectively
     """
-    module ExceptionHandler
+    module exception_handler
 
-        global _last_message = String("")
-        global _last_exception
+        struct NoException <: Exception end
+        export NoException
+
+        _last_message = String("")
+        _last_exception::Exception = NoException()
 
         """
         call any line of code, update the handler then forward the result, if any
@@ -73,7 +29,7 @@ module jlwrap
             as_expression = Meta.parse(command)
             result = undef;
             try
-                result = eval(as_expression)
+                result = begin eval(as_expression) end
                 update()
             catch exc
                 result = nothing
@@ -100,7 +56,7 @@ module jlwrap
         function update() ::Nothing
 
             global _last_message = ""
-            global _last_exception = nothing
+            global _last_exception = NoException()
             return nothing
         end
 
@@ -121,7 +77,8 @@ module jlwrap
 
         function has_exception_occurred() ::Bool
 
-            return _last_exception == Nothing
+            return typeof(_last_exception) != NoException
         end
     end
+
 end

@@ -12,14 +12,14 @@
 
 namespace jlwrap
 {
-    /// @brief general exception
-    class Exception : public std::exception
+    /// @brief wrapper for julia exceptions
+    class JuliaException : public std::exception
     {
         public:
-            Exception() = default;
+            JuliaException() = default;
 
-            Exception(std::string msg)
-                : _message(msg)
+            JuliaException(jl_value_t* exception, std::string stacktrace)
+                : _value(exception), _message(stacktrace)
             {}
 
             virtual const char* what() const noexcept override final
@@ -28,8 +28,11 @@ namespace jlwrap
             }
 
         protected:
+            jl_value_t* _value;
             std::string _message;
     };
+
+    /*
 
     /// @brief checks if a julia-side exception was thrown and if it was, propagates it into the corresponding C++ exception
     void check_for_exceptions()
@@ -107,4 +110,5 @@ namespace jlwrap
                 _message = str.str();
             }
     };
+     */
 }

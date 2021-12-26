@@ -19,16 +19,13 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    State::script("include(\"/home/clem/Workspace/jlwrap/.src/common.jl\")");
+    State::script("include(\"/home/clem/Workspace/jlwrap/include/jlwrap.jl\")");
 
     jl_function_t* ptr = jl_get_function(jl_main_module, "sprint");
     assert(ptr != nullptr);
 
-    auto* res = State::safe_script("return true");
-
-    std::cout << jl_unbox_bool(res) << std::endl;
-
-    std::cout << jl_string_data(jl_eval_string("return jlwrap.ExceptionHandler._last_message")) << std::endl;
+    assert(jl_unbox_bool(State::safe_script("return false")));
+    //auto* res = State::safe_script("abcdef()");
 
     /*
     static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");

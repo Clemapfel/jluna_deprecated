@@ -20,7 +20,7 @@ namespace jlwrap
         {
             std::stringstream str;
             str << jl_typeof(value) << std::endl;
-            throw TypeException("Array<T, R>(jl_value_t*)", "jl_array_t", "str.str()");
+            assert(false);
         }
 
         _value = (jl_array_t*) Proxy<State>::operator _jl_value_t *();

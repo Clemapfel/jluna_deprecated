@@ -20,7 +20,7 @@ namespace jlwrap
         _reference_wrapper = reinterpret_cast<jl_datatype_t*>(jl_eval_string("Base.RefValue{Any}"));
     }
 
-    auto State::script(std::string str)
+    auto State::script(std::string str) noexcept
     {
         return jl_eval_string(str.c_str());
     }
@@ -28,15 +28,18 @@ namespace jlwrap
     auto State::safe_script(std::string command)
     {
         std::stringstream str;
-
-        str << "try\n" << command << "\n";
-        str << R"(
-            jlwrap.ExceptionHandler.update()
-        catch exception
-            jlwrap.ExceptionHandler.update(exception)
-        end)";
-
+        str << "jlwrap.exception_handler.safe_call(\"" << command << "\")" << std::endl;
         auto* result = jl_eval_string(str.str().c_str());
+
+        jl_eval_string("print(typeof(jlwrap.exception_handler._last_exception))");
+        if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
+        {
+            throw JuliaException(
+                    jl_eval_string("return jlwrap.exception_handler._last_exception"),
+                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler._last_message")))
+            );
+        }
+
         return result;
     }
 
@@ -50,8 +53,6 @@ namespace jlwrap
 
     Primitive State::get_primitive(std::string var_name, std::string module_name)
     {
-        throw_if_undefined(var_name, module_name);
-
         auto* res = execute("return ", var_name);
         return Primitive(res);
     }
@@ -114,15 +115,6 @@ namespace jlwrap
     {
         auto* res = execute("isdefined(", module_name, ",", var_name, ")");
         return jl_unbox_bool(res);
-    }
-
-    void State::throw_if_undefined(std::string& var_name, std::string& module_name)
-    {
-        if (not is_defined(module_name, "Main"))
-            throw UndefVarException("module_name", "Main");
-
-        if (not is_defined(var_name, module_name))
-            throw UndefVarException(var_name, module_name);
     }
 
     void State::create_reference(jl_value_t* in)
