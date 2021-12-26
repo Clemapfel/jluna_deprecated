@@ -14,12 +14,12 @@ begin # included into module jlwrap
         struct NoException <: Exception end
         export NoException
 
-        struct State
+        mutable struct State
             _last_exception
             _last_message::String
         end
 
-        _state = Ref{State(NoException(), "")};
+        _state = Ref{State}(State(NoException(), ""));
 
         """
         call any line of code, update the handler then forward the result, if any
@@ -48,8 +48,8 @@ begin # included into module jlwrap
         """
         function update(exception::Exception) ::Nothing
 
-            global _state._last_message = sprint(Base.showerror, exception, catch_backtrace());
-            global _state._last_exception = exception
+            global _state[]._last_message = sprint(Base.showerror, exception, catch_backtrace());
+            global _state[]._last_exception = exception
             return nothing
         end
 
@@ -58,8 +58,8 @@ begin # included into module jlwrap
         """
         function update() ::Nothing
 
-            global _state._last_message = ""
-            global _state._last_exception = NoException()
+            global _state[]._last_message = ""
+            global _state[]._last_exception = NoException()
             return nothing
         end
 
@@ -73,9 +73,32 @@ begin # included into module jlwrap
             return State(_last_exception, _last_message)
         end
 
+        """
+        is last exception type no "jlwrap.exception_handler.NoException"
+
+        @returns bool
+        """
         function has_exception_occurred() ::Bool
 
-            return typeof(_last_exception) != NoException
+            return typeof(_state[]._last_exception) != NoException
+        end
+
+        """
+        get last exception stacktrace
+
+        @returns error message as string
+        """
+        function get_last_message() ::String
+            return _state[]._last_message
+        end
+
+        """
+        get last exception
+
+        @returns exception
+        """
+        function get_last_exception() ::Exception
+            return _state[]._last_exception
         end
     end
 end

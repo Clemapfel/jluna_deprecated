@@ -20,11 +20,10 @@ int main()
 {
     State::initialize();
     jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
-    jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
-    assert(jl_exception_occurred());
+    //jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
 
-    //State::script("askhjash()");
-    //check_for_exceptions();
+    auto* arr = State::safe_script("return Array{Float32, 2}(reshape(collect(1:25), 5, 5)");
+    std::cout << jl_string_data(jl_typeof_str(arr)) << std::endl;
     return 0;
 
     /*

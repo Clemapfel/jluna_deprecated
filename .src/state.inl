@@ -33,8 +33,8 @@ namespace jlwrap
         if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
         {
             throw JuliaException(
-                    jl_eval_string("return jlwrap.exception_handler._last_exception"),
-                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler._last_message")))
+                    jl_eval_string("return jlwrap.exception_handler.get_last_exception()"),
+                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler.get_last_message()")))
             );
         }
 
