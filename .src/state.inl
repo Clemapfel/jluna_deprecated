@@ -13,6 +13,7 @@ namespace jlwrap
     void State::initialize()
     {
         jl_init();
+        jl_atexit_hook(0);
         jl_eval_string(R"(include("/home/clem/Workspace/jlwrap/.src/common.jl")");
         _reference_dict = jl_eval_string("global __jlwrap_refs = IdDict()");
         _reference_dict_insert = jl_get_function(jl_base_module, "setindex!");
@@ -31,7 +32,6 @@ namespace jlwrap
         str << "jlwrap.exception_handler.safe_call(\"" << command << "\")" << std::endl;
         auto* result = jl_eval_string(str.str().c_str());
 
-        jl_eval_string("print(typeof(jlwrap.exception_handler._last_exception))");
         if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
         {
             throw JuliaException(

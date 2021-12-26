@@ -24,8 +24,7 @@ int main()
     jl_function_t* ptr = jl_get_function(jl_main_module, "sprint");
     assert(ptr != nullptr);
 
-    assert(jl_unbox_bool(State::safe_script("return false")));
-    //auto* res = State::safe_script("abcdef()");
+    //auto* res = State::safe_script("sqrt(-1)");
 
     /*
     static jl_function_t* sprint = jl_get_function(jl_base_module, "sprint");

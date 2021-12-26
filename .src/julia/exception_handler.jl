@@ -15,8 +15,8 @@ begin
         struct NoException <: Exception end
         export NoException
 
-        _last_message = String("")
-        _last_exception::Exception = NoException()
+        _last_message = Ref{String}("")
+        _last_exception = Ref{Exception}(NoException())
 
         """
         call any line of code, update the handler then forward the result, if any
