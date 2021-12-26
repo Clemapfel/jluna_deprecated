@@ -38,15 +38,21 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
-    auto Array<T, R>::get(size_t i) const
+    typename Array<T, R>::ConstIterator Array<T, R>::get(size_t i) const
     {
-        return unbox<T>((jl_value_t*) jl_arrayref((jl_array_t*) _value, i));
+        return ConstIterator(_value, i);
     }
 
     template<typename T, size_t R>
-    auto Array<T, R>::at(size_t i) const
+    typename Array<T, R>::NonConstIterator Array<T, R>::get(size_t i)
     {
-        if (reinterpret_cast<jl_array_t*>(_value)->length >= i)
+        return NonConstIterator(_value, i);
+    }
+
+    template<typename T, size_t R>
+    const auto Array<T, R>::at(size_t i) const
+    {
+        if (i >= reinterpret_cast<jl_array_t*>(_value)->length)
         {
             std::stringstream str;
             str << "In Array<T, R>::at(size_t i): index out of range for an array of size " << reinterpret_cast<jl_array_t*>(_value)->length << std::endl;
@@ -57,15 +63,34 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
-    size_t Array<T, R>::length() const
+    const auto Array<T, R>::operator[](size_t i) const
     {
-        return ((jl_array_t*) _value)->length;
+        return get(i);
     }
 
     template<typename T, size_t R>
-    auto Array<T, R>::operator[](size_t i) const
+    auto Array<T, R>::at(size_t i)
+    {
+        if (i >= reinterpret_cast<jl_array_t*>(_value)->length)
+        {
+            std::stringstream str;
+            str << "In Array<T, R>::at(size_t i): index out of range for an array of size " << reinterpret_cast<jl_array_t*>(_value)->length << std::endl;
+            throw std::out_of_range(str.str());
+        }
+
+        return get(i);
+    }
+
+    template<typename T, size_t R>
+    auto Array<T, R>::operator[](size_t i)
     {
         return get(i);
+    }
+
+    template<typename T, size_t R>
+    size_t Array<T, R>::length() const
+    {
+        return ((jl_array_t*) _value)->length;
     }
 
     template<typename T, size_t R>
@@ -77,7 +102,7 @@ namespace jlwrap
     template<typename T, size_t R>
     auto Array<T, R>::begin() const
     {
-        return ConstIterator(_value, 0);
+        return Iterator(_value, 0);
     }
 
     template<typename T, size_t R>
@@ -89,7 +114,7 @@ namespace jlwrap
     template<typename T, size_t R>
     auto Array<T, R>::end() const
     {
-        return ConstIterator(_value, reinterpret_cast<jl_array_t*>(_value)->length);
+        return Iterator(_value, reinterpret_cast<jl_array_t*>(_value)->length);
     }
 
 }

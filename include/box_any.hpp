@@ -74,7 +74,7 @@ namespace jlwrap
         }
         else if (std::is_same_v<T, std::string>)
         {
-            return State::script("return " + value);
+            return State::script("return " + std::to_string(value));
         }
         else
             return jl_box_voidpointer(nullptr); // placeholder

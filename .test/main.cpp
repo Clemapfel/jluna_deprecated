@@ -22,8 +22,15 @@ int main()
     jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
     //jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
 
-    auto* arr = State::safe_script("return Array{Float32, 2}(reshape(collect(1:25), 5, 5)");
-    std::cout << jl_string_data(jl_typeof_str(arr)) << std::endl;
+    auto arr = unbox<Array<double, 3>>(State::safe_script("return Array{Float32, 3}(reshape(collect(1:(25*5)), 5, 5, 5))"));
+
+    auto& const_arr = const_cast<const decltype(arr)&>(arr);
+    auto s = arr.at(120);
+    s = 999999;
+
+    for (double s : arr)
+        std::cout << s << std::endl;
+
     return 0;
 
     /*

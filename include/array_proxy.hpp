@@ -11,22 +11,27 @@
 namespace jlwrap
 {
     /// @brief wrapper for julia arrays of arbitrary value type
-    template<typename T, size_t R>
+    template<typename T, size_t Rank = 1>
     class Array : public Proxy<State>
     {
         class Iterator;
-        class ConstIterator;
+        struct ConstIterator;
+        struct NonConstIterator;
 
         public:
+            using value_type = T;
+            static constexpr size_t rank = Rank;
+
             Array(jl_value_t*);
             Array(jl_array_t*);
 
             [[implicit]] operator jl_array_t*();
 
-            /// @param i: overall index in all dimensions
-            auto at(size_t) const;
-            auto operator[](size_t) const;
-            auto get(size_t) const;
+            const auto at(size_t) const;
+            const auto operator[](size_t) const;
+
+            auto at(size_t);
+            auto operator[](size_t);
 
             size_t length() const;
 
@@ -36,6 +41,9 @@ namespace jlwrap
             auto end() const;
 
         protected:
+            ConstIterator get(size_t) const;
+            NonConstIterator get(size_t);
+
             jl_array_t* _value;
     };
 
@@ -65,15 +73,13 @@ namespace jlwrap
             static inline jl_function_t* _replace = jl_get_function(jl_main_module, "setindex!");
     };
 
-    /// @brief non-const iterator
+    /// @brief iterator, handles assignment
     template<typename T, size_t R>
     class Array<T, R>::Iterator
     {
         friend class Array<T, R>;
 
         public:
-            auto& operator=(T);
-
             void operator++();
             void operator++(int);
             void operator--();
@@ -82,43 +88,44 @@ namespace jlwrap
             bool operator==(const Iterator&) const;
             bool operator!=(const Iterator&) const;
 
-            operator jl_value_t*();
+            // const: decays into value type
+            T operator*() const;
+
+            // non-const: stays as assignable iterator
+            auto& operator*();
+
             operator T();
+            explicit operator const jl_value_t*() const;
 
         protected:
             Iterator(jl_array_t*, size_t);
 
-        private:
             jl_array_t* _data;
             size_t _index;
 
-            static inline jl_function_t* _replace = jl_get_function(jl_main_module, "setindex!");
-
+            static inline jl_function_t* _replace = nullptr;
     };
 
-    /// @brief const iterator
     template<typename T, size_t R>
-    class Array<T, R>::ConstIterator
+    class Array<T, R>::NonConstIterator : public Array<T, R>::Iterator
     {
-        friend class Array<T, R>;
-
         public:
-            void operator++();
-            void operator++(int);
-            void operator--();
-            void operator--(int);
-
-            bool operator==(const ConstIterator&) const;
-            bool operator!=(const ConstIterator&) const;
-
-            operator const jl_value_t*() const;
+            auto& operator=(T);
 
         protected:
-            ConstIterator(jl_array_t*, size_t);
+            NonConstIterator(jl_array_t*, size_t);
 
         private:
-            const jl_array_t* _data;
-            size_t _index;
+            using Array<T, R>::Iterator::_data;
+            using Array<T, R>::Iterator::_index;
+            using Array<T, R>::Iterator::_replace;
+    };
+
+    template<typename T, size_t R>
+    class Array<T, R>::ConstIterator : public Array<T, R>::Iterator
+    {
+        protected:
+            ConstIterator(jl_array_t*, size_t);
     };
 }
 

@@ -9,6 +9,8 @@
 
 #include <type_traits>
 
+#include <array_proxy.hpp>
+
 namespace jlwrap
 {
     namespace detail
@@ -143,7 +145,7 @@ namespace jlwrap
         return std::string(jl_string_data(jl_call1(to_string, value)));
     }
 
-    /// @brief unbox to vector
+    /// @brief unbox to vector, flattens multidimensional arrays
     template<typename T,
         typename Value_t = typename T::value_type,
         std::enable_if_t<std::is_same_v<T, std::vector<Value_t>>, bool> = true>
@@ -166,26 +168,16 @@ namespace jlwrap
     /// @brief unbox to array
     template<typename T,
         typename Value_t = typename T::value_type,
-        size_t N = sizeof(T) / sizeof(Value_t),
-        std::enable_if_t<std::is_same_v<T, std::array<Value_t, N>>, bool> = true>
+        size_t Rank = T::rank,
+        std::enable_if_t<std::is_same_v<T, jlwrap::Array<Value_t, Rank>>, bool> = true>
     T unbox(jl_value_t* value)
     {
-        if (not jl_is_array(value))
-            assert(false);
+        assert(jl_is_array(value));
 
-        auto* as_array = (jl_array_t*) value;
+        // assert dimensionality
+        static jl_function_t* ndims = jl_get_function(jl_base_module, "ndims");
+        assert(jl_unbox_int64(jl_call1(ndims, value)) == Rank && "dimensionality mismatch");
 
-        if (as_array->length != N)
-        {
-            std::stringstream str;
-            str << "[C++] Trying to unbox julia array of size " << as_array->length << " into C++ array of size " << N << std::endl;
-            throw std::length_error(str.str().c_str());
-        }
-
-        std::array<Value_t, N> out;
-        for (size_t i = 0; i < N; ++i)
-            out.at(i) = unbox<Value_t>(jl_arrayref(as_array, i));
-
-        return out;
+        return Array<Value_t, Rank>(value);
     }
 }

@@ -4,6 +4,7 @@
 //
 
 #include <exceptions.hpp>
+#include <julia.h>
 
 namespace jlwrap
 {
