@@ -9,15 +9,28 @@
 namespace jlwrap
 {
     template<typename T>
-    bool Vector<T>::empty() const
+    Vector<T>::Vector()
     {
-        return Array<T, 1>::_value->length == 0;
+       if (_push_front == nullptr)
+           _push_front = jl_get_function(jl_main_module, "pushfirst!");
+
+       if (_push_back== nullptr)
+           _push_back = jl_get_function(jl_main_module, "append!");
+
+       if (_insert == nullptr)
+           _insert = jl_get_function(jl_main_module, "insert!");
+
+       if (_erase == nullptr)
+           _erase = jl_get_function(jl_main_module, "deleteat!");
+
+       if (_replace == nullptr)
+           _replace = jl_get_function(jl_main_module, "setindex!");
     }
 
     template<typename T>
-    size_t Vector<T>::size() const
+    bool Vector<T>::empty() const
     {
-        return Array<T, 1>::_value->lengthh;
+        return Array<T, 1>::_value->length == 0;
     }
 
     template<typename T>
