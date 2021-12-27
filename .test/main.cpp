@@ -24,10 +24,9 @@ int main()
 
     auto arr = unbox<Array<double, 3>>(State::safe_script("return Array{Float32, 3}(reshape(collect(1:(25*5)), 5, 5, 5))"));
 
-    auto& const_arr = const_cast<const decltype(arr)&>(arr);
-    auto s = arr.at(120);
-    s = 999999;
+    auto test = arr.at(-11, 2, 5);
 
+    auto& const_arr = const_cast<const decltype(arr)&>(arr);
     for (double s : arr)
         std::cout << s << std::endl;
 

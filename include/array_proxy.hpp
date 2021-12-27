@@ -11,7 +11,7 @@
 namespace jlwrap
 {
     /// @brief wrapper for julia arrays of arbitrary value type
-    template<typename T, size_t Rank = 1>
+    template<typename T, size_t Rank>
     class Array : public Proxy<State>
     {
         class Iterator;
@@ -27,11 +27,15 @@ namespace jlwrap
 
             [[implicit]] operator jl_array_t*();
 
-            const auto at(size_t) const;
+            // linear indexing
             const auto operator[](size_t) const;
-
-            auto at(size_t);
             auto operator[](size_t);
+
+            template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
+            auto at(Args... in);
+
+            template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
+            const auto at(Args... in) const;
 
             size_t length() const;
 
@@ -73,7 +77,7 @@ namespace jlwrap
             static inline jl_function_t* _replace = jl_get_function(jl_main_module, "setindex!");
     };
 
-    /// @brief iterator, handles assignment
+    /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
     template<typename T, size_t R>
     class Array<T, R>::Iterator
     {
@@ -112,7 +116,6 @@ namespace jlwrap
         public:
             auto& operator=(T);
 
-        protected:
             NonConstIterator(jl_array_t*, size_t);
 
         private:
@@ -122,10 +125,9 @@ namespace jlwrap
     };
 
     template<typename T, size_t R>
-    class Array<T, R>::ConstIterator : public Array<T, R>::Iterator
+    struct Array<T, R>::ConstIterator : public Array<T, R>::Iterator
     {
-        protected:
-            ConstIterator(jl_array_t*, size_t);
+        ConstIterator(jl_array_t*, size_t);
     };
 }
 

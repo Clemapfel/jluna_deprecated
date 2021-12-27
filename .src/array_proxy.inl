@@ -9,6 +9,7 @@
 #include <exceptions.hpp>
 #include <proxy.hpp>
 #include <unbox_any.hpp>
+#include <box_any.hpp>
 
 namespace jlwrap
 {
@@ -38,53 +39,15 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
-    typename Array<T, R>::ConstIterator Array<T, R>::get(size_t i) const
-    {
-        return ConstIterator(_value, i);
-    }
-
-    template<typename T, size_t R>
-    typename Array<T, R>::NonConstIterator Array<T, R>::get(size_t i)
+    auto Array<T, R>::operator[](size_t i)
     {
         return NonConstIterator(_value, i);
     }
 
     template<typename T, size_t R>
-    const auto Array<T, R>::at(size_t i) const
-    {
-        if (i >= reinterpret_cast<jl_array_t*>(_value)->length)
-        {
-            std::stringstream str;
-            str << "In Array<T, R>::at(size_t i): index out of range for an array of size " << reinterpret_cast<jl_array_t*>(_value)->length << std::endl;
-            throw std::out_of_range(str.str());
-        }
-
-        return get(i);
-    }
-
-    template<typename T, size_t R>
     const auto Array<T, R>::operator[](size_t i) const
     {
-        return get(i);
-    }
-
-    template<typename T, size_t R>
-    auto Array<T, R>::at(size_t i)
-    {
-        if (i >= reinterpret_cast<jl_array_t*>(_value)->length)
-        {
-            std::stringstream str;
-            str << "In Array<T, R>::at(size_t i): index out of range for an array of size " << reinterpret_cast<jl_array_t*>(_value)->length << std::endl;
-            throw std::out_of_range(str.str());
-        }
-
-        return get(i);
-    }
-
-    template<typename T, size_t R>
-    auto Array<T, R>::operator[](size_t i)
-    {
-        return get(i);
+        return ConstIterator(_value, i);
     }
 
     template<typename T, size_t R>
@@ -115,6 +78,55 @@ namespace jlwrap
     auto Array<T, R>::end() const
     {
         return Iterator(_value, reinterpret_cast<jl_array_t*>(_value)->length);
+    }
+
+    template<typename T, size_t Rank>
+    template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
+    auto Array<T, Rank>::at(Args... in)
+    {
+        // check for bounds along each dimensions separately
+        auto throw_if_out_of_range = [&](auto index, size_t dimension)
+        {
+            if (index < 0)
+                throw std::out_of_range("negative index, only indices >= 0 permitted");
+
+            static auto* size_at = jl_get_function(jl_base_module, "size");
+            size_t dim = unbox<size_t>(jl_call2(size_at, (jl_value_t*) _value, box<size_t>(dimension + 1)));
+
+            std::string dim_id;
+
+            if (dimension == 0)
+                dim_id = "1st dimension";
+            else if (dimension == 1)
+                dim_id = "2nd dimension";
+            else if (dimension == 3)
+                dim_id = "3rd dimension";
+            else if (dimension < 11)
+                dim_id = std::to_string(dimension) + "th dimension";
+            else
+                dim_id = "dimension " + std::to_string(dimension);
+
+            if (index >= dim)
+            {
+                std::stringstream str;
+                str << "index " << index << " out of range for array of length " << dim << " along " << dim_id << std::endl;
+                throw std::out_of_range(str.str().c_str());
+            }
+        };
+
+        {
+            size_t i = 0;
+            (throw_if_out_of_range(in, i++), ...);
+        }
+
+        return operator[](0);
+    }
+
+    template<typename T, size_t Rank>
+    template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
+    const auto Array<T, Rank>::at(Args... in) const
+    {
+
     }
 
 }
