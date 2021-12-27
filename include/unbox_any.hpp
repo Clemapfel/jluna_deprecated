@@ -6,6 +6,7 @@
 #pragma once
 
 #include <julia.h>
+#include <julia_extension.h>
 
 #include <type_traits>
 
@@ -41,86 +42,86 @@ namespace jlwrap
 
         if (std::is_same_v<T, bool>)
         {
-            if (jl_isa(value, jl_bool_type))
+            if (jl_isa(value, (jl_value_t*) jl_bool_type))
                 return jl_unbox_bool(value);
             else
                 return jl_unbox_bool(jl_call2(convert, (jl_value_t*) jl_bool_type, value));
         }
         else if (std::is_same_v<T, char>)
         {
-            if (jl_isa(value, jl_bool_type))
+            if (jl_isa(value, (jl_value_t*) jl_bool_type))
                 return jl_unbox_int8(value);
             else
                 return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_char_type, value));
         }
         else if (std::is_same_v<T, int8_t>)
         {
-            if (jl_isa(value, jl_int8_type))
+            if (jl_isa(value, (jl_value_t*) jl_int8_type))
                 return jl_unbox_int8(value);
             else
                 return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_int8_type, value));
         }
         else if (std::is_same_v<T, int16_t>)
         {
-            if (jl_isa(value, jl_int16_type))
+            if (jl_isa(value, (jl_value_t*) jl_int16_type))
                 return jl_unbox_int16(value);
             else
                 return jl_unbox_int16(jl_call2(convert, (jl_value_t*) jl_int16_type, value));
         }
         else if (std::is_same_v<T, int32_t>)
         {
-            if (jl_isa(value, jl_int32_type))
+            if (jl_isa(value, (jl_value_t*) jl_int32_type))
                 return jl_unbox_int32(value);
             else
                 return jl_unbox_int32(jl_call2(convert, (jl_value_t*) jl_int32_type, value));
         }
         else if (std::is_same_v<T, int64_t>)
         {
-            if (jl_isa(value, jl_int64_type))
+            if (jl_isa(value, (jl_value_t*) jl_int64_type))
                 return jl_unbox_int64(value);
             else
                 return jl_unbox_int64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
         }
         else if (std::is_same_v<T, uint8_t>)
         {
-            if (jl_isa(value, jl_uint8_type))
+            if (jl_isa(value, (jl_value_t*) jl_uint8_type))
                 return jl_unbox_uint8(value);
             else
                 return jl_unbox_uint8(jl_call2(convert, (jl_value_t*) jl_uint8_type, value));
         }
         else if (std::is_same_v<T, uint16_t>)
         {
-            if (jl_isa(value, jl_uint16_type))
+            if (jl_isa(value, (jl_value_t*) jl_uint16_type))
                 return jl_unbox_uint16(value);
             else
                 return jl_unbox_uint16(jl_call2(convert, (jl_value_t*) jl_uint16_type, value));
         }
         else if (std::is_same_v<T, uint32_t>)
         {
-            if (jl_isa(value, jl_uint32_type))
+            if (jl_isa(value, (jl_value_t*) jl_uint32_type))
                 return jl_unbox_uint32(value);
             else
                 return jl_unbox_uint32(jl_call2(convert, (jl_value_t*) jl_uint32_type, value));
         }
         else if (std::is_same_v<T, uint64_t>)
         {
-            if (jl_isa(value, jl_uint64_type))
+            if (jl_isa(value, (jl_value_t*) jl_uint64_type))
                 return jl_unbox_uint64(value);
             else
                 return jl_unbox_uint64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
         }
         else if (std::is_same_v<T, float>)
         {
-            if (jl_isa(value, jl_float16_type))
+            if (jl_isa(value, (jl_value_t*) jl_float16_type))
                 return jl_unbox_float16(value);
-            else if (jl_isa(value, jl_float32_type))
+            else if (jl_isa(value, (jl_value_t*) jl_float32_type))
                 return jl_unbox_float32(value);
             else
                 return jl_unbox_float32(jl_call2(convert, (jl_value_t*) jl_float32_type, value));
         }
         else if (std::is_same_v<T, double>)
         {
-            if (jl_isa(value, jl_float64_type))
+            if (jl_isa(value, (jl_value_t*) jl_float64_type))
                 return jl_unbox_float64(value);
             else
                 return jl_unbox_float64(jl_call2(convert, (jl_value_t*) jl_float64_type, value));
@@ -133,7 +134,7 @@ namespace jlwrap
     template<typename T, std::enable_if_t<std::is_same_v<T, std::string>, bool> = true>
     T unbox(jl_value_t* value)
     {
-        if (jl_isa(value, jl_string_type))
+        if (jl_isa(value, (jl_value_t*) jl_string_type))
             return std::string(jl_string_data(value));
 
         static jl_function_t* is_method_available = State::script("return jlwrap.is_method_available");
@@ -179,5 +180,11 @@ namespace jlwrap
         assert(jl_unbox_int64(jl_call1(ndims, value)) == Rank && "dimensionality mismatch");
 
         return Array<Value_t, Rank>(value);
+    }
+
+    /// @brief unbox identity
+    jl_value_t* unbox(jl_value_t* value)
+    {
+        return value;
     }
 }

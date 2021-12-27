@@ -11,10 +11,14 @@
 #include <string>
 
 #include <unbox_any.hpp>
-#include <state.hpp>
 
 namespace jlwrap
 {
+    jl_value_t* box(jl_value_t* value)
+    {
+        return value;
+    }
+
     template<typename T,
             std::enable_if_t<
                     detail::is_primitive<T>::value or
@@ -74,7 +78,7 @@ namespace jlwrap
         }
         else if (std::is_same_v<T, std::string>)
         {
-            return State::script("return " + std::to_string(value));
+            //return State::script("return " + std::to_string(value));
         }
         else
             return jl_box_voidpointer(nullptr); // placeholder
