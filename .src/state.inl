@@ -19,15 +19,29 @@ namespace jlwrap
         _reference_wrapper = reinterpret_cast<jl_datatype_t*>(jl_eval_string("Base.RefValue{Any}"));
     }
 
-    auto State::script(std::string str) noexcept
+    auto State::script(const std::string& str) noexcept
     {
         return jl_eval_string(str.c_str());
     }
 
-    auto State::safe_script(std::string command)
+    auto State::safe_script(const std::string& command)
     {
         std::stringstream str;
-        str << "jlwrap.exception_handler.safe_call(\"" << command << "\")" << std::endl;
+        str << "jlwrap.exception_handler.safe_call(\"";
+
+        // promote \" to \\""
+        for (char c : command)
+        {
+            if (c == '\\')
+                str << "\\\\";
+            else if (c == '\"')
+                str << "\\\"";
+            else
+                str << c;
+        }
+
+        str << "\")" << std::endl;
+
         auto* result = jl_eval_string(str.str().c_str());
 
         if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))

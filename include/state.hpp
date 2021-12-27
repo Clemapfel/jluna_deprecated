@@ -29,11 +29,11 @@ namespace jlwrap
 
             /// @brief execute line of code
             /// @exceptions if an error occurs julia-side it will be ignore and the result of the call will be undefined
-            static auto script(std::string) noexcept;
+            static auto script(const std::string&) noexcept;
 
             /// @brief execute line of code with exception handling
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
-            static auto safe_script(std::string);
+            static auto safe_script(const std::string&);
 
             /// @brief execute line of code, may throw exception
 

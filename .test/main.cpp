@@ -20,10 +20,25 @@ int main()
 {
     State::initialize();
     jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
-    //jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
 
-    auto arr = unbox<Array<double, 3>>(State::safe_script("return Array{Float32, 3}(reshape(collect(1:(25*5)), 5, 5, 5))"));
-    arr.at(0, 1, 2) = 999999;
+    jl_eval_string(R"(
+        struct DummyStruct
+           field_1::Float32
+           field_2
+           field_3::Int64
+       end
+    )");
+
+    State::safe_script("print(string(methods(DummyStruct)))");
+
+    auto* struct_instance = State::safe_script("return DummyStruct(1, 2, 3)");
+    auto* struct_type = (jl_datatype_t*) jl_typeof(struct_instance);
+    auto* field_names = jl_field_names(struct_type);
+
+    jl_function_t* fieldcount = jl_get_function(jl_base_module, "fieldcount");
+
+    for (size_t i = 0; i < jl_unbox_int64(jl_call1(fieldcount, (jl_value_t*) struct_type)); ++i)
+        std::cout << jl_symbol_name((jl_sym_t*) jl_svecref(field_names, i)) << std::endl;
 
     return 0;
 

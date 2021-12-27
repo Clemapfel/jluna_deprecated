@@ -30,9 +30,9 @@ begin # included into module jlwrap
         function safe_call(command::String) #::Auto
 
             as_expression = Meta.parse(command)
-            result = undef;
+            result = undef
             try
-                result = begin eval(as_expression) end
+                result = Main.eval(as_expression)
                 update()
             catch exc
                 result = nothing
