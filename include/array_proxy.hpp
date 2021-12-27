@@ -7,6 +7,7 @@
 
 #include <julia.h>
 #include <vector>
+#include <state.hpp>
 
 namespace jlwrap
 {
@@ -90,7 +91,7 @@ namespace jlwrap
             auto end() const;
 
         protected:
-            jl_array_t* _value;
+            using Proxy<State>::_value;
 
         private:
             void throw_if_index_out_of_range(int index, size_t dimension);

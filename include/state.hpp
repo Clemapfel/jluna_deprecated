@@ -19,6 +19,9 @@
 
 namespace jlwrap
 {
+    template<typename>
+    class Proxy;
+
     union State
     {
         public:
@@ -46,6 +49,7 @@ namespace jlwrap
             /// @param pointer to value
             static void free_reference(jl_value_t*);
 
+            /*
             /// @brief access the value of a variable bound to a primitive
             /// @param var_name
             /// @param module_name
@@ -59,6 +63,7 @@ namespace jlwrap
             /// @returns Primitive proxy holding ownership of the allocated value
             template<typename T>
             [[nodiscard]] static Primitive wrap_primitive(T);
+             */
 
         //protected:
             template<typename T>

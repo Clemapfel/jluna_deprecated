@@ -63,6 +63,7 @@ namespace jlwrap
         return jl_eval_string(str.str().c_str());
     }
 
+    /*
     Primitive State::get_primitive(std::string var_name, std::string module_name)
     {
         auto* res = execute("return ", var_name);
@@ -116,6 +117,7 @@ namespace jlwrap
         else if (std::is_same_v<T, nullptr_t>)
             return Primitive(jl_box_voidpointer((void*) NULL));
     }
+     */
 
     template<typename T>
     T* State::get(std::string& var_name) noexcept

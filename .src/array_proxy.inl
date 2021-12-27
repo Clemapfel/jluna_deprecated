@@ -35,7 +35,7 @@ namespace jlwrap
     template<typename T, size_t R>
     Array<T, R>::operator jl_array_t*()
     {
-        return _value;
+        return (jl_array_t*) _value;
     }
 
     template<typename T, size_t R>
@@ -78,7 +78,7 @@ namespace jlwrap
     size_t Array<T, Rank>::get_dimension(size_t dimension)
     {
         static auto* size_at = jl_get_function(jl_base_module, "size");
-        return unbox<size_t>(jl_call2(size_at, (jl_value_t*) _value, box<size_t>(dimension + 1)));
+        return jl_unbox_int64(jl_call2(size_at, (jl_value_t*) _value, jl_box_int64(dimension + 1)));
     }
 
     template<typename T, size_t Rank>
@@ -159,7 +159,4 @@ namespace jlwrap
 
         return operator[](index);
     }
-
-
-
 }

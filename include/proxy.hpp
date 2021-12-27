@@ -19,20 +19,6 @@ namespace jlwrap
             /// @brief ctor deleted
             Proxy() = delete;
 
-            operator jl_value_t*();
-
-            auto operator[](std::string field_name);
-            const auto operator[](std::string field_name) const;
-
-            template<typename T>
-            operator T();
-
-            /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
-            /// @param symbol: name of the variable as julia symbol
-            /// @param value: pointer to the value of the variable
-            /// @param type: pointer to the type of the variable
-            Proxy(jl_value_t* value);
-
             /// @brief dtor, frees the reference so it can be garbage collected if appropriate
             ~Proxy();
 
@@ -52,10 +38,52 @@ namespace jlwrap
             /// @param other
             Proxy& operator=(Proxy&&) noexcept;
 
-        private:
+            /// @brief implicitly decay into value so it can be unbox<T>'d
+            operator jl_value_t*();
+
+            /// @brief access field
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns proxy holding value of field
+            auto operator[](const std::string& field_name);
+
+            /// @brief access field but immediately decay into type
+            /// @tparam T: type the result will be unbox<T>'d to
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns value as T
+            template<typename T>
+            T operator[](const std::string& field_name) const;
+
+            /// @brief implicitly convert to T
+            /// returns value as T
+            template<typename T>
+            operator T();
+
+            ///
+            template<typename T>
+            auto& operator=(T);
+
+            //
+            auto& operator=(jl_value_t*);
+
+        //protected:
+            /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
+            /// @param value: pointer to the value of the variable
+            Proxy(jl_value_t* value);
+
+            /// @brief construct as proxy of a field of an owner
+            /// @param value: pointer to the value of the variable
+            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i);
+
             jl_value_t* _value;
 
+        private:
+            jl_value_t* _owner = nullptr;
+            long int _field_i = -1;
+
+            void setup_field_to_index();
             std::unordered_map<std::string, size_t> _field_to_index;
+
+
     };
 }
 

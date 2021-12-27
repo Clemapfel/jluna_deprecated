@@ -22,18 +22,35 @@ int main()
     jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
 
     jl_eval_string(R"(
-        struct DummyStruct
-           field_1::Float32
-           field_2
-           field_3::Int64
-       end
+        mutable struct InnerStruct
+           field::Int64
+        end
+
+        mutable struct OuterStruct
+           field::InnerStruct
+        end
     )");
 
-    State::safe_script("print(string(methods(DummyStruct)))");
+    auto* instance = State::safe_script("return OuterStruct(InnerStruct(1))");
+    auto outer = Proxy<State>(instance);
+    auto inner = outer["field"];
+    inner = State::safe_script("return InnerStruct(99)");
 
-    auto* struct_instance = State::safe_script("return DummyStruct(1, 2, 3)");
+    inner = outer["field"];
+    std::cout << inner.operator[]<int>("field") << std::endl;
+
+    outer = Proxy<State>(State::safe_script("return OuterStruct(InnerStruct(123))"));
+    inner = outer["field"];
+    std::cout << inner.operator[]<int>("field") << std::endl;
+    return 0;
+
+    /*
     auto* struct_type = (jl_datatype_t*) jl_typeof(struct_instance);
     auto* field_names = jl_field_names(struct_type);
+
+    std::cout << jl_typeof_str(struct_instance) << std::endl;
+    return 0;
+
 
     jl_function_t* fieldcount = jl_get_function(jl_base_module, "fieldcount");
 
