@@ -81,52 +81,91 @@ namespace jlwrap
     }
 
     template<typename T, size_t Rank>
+    size_t Array<T, Rank>::get_dimension(size_t dimension)
+    {
+        static auto* size_at = jl_get_function(jl_base_module, "size");
+        return unbox<size_t>(jl_call2(size_at, (jl_value_t*) _value, box<size_t>(dimension + 1)));
+    }
+
+    template<typename T, size_t Rank>
+    void Array<T, Rank>::throw_if_index_out_of_range(int index, size_t dimension)
+    {
+        if (index < 0)
+        {
+            std::stringstream str;
+            str << "negative index " << index << ", only indices >= 0 are permitted" << std::endl;
+            throw std::out_of_range(str.str().c_str());
+        }
+
+        size_t dim = get_dimension(dimension);
+
+        std::string dim_id;
+
+        if (dimension == 0)
+            dim_id = "1st dimension";
+        else if (dimension == 1)
+            dim_id = "2nd dimension";
+        else if (dimension == 3)
+            dim_id = "3rd dimension";
+        else if (dimension < 11)
+            dim_id = std::to_string(dimension) + "th dimension";
+        else
+            dim_id = "dimension " + std::to_string(dimension);
+
+        if (index >= dim)
+        {
+            std::stringstream str;
+            str << "index " << index << " out of range for array of length " << dim << " along " << dim_id << ". Indices C++ side are 0-based" << std::endl;
+            throw std::out_of_range(str.str().c_str());
+        }
+    }
+
+    template<typename T, size_t Rank>
     template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
     auto Array<T, Rank>::at(Args... in)
     {
-        // check for bounds along each dimensions separately
-        auto throw_if_out_of_range = [&](auto index, size_t dimension)
-        {
-            if (index < 0)
-                throw std::out_of_range("negative index, only indices >= 0 permitted");
-
-            static auto* size_at = jl_get_function(jl_base_module, "size");
-            size_t dim = unbox<size_t>(jl_call2(size_at, (jl_value_t*) _value, box<size_t>(dimension + 1)));
-
-            std::string dim_id;
-
-            if (dimension == 0)
-                dim_id = "1st dimension";
-            else if (dimension == 1)
-                dim_id = "2nd dimension";
-            else if (dimension == 3)
-                dim_id = "3rd dimension";
-            else if (dimension < 11)
-                dim_id = std::to_string(dimension) + "th dimension";
-            else
-                dim_id = "dimension " + std::to_string(dimension);
-
-            if (index >= dim)
-            {
-                std::stringstream str;
-                str << "index " << index << " out of range for array of length " << dim << " along " << dim_id << std::endl;
-                throw std::out_of_range(str.str().c_str());
-            }
-        };
-
         {
             size_t i = 0;
-            (throw_if_out_of_range(in, i++), ...);
+            (throw_if_index_out_of_range(in, i++), ...);
         }
 
-        return operator[](0);
+        std::array<size_t, Rank> indices = {size_t(in)...};
+        size_t index = 0;
+        size_t mul = 1;
+
+        for (size_t i = 0; i < Rank; ++i)
+        {
+            index += (indices.at(i)) * mul;
+            size_t dim = get_dimension(i);
+            mul *= dim;
+        }
+
+        return operator[](index);
     }
 
     template<typename T, size_t Rank>
     template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
     const auto Array<T, Rank>::at(Args... in) const
     {
+        {
+            size_t i = 0;
+            (throw_if_index_out_of_range(in, i++), ...);
+        }
 
+        std::array<size_t, Rank> indices = {size_t(in)...};
+        size_t index = 0;
+        size_t mul = 1;
+
+        for (size_t i = 0; i < Rank; ++i)
+        {
+            index += (indices.at(i)) * mul;
+            size_t dim = get_dimension(i);
+            mul *= dim;
+        }
+
+        return operator[](index);
     }
+
+
 
 }

@@ -23,12 +23,7 @@ int main()
     //jl_eval_string("throw(DomainError(-1, \"test\")) catch x return x end");
 
     auto arr = unbox<Array<double, 3>>(State::safe_script("return Array{Float32, 3}(reshape(collect(1:(25*5)), 5, 5, 5))"));
-
-    auto test = arr.at(-11, 2, 5);
-
-    auto& const_arr = const_cast<const decltype(arr)&>(arr);
-    for (double s : arr)
-        std::cout << s << std::endl;
+    arr.at(0, 1, 2) = 999999;
 
     return 0;
 

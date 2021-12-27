@@ -49,6 +49,10 @@ namespace jlwrap
             NonConstIterator get(size_t);
 
             jl_array_t* _value;
+
+        private:
+            void throw_if_index_out_of_range(int index, size_t dimension);
+            size_t get_dimension(size_t);
     };
 
     /// @brief 1-dimension array specialization
