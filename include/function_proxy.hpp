@@ -16,10 +16,14 @@ namespace jlwrap
         public:
             Function() = delete;
 
+            /// @brief call operator
+            /// @tparams Args_t: argument types
+            /// @param args
+            /// @returns determined by context
             template<typename... Args_t>
             decltype(auto) operator()(Args_t...);
 
-        //protected:
+        protected:
             Function(jl_function_t*);
 
         private:
