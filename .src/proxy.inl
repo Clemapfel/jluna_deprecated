@@ -11,10 +11,11 @@ namespace jlwrap
     Proxy<State_t>::Proxy(jl_value_t* value)
         : _value(value)
     {
-        assert(value != nullptr);
-
         if (_value != nullptr)
             State_t::create_reference(value);
+
+        auto* symbol_vec = jl_field_names((jl_datatype_t*) jl_typeof(_value));
+
     }
 
     template<typename State_t>
@@ -27,7 +28,13 @@ namespace jlwrap
     Proxy<State_t>::~Proxy()
     {
         if (_value != nullptr)
-            State_t::free_reference(_value);}
+            State_t::free_reference(_value);
+    }
+
+    template<typename State_t>
+    auto Proxy<State_t>::operator[](std::string field_name)
+    {
+    }
 
     template<typename State_t>
     Proxy<State_t>::Proxy(Proxy&& other) noexcept

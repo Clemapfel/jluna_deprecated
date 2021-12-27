@@ -6,12 +6,12 @@
 #pragma once
 
 #include <julia.h>
+#include <unordered_map>
 
 namespace jlwrap
 {
     /// @brief concept of a variable, has a type, name (symbol) and value
-    /// @note This is an interface-like class that should only be used by internal jlwrap code, not the user.
-    ///       Do not inherit from this class unless you know what you're doing.
+    /// @note do not inherit from this class unless you know what you're doing, improper handling of references to julia-side values can result in memory leaks or the garbage collector freeing in-use memory
     template<typename State_t>
     class Proxy
     {
@@ -19,9 +19,14 @@ namespace jlwrap
             /// @brief ctor deleted
             Proxy() = delete;
 
-            [[implicit]] operator jl_value_t*();
+            operator jl_value_t*();
 
-        //protected:
+            auto operator[](std::string field_name);
+            const auto operator[](std::string field_name) const;
+
+            template<typename T>
+            operator T();
+
             /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
             /// @param symbol: name of the variable as julia symbol
             /// @param value: pointer to the value of the variable
@@ -49,6 +54,8 @@ namespace jlwrap
 
         private:
             jl_value_t* _value;
+
+            std::unordered_map<std::string, size_t> _field_to_index;
     };
 }
 
