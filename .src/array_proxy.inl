@@ -51,12 +51,6 @@ namespace jlwrap
     }
 
     template<typename T, size_t R>
-    size_t Array<T, R>::length() const
-    {
-        return ((jl_array_t*) _value)->length;
-    }
-
-    template<typename T, size_t R>
     auto Array<T, R>::begin()
     {
         return Iterator(_value, 0);

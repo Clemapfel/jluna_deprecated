@@ -135,11 +135,11 @@ namespace jlwrap
             using Array<T, 1>::_value;
 
         private:
-            static inline jl_function_t* _push_front = jl_get_function(jl_main_module, "pushfirst!");
-            static inline jl_function_t* _push_back = jl_get_function(jl_main_module, "append!");
-            static inline jl_function_t* _insert = jl_get_function(jl_main_module, "insert!");
-            static inline jl_function_t* _erase = jl_get_function(jl_main_module, "deleteat!");
-            static inline jl_function_t* _replace = jl_get_function(jl_main_module, "setindex!");
+            static inline jl_function_t* _push_front = nullptr;
+            static inline jl_function_t* _push_back = nullptr;
+            static inline jl_function_t* _insert = nullptr;
+            static inline jl_function_t* _erase = nullptr;
+            static inline jl_function_t* _replace = nullptr;
     };
 
     /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
