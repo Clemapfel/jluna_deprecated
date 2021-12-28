@@ -14,6 +14,7 @@
 #include <box_any.hpp>
 
 #include <array>
+#include <thread>
 using namespace jlwrap;
 
 int main()
@@ -35,15 +36,17 @@ int main()
     auto inner = outer["field"];
     inner = State::safe_script("return InnerStruct(99)");
 
-    //State::safe_script("print(__jlwrap_refs)");
-
+    State::safe_script("println(string(jlwrap.memory_handler._refs))");
 
     inner = outer["field"];
-    std::cout << inner.operator[]<int>("field") << std::endl;
+
+    State::safe_script("println(string(jlwrap.memory_handler._refs))");
+
 
     outer = Proxy<State>(State::safe_script("return OuterStruct(InnerStruct(123))"));
     inner = outer["field"];
-    std::cout << inner.operator[]<int>("field") << std::endl;
+
+    State::safe_script("println(string(jlwrap.memory_handler._refs))");
 
     return 0;
 

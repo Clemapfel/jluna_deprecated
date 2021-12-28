@@ -25,7 +25,8 @@ namespace jlwrap
     union State
     {
         public:
-            State() = delete;
+            State();
+            ~State();
 
             /// @brief init environment
             static void initialize();
@@ -73,16 +74,12 @@ namespace jlwrap
             static void throw_if_undefined(std::string& var_name, std::string& module_name);
 
         private:
-            template<typename... T>
-            static jl_value_t* execute(T...);
-
-            static std::string get_module_name(jl_module_t*);
-
-            static inline jl_value_t* _reference_dict;
-            static inline jl_function_t* _reference_dict_insert;
-            static inline jl_function_t* _reference_dict_erase;
-            static inline jl_datatype_t* _reference_wrapper;
-            static inline std::map<jl_value_t*, size_t> _reference_counter = {};
+            // memory handler interface
+            static inline jl_function_t* _create_reference = nullptr;
+            static inline jl_function_t* _free_reference = nullptr;
+            static inline jl_function_t* _force_free = nullptr;
+            static inline jl_function_t* _get_value = nullptr;
+            static inline jl_function_t* _get_reference = nullptr;
     };
 }
 

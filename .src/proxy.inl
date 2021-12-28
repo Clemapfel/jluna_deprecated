@@ -25,7 +25,6 @@ namespace jlwrap
     Proxy<State_t>::Proxy(jl_value_t* value)
         : _field_to_index()
     {
-        JL_GC_PUSH1(value);
         _value = value;
 
         if (_value != nullptr)
