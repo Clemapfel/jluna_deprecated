@@ -23,8 +23,11 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _value(value), _field_to_index()
+        : _field_to_index()
     {
+        JL_GC_PUSH1(value);
+        _value = value;
+
         if (_value != nullptr)
             State_t::create_reference(value);
 
@@ -136,6 +139,7 @@ namespace jlwrap
     {
         if (_field_i == -1)
         {
+
         }
         else
         {
@@ -150,6 +154,7 @@ namespace jlwrap
     {
         if (_field_i == -1)
         {
+
         }
         else
         {

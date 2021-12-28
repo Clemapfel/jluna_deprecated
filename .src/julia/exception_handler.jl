@@ -29,7 +29,7 @@ begin # included into module jlwrap
         """
         function safe_call(command::String) #::Auto
 
-            as_expression = Meta.parse(command)
+            as_expression = Meta.parse(command; raise = true)
             result = undef
             try
                 result = Main.eval(as_expression)

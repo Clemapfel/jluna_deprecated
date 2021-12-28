@@ -13,7 +13,9 @@ namespace jlwrap
     void State::initialize()
     {
         jl_init_with_image("/home/clem/Applications/julia/bin", NULL);
-        _reference_dict = jl_eval_string("global __jlwrap_refs = IdDict()");
+        jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
+
+        _reference_dict = jl_eval_string("global __jlwrap_refs = IdDict{UInt64, Ref{Any}}()");
         _reference_dict_insert = jl_get_function(jl_base_module, "setindex!");
         _reference_dict_erase = jl_get_function(jl_base_module, "delete!");
         _reference_wrapper = reinterpret_cast<jl_datatype_t*>(jl_eval_string("Base.RefValue{Any}"));
@@ -131,7 +133,7 @@ namespace jlwrap
         return jl_unbox_bool(res);
     }
 
-    void State::create_reference(jl_value_t* in)
+    jl_value_t* State::create_reference(jl_value_t* in)
     {
         if (_reference_counter.find(in) == _reference_counter.end())
             _reference_counter.insert({in, 1});
@@ -143,6 +145,8 @@ namespace jlwrap
         JL_GC_PUSH1(wrapped)
         jl_call3(_reference_dict_insert, _reference_dict, wrapped, in);
         JL_GC_POP();
+
+        return TODO
     }
 
     void State::free_reference(jl_value_t* in)

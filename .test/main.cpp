@@ -19,7 +19,6 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
 
     jl_eval_string(R"(
         mutable struct InnerStruct
@@ -36,12 +35,16 @@ int main()
     auto inner = outer["field"];
     inner = State::safe_script("return InnerStruct(99)");
 
+    //State::safe_script("print(__jlwrap_refs)");
+
+
     inner = outer["field"];
     std::cout << inner.operator[]<int>("field") << std::endl;
 
     outer = Proxy<State>(State::safe_script("return OuterStruct(InnerStruct(123))"));
     inner = outer["field"];
     std::cout << inner.operator[]<int>("field") << std::endl;
+
     return 0;
 
     /*

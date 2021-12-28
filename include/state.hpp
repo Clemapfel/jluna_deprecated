@@ -43,7 +43,7 @@ namespace jlwrap
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
             /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
-            static void create_reference(jl_value_t*);
+            static jl_value_t* create_reference(jl_value_t*);
 
             /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
             /// @param pointer to value
