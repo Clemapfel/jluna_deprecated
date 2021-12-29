@@ -1,6 +1,6 @@
 # `jlwrap`: A modern and convenient C++ ⇔ Julia Interface
 
-(this documentation and codebase is still incomplete. For the version actively being worked on, see: https://github.com/Clemapfel/jlwrap/tree/import)
+## (this documentation and codebase is still incomplete. For the version actively being worked on, see: https://github.com/Clemapfel/jlwrap/tree/import)
 
 While Julias design and documentation are beautiful and amazing, the design of the C-Side of Julias C-API is much less beautiful and much, much less... documented. `jlwrap` aims to give C++ users a way to easily integrate Julia into their C++ project while taking full advantage of the languages perks and performance, all without having to deal with a single line of pure C code.
 
