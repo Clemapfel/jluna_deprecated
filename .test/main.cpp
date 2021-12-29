@@ -34,6 +34,8 @@ int main()
     auto* instance = State::safe_script("return OuterStruct(InnerStruct(1))");
     auto outer = Proxy<State>(instance);
     auto inner = outer["field"];
+
+    /*
     inner = State::safe_script("return InnerStruct(99)");
 
     State::safe_script("println(string(jlwrap.memory_handler._refs))");
@@ -47,6 +49,7 @@ int main()
     inner = outer["field"];
 
     State::safe_script("println(string(jlwrap.memory_handler._refs))");
+     */
 
     return 0;
 

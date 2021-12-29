@@ -17,6 +17,16 @@ begin # included into module jlwrap
         export Cpointer
 
         """
+        convert pointer to C++ to_string notation
+
+        @param pointer
+        @returns string
+        """
+        function string(ptr::Cpointer) ::String
+            return "0x" * Base.string(ptr; base=16)
+        end
+
+        """
         holds reference to allocated objects to protect them from the garbage collector
         """
         _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
@@ -100,19 +110,16 @@ begin # included into module jlwrap
         """
         function create_reference(ptr::Cpointer, to_wrap::T) ::T where T
 
-            println("create")
+            println("[JULIA] allocated" * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
             if (haskey(_refs[], ptr))
 
                 @assert _refs[][ptr].x == to_wrap && typeof(to_wrap) == typeof(_refs[][ptr].x)
-
-                if (! haskey(_ref_counter[], ptr))
-                    _ref_counter[][ptr] = 0
-                end
-
                 _ref_counter[][ptr] += 1
+            else
+                _refs[][ptr] = Base.RefValue{Any}(to_wrap)
+                _ref_counter[][ptr] = 0
             end
 
-            _refs[][ptr] = Base.RefValue{Any}(to_wrap)
             return _refs[][ptr].x
         end
 
@@ -123,18 +130,16 @@ begin # included into module jlwrap
         """
         function free_reference(ptr::Cpointer) ::Nothing
 
-            println("free")
             @assert haskey(_refs[], ptr)
+            println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
 
             count = _ref_counter[][ptr]
-            println("count: " * string(count))
 
             if (count <= 1)
                 delete!(_ref_counter[], ptr)
             else
                 _ref_counter[][ptr] -= 1
             end
-            println("end free")
 
             return nothing;
         end
@@ -144,7 +149,6 @@ begin # included into module jlwrap
         """
         function force_free() ::Nothing
 
-            println("force")
             for k in keys(_refs)
                 delete!(_refs, k)
                 delete!(_ref_counter, k)
