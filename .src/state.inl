@@ -43,6 +43,17 @@ namespace jlwrap
         _get_reference =  jl_get_function(module, "get_value");
     }
 
+    void State::forward_last_exception()
+    {
+        if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
+        {
+            throw JuliaException(
+                    jl_eval_string("return jlwrap.exception_handler.get_last_exception()"),
+                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler.get_last_message()")))
+            );
+        }
+    }
+
     auto State::script(const std::string& str) noexcept
     {
         return jl_eval_string(str.c_str());
@@ -67,14 +78,41 @@ namespace jlwrap
         str << "\")" << std::endl;
 
         auto* result = jl_eval_string(str.str().c_str());
+        forward_last_exception();
 
-        if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
+        return result;
+    }
+
+    template<typename... Args_t>
+    auto State::call(jl_function_t* function, Args_t... args)
+    {
+        std::array<jl_value_t*, sizeof...(Args_t)> params;
+        auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
+
         {
-            throw JuliaException(
-                    jl_eval_string("return jlwrap.exception_handler.get_last_exception()"),
-                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler.get_last_message()")))
-            );
+            size_t i = 0;
+            (insert(i++, args), ...);
         }
+
+        return jl_call(function, params.data(), params.size());
+    }
+
+    template<typename... Args_t>
+    auto State::safe_call(jl_function_t* function, Args_t... args)
+    {
+        std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
+        auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
+
+        {
+            params.at(0) = (jl_value_t*) function;
+            size_t i = 1;
+            (insert(i++, args), ...);
+        }
+
+        jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
+        jl_function_t* safe_call = jl_get_function(module, "safe_call");
+        auto* result = jl_call(safe_call, params.data(), params.size());
+        forward_last_exception();
 
         return result;
     }

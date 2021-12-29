@@ -55,7 +55,7 @@ begin # included into module jlwrap
         """
         function assign(m::Module, symbol::Symbol, v::T) ::Any where T
 
-             @assert isdefined(m, symbol)
+            @assert isdefined(m, symbol)
 
             if typeof(m.eval(symbol)) <: Ref
                 return m.eval(Meta.parse("global " * string(symbol) * "[] = " * string(v)))
@@ -110,9 +110,9 @@ begin # included into module jlwrap
         """
         function create_reference(ptr::Cpointer, to_wrap::T) ::T where T
 
-            println("[JULIA] allocated" * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
-            if (haskey(_refs[], ptr))
+            #println("[JULIA] allocated" * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
 
+            if (haskey(_refs[], ptr))
                 @assert _refs[][ptr].x == to_wrap && typeof(to_wrap) == typeof(_refs[][ptr].x)
                 _ref_counter[][ptr] += 1
             else
@@ -131,7 +131,7 @@ begin # included into module jlwrap
         function free_reference(ptr::Cpointer) ::Nothing
 
             @assert haskey(_refs[], ptr)
-            println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
+            #println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
 
             count = _ref_counter[][ptr]
 

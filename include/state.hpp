@@ -39,7 +39,11 @@ namespace jlwrap
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string&);
 
-            /// @brief execute line of code, may throw exception
+            template<typename... Args_t>
+            static auto call(jl_function_t*, Args_t...);
+
+            template<typename... Args_t>
+            static auto safe_call(jl_function_t*, Args_t...);
 
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
@@ -74,6 +78,8 @@ namespace jlwrap
             static void throw_if_undefined(std::string& var_name, std::string& module_name);
 
         private:
+            static void forward_last_exception();
+
             // memory handler interface
             static inline jl_function_t* _create_reference = nullptr;
             static inline jl_function_t* _free_reference = nullptr;

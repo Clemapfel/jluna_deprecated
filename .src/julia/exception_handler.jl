@@ -43,6 +43,27 @@ begin # included into module jlwrap
         end
 
         """
+        call any function, update the handler then forward the result, if any
+
+        @param f: function
+        @param args: function argument
+        @returns result if function didn't throw, nothing otherwise
+        """
+        function safe_call(f::Function, args...)
+
+            result = undef
+            try
+                result = f(args...)
+                update()
+            catch exc
+                result = nothing
+                update(exc)
+            end
+
+            return result;
+        end
+
+        """
         update the handler after an exception was thrown
         @param exception
         """
