@@ -14,7 +14,6 @@ begin # included into module jlwrap
         typealias, 64-bit C-pointer
         """
         const Cpointer = UInt64
-        export Cpointer
 
         """
         convert pointer to C++ to_string notation
@@ -26,17 +25,9 @@ begin # included into module jlwrap
             return "0x" * Base.string(ptr; base=16)
         end
 
-        """
-        holds reference to allocated objects to protect them from the garbage collector
-        """
         _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
-
-        """
-        counts number of C++ objects currently holding a reference, only if all free_reference() will the memory be freed
-        """
         _ref_counter = Ref(IdDict{Cpointer, UInt64}())
-
-
+        
         """
         reassign variable in global scope
 
@@ -188,7 +179,5 @@ begin # included into module jlwrap
                 return _refs[][ptr]
             end
         end
-
     end
-
 end

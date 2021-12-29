@@ -120,7 +120,7 @@ namespace jlwrap
     jl_value_t* State::create_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
-        jl_value_t* value = jl_call2(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
+        jl_value_t* value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
         return value;
@@ -129,7 +129,7 @@ namespace jlwrap
     void State::free_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
-        jl_call1(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
+        safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
     }

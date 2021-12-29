@@ -32,8 +32,7 @@ int main()
     )");
 
     jl_function_t* throw_unsafe = jl_eval_string("unsafe() = throw(AssertionError(\"test\"))");
-    State::safe_call(jl_get_function(jl_main_module, "unsafe"));
-    return 0;
+    State::call(jl_get_function(jl_main_module, "unsafe"));
 
     auto* instance = State::safe_script("return OuterStruct(InnerStruct(1))");
     auto outer = Proxy<State>(instance);

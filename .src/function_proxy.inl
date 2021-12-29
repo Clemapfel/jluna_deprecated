@@ -10,8 +10,11 @@ namespace jlwrap
 {
     Function::Function(jl_function_t* f)
         : Proxy((jl_value_t*) f)
+    {}
+
+    Function::operator jl_function_t*()
     {
-        _value = (jl_function_t*) Proxy<State>::operator _jl_value_t *();
+        return reinterpret_cast<jl_function_t*>(_value);
     }
 
     template<typename... Args_t>

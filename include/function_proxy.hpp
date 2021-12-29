@@ -16,6 +16,12 @@ namespace jlwrap
         public:
             Function() = delete;
 
+            /// @brief bind to function pointer
+            Function(jl_function_t*);
+
+            /// @brief implicitly decay to function pointer
+            operator jl_function_t*();
+
             /// @brief call operator
             /// @tparams Args_t: argument types
             /// @param args
@@ -23,11 +29,8 @@ namespace jlwrap
             template<typename... Args_t>
             decltype(auto) operator()(Args_t...);
 
-        protected:
-            Function(jl_function_t*);
-
         private:
-            jl_function_t* _value;
+            using Proxy<State>::_value;
     };
 }
 

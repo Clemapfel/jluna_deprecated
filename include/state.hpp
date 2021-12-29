@@ -12,7 +12,7 @@
 #include <set>
 
 #include <primitive_proxy.hpp>
-
+#include <function_proxy.hpp>
 
 // https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
 // https://docs.julialang.org/en/v1/devdocs/init/
@@ -39,9 +39,17 @@ namespace jlwrap
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string&);
 
+            /// @brief call julia function without exception forwarding
+            /// @param function
+            /// @param arguments
+            /// @returns function result as jl_value_t*
             template<typename... Args_t>
             static auto call(jl_function_t*, Args_t...);
 
+            /// @brief call julia function with exception forwarding
+            /// @param function
+            /// @param arguments
+            /// @returns function result as jl_value_t*
             template<typename... Args_t>
             static auto safe_call(jl_function_t*, Args_t...);
 
@@ -53,6 +61,9 @@ namespace jlwrap
             /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
             /// @param pointer to value
             static void free_reference(jl_value_t*);
+
+            static jlwrap::Function get_function(const std::string& function_name);
+            static jlwrap::Function get_function(const std::string& function_name, const std::string& module_name);
 
             /*
             /// @brief access the value of a variable bound to a primitive
