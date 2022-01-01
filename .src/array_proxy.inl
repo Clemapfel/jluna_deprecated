@@ -23,8 +23,6 @@ namespace jlwrap
             str << jl_typeof(value) << std::endl;
             assert(false);
         }
-
-        _value = (jl_array_t*) Proxy<State>::operator _jl_value_t *();
     }
 
     template<typename T, size_t R>
@@ -41,37 +39,37 @@ namespace jlwrap
     template<typename T, size_t R>
     auto Array<T, R>::operator[](size_t i)
     {
-        return NonConstIterator(_value, i);
+        return NonConstIterator((jl_array_t*) _value, i);
     }
 
     template<typename T, size_t R>
     const auto Array<T, R>::operator[](size_t i) const
     {
-        return ConstIterator(_value, i);
+        return ConstIterator((jl_array_t*) _value, i);
     }
 
     template<typename T, size_t R>
     auto Array<T, R>::begin()
     {
-        return Iterator(_value, 0);
+        return NonConstIterator((jl_array_t*) _value, 0);
     }
 
     template<typename T, size_t R>
     auto Array<T, R>::begin() const
     {
-        return Iterator(_value, 0);
+        return ConstIterator((jl_array_t*) _value, 0);
     }
 
     template<typename T, size_t R>
     auto Array<T, R>::end()
     {
-        return Iterator(_value, reinterpret_cast<jl_array_t*>(_value)->length);
+        return NonConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
     }
 
     template<typename T, size_t R>
     auto Array<T, R>::end() const
     {
-        return Iterator(_value, reinterpret_cast<jl_array_t*>(_value)->length);
+        return ConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
     }
 
     template<typename T, size_t Rank>

@@ -35,6 +35,8 @@ namespace jlwrap
 
         std::atexit(&on_exit);
 
+        _jlwrap_module = (jl_module_t*) jl_eval_string("return jlwrap");
+
         jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.memory_handler");
         _create_reference = jl_get_function(module, "create_reference");
         _free_reference =  jl_get_function(module, "free_reference");
@@ -106,7 +108,7 @@ namespace jlwrap
         {
             params.at(0) = (jl_value_t*) function;
             size_t i = 1;
-            (insert(i++, args), ...);
+            (insert(i++, (jl_value_t*) args), ...);
         }
 
         jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
@@ -134,8 +136,33 @@ namespace jlwrap
         JL_GC_POP();
     }
 
-    bool State::is_defined(std::string var_name, std::string module_name)
+    jlwrap::Function State::get_function(const std::string& function_name, const std::string& module_name)
     {
 
+    }
+
+    jlwrap::Function State::get_function(const std::string& function_name)
+    {
+        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "get_function");
+        jl_array_t* res = (jl_array_t*) safe_call(get_function, jl_symbol(&function_name[0]), jl_main_module);
+
+        //if (not res->length == 1)
+        {
+            std::vector<std::string> candidate_modules;
+            static jl_function_t* get_all_modules_defining = jl_get_function(_jlwrap_module, "get_all_modules_defining");
+            auto* candidate_array = (jl_array_t*) safe_call(get_all_modules_defining, script("return Symbol(\"" + function_name + "\")"));
+
+            static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
+
+            for (size_t i = 0; i < candidate_array->length; ++i)
+            {
+                jl_module_t* m = (jl_module_t*) jl_arrayref(candidate_array, i);
+                candidate_modules.push_back(std::string(jl_string_data(safe_call(to_string, m))));
+            }
+
+            throw AmbiguousCandidateException(function_name, candidate_modules);
+        }
+        //else
+          //  return jlwrap::Function(jl_arrayref(res, 0));
     }
 }

@@ -21,4 +21,21 @@ namespace jlwrap
     {
         return _type;
     }
+
+    AmbiguousCandidateException::AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidate_modules)
+    {
+        std::stringstream str;
+        str << "querying the julia state for variable with symbol \":" << symbol_name << "\" returns more than one result. Please manually specify which module the variable is defined in.\n";
+        str << "candidates are:\n";
+
+        for (auto s : candidate_modules)
+            str << "\t" << s << "." << symbol_name << "\n";
+
+        message = str.str();
+    }
+
+    const char * AmbiguousCandidateException::what() const noexcept
+    {
+        return message.c_str();
+    }
 }

@@ -20,6 +20,8 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
+    State::get_function("push!");
+    /*
 
     jl_eval_string(R"(
         mutable struct InnerStruct
@@ -51,10 +53,7 @@ int main()
     outer = Proxy<State>(State::safe_script("return OuterStruct(InnerStruct(123))"));
     inner = outer["field"];
 
-    State::safe_script("println(string(jlwrap.memory_handler._refs))");
-     */
-
-    return 0;
+    State::safe_script("println(string(jlwrap.memory_handler._refs))");;
 
     /*
     auto* struct_type = (jl_datatype_t*) jl_typeof(struct_instance);

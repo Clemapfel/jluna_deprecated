@@ -17,7 +17,6 @@ begin
             for symbol in names(m)
 
                 current = Base.eval(m, symbol)
-                counter = counter + 1
                 if (typeof(current) == Module) && (current != m) && !exists(current, out) && !exists(current, exclude_roots)
                     push!(out, current)
                     aux(current)
@@ -29,19 +28,6 @@ begin
         return out
     end
     export list_all_modules
-
-    """
-    access function in specific module
-    """
-    function get_function(m::Module, function_name::Symbol) ::Function
-
-        if !isdefined(m, function_name)
-            throw(UndefVarError("No function named " * string(function_name) * " in module " * string(m)))
-        end
-
-        return m.eval(function_name)
-    end
-    export get_function
 
     """
     searches for function in any module currently loaded, returns vector of all functions with that name
@@ -59,5 +45,20 @@ begin
         return candidates
     end
     export get_function
+
+    """
+    get all modules for whom Base.isdefined(m, x) returns true
+    """
+    function get_all_modules_defining(x::Symbol) ::Vector{Module}
+
+        out = Vector{Module}()
+        for m in list_all_modules(; exclude_roots = Vector{Module}())
+            if exists(x, names(m))
+                push!(out, m)
+            end
+        end
+
+        return out
+    end
 
 end

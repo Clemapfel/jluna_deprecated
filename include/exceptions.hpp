@@ -73,6 +73,23 @@ namespace jlwrap
             std::string _message;
             JuliaExceptionType _type;
     };
+
+    /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
+    class AmbiguousCandidateException : public std::exception
+    {
+        public:
+            /// @brief ctor
+            /// @param symbol_name: name of the symbol for which multiple results exist
+            AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidates);
+
+            /// @brief get description
+            /// @returns c-string
+            virtual const char* what() const noexcept override final;
+
+        private:
+            std::string message;
+
+    };
 }
 
 #include ".src/exceptions.inl"

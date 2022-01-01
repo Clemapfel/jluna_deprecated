@@ -75,6 +75,8 @@ namespace jlwrap
         private:
             static void forward_last_exception();
 
+            static inline jl_module_t* _jlwrap_module = nullptr;
+
             // memory handler interface
             static inline jl_function_t* _create_reference = nullptr;
             static inline jl_function_t* _free_reference = nullptr;
