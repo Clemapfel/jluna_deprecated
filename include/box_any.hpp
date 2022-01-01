@@ -10,8 +10,6 @@
 #include <type_traits>
 #include <string>
 
-#include <unbox_any.hpp>
-
 namespace jlwrap
 {
     jl_value_t* box(jl_value_t* value)
@@ -19,68 +17,84 @@ namespace jlwrap
         return value;
     }
 
-    template<typename T,
-            std::enable_if_t<
-                    detail::is_primitive<T>::value or
-                    std::is_same_v<T, std::string>,
-            bool> = true>
-    jl_value_t* box(T value)
+    jl_value_t* box(jl_array_t* value)
     {
-        static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
+        return (jl_value_t*) value;
+    }
 
-        if (std::is_same_v<T, bool>)
-        {
-            return jl_box_bool(value);
-        }
-        else if (std::is_same_v<T, char>)
-        {
-            return jl_box_char(value);
-        }
-        else if (std::is_same_v<T, int8_t>)
-        {
-            return jl_box_int8(value);
-        }
-        else if (std::is_same_v<T, int16_t>)
-        {
-            return jl_box_int16(value);
-        }
-        else if (std::is_same_v<T, int32_t>)
-        {
-            return jl_box_int32(value);
-        }
-        else if (std::is_same_v<T, int64_t>)
-        {
-            return jl_box_int64(value);
-        }
-        else if (std::is_same_v<T, uint8_t>)
-        {
-            return jl_box_uint8(value);
-        }
-        else if (std::is_same_v<T, uint16_t>)
-        {
-            return jl_box_uint16(value);
-        }
-        else if (std::is_same_v<T, uint32_t>)
-        {
-            return jl_box_uint32(value);
-        }
-        else if (std::is_same_v<T, uint64_t>)
-        {
-            return jl_box_uint64(value);
-            }
-        else if (std::is_same_v<T, float>)
-        {
-            return jl_box_float32(value);
-        }
-        else if (std::is_same_v<T, double>)
-        {
-            return jl_box_float64(value);
-        }
-        else if (std::is_same_v<T, std::string>)
-        {
-            //return State::script("return " + std::to_string(value));
-        }
-        else
-            return jl_box_voidpointer(nullptr); // placeholder
+    jl_value_t* box(jl_sym_t* value)
+    {
+        return (jl_value_t*) value;
+    }
+
+    jl_value_t* box(jl_datatype_t* value)
+    {
+        return (jl_value_t*) value;
+    }
+
+    jl_value_t* box(std::string value)
+    {
+        std::string command = "return \"" + value + "\"";
+        return jl_eval_string(command.c_str());
+    }
+
+    jl_value_t* box(bool value)
+    {
+        return jl_box_bool(value);
+    }
+
+    jl_value_t* box(char value)
+    {
+        return jl_box_char(value);
+    }
+
+    jl_value_t* box(int8_t value)
+    {
+        return jl_box_int8(value);
+    }
+
+    jl_value_t* box(int16_t value)
+    {
+        return jl_box_int16(value);
+    }
+
+    jl_value_t* box(int32_t value)
+    {
+        return jl_box_int32(value);
+    }
+
+    jl_value_t* box(int64_t value)
+    {
+        return jl_box_int64(value);
+    }
+
+    jl_value_t* box(uint8_t value)
+    {
+        return jl_box_uint8(value);
+    }
+
+    jl_value_t* box(uint16_t value)
+    {
+        return jl_box_uint16(value);
+    }
+
+    jl_value_t* box(uint32_t value)
+    {
+        return jl_box_uint32(value);
+    }
+
+    jl_value_t* box(uint64_t value)
+    {
+        return jl_box_uint64(value);
+    }
+
+    jl_value_t* box(float value)
+    {
+        return jl_box_float32(value);
+    }
+
+    jl_value_t* box(double value)
+    {
+        return jl_box_float64(value);
     }
 }
