@@ -65,22 +65,6 @@ namespace jlwrap
             static jlwrap::Function get_function(const std::string& function_name);
             static jlwrap::Function get_function(const std::string& function_name, const std::string& module_name);
 
-            /*
-            /// @brief access the value of a variable bound to a primitive
-            /// @param var_name
-            /// @param module_name
-            /// @returns Primitive proxy holding ownership of the value
-            /// @exceptions if no variable or module of the given name exists, a UndefVarException will be thrown
-            [[nodiscard]] static Primitive get_primitive(std::string var_name, std::string module_name);
-
-            /// @brief send a C++-side value to Julia
-            /// @tparam: type of value, has to be primitive or a static assertion will trigger
-            /// @param T: value
-            /// @returns Primitive proxy holding ownership of the allocated value
-            template<typename T>
-            [[nodiscard]] static Primitive wrap_primitive(T);
-             */
-
         //protected:
             template<typename T>
             static T* get(std::string&) noexcept;

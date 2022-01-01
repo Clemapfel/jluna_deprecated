@@ -133,4 +133,9 @@ namespace jlwrap
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
     }
+
+    bool State::is_defined(std::string var_name, std::string module_name)
+    {
+
+    }
 }

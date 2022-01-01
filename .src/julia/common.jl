@@ -5,16 +5,6 @@
 begin # included into module jlwrap
 
     """
-    list all submodules in Main
-
-    @returns array of modules
-    """
-    function list_submodules() ::Array{Module, 1}
-
-        return map(x -> convert(Module, x), filter(x->isa(x, Module), map(x -> eval(x), names(Main))))
-    end
-
-    """
     get value type of array
 
     @param _: array of any rank
@@ -35,6 +25,14 @@ begin # included into module jlwrap
     function is_method_available(f::Function, variable) ::Bool
 
         return hasmethod(f, Tuple{typeof(variable)})
+    end
+
+    """
+    check if element exists in array
+    """
+    function exists(v, array::T) ::Bool where T <: AbstractArray
+
+        return !isempty(findall(x -> x == v, array))
     end
 end
 
