@@ -12,7 +12,6 @@
 #include <set>
 
 #include <primitive_proxy.hpp>
-#include <function_proxy.hpp>
 
 // https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
 // https://docs.julialang.org/en/v1/devdocs/init/
@@ -62,15 +61,8 @@ namespace jlwrap
             /// @param pointer to value
             static void free_reference(jl_value_t*);
 
-            static jlwrap::Function get_function(const std::string& function_name);
-            static jlwrap::Function get_function(const std::string& function_name, const std::string& module_name);
-
-        //protected:
-            template<typename T>
-            static T* get(std::string&) noexcept;
-
-            static bool is_defined(std::string var_name, std::string module_name);
-            static void throw_if_undefined(std::string& var_name, std::string& module_name);
+            static jl_function_t* get_function(const std::string& function_name);
+            static jl_function_t* get_function(const std::string& function_name, const std::string& module_name);
 
         private:
             static void forward_last_exception();

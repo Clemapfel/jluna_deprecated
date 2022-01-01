@@ -8,7 +8,6 @@
 #include <primitive_proxy.hpp>
 #include <state.hpp>
 #include <julia_extension.h>
-#include <function_proxy.hpp>
 #include <array_proxy.hpp>
 #include <unbox_any.hpp>
 #include <box_any.hpp>
@@ -20,7 +19,9 @@ using namespace jlwrap;
 int main()
 {
     State::initialize();
-    State::get_function("push!");
+
+    //auto* first = State::get_function("asdas", "Main.jlwrap");
+    auto* second = State::get_function("asdas");
     /*
 
     jl_eval_string(R"(

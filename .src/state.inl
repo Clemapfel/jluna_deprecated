@@ -7,6 +7,7 @@
 #include <state.hpp>
 #include <sstream>
 #include <exceptions.hpp>
+#include <box_any.hpp>
 
 namespace jlwrap
 {
@@ -104,11 +105,10 @@ namespace jlwrap
     {
         std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
-
         {
             params.at(0) = (jl_value_t*) function;
             size_t i = 1;
-            (insert(i++, (jl_value_t*) args), ...);
+            (insert(i++, box(args)), ...);
         }
 
         jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
@@ -136,17 +136,25 @@ namespace jlwrap
         JL_GC_POP();
     }
 
-    jlwrap::Function State::get_function(const std::string& function_name, const std::string& module_name)
+    jl_function_t* State::get_function(const std::string& function_name, const std::string& module_name)
     {
+        jl_value_t* module_v = safe_script("return " + module_name);
+        assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
 
+        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "get_function");
+        return safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v);
     }
 
-    jlwrap::Function State::get_function(const std::string& function_name)
+    jl_function_t* State::get_function(const std::string& function_name)
     {
         static jl_function_t* get_function = jl_get_function(_jlwrap_module, "get_function");
-        jl_array_t* res = (jl_array_t*) safe_call(get_function, jl_symbol(&function_name[0]), jl_main_module);
+        jl_array_t* res = (jl_array_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
 
-        //if (not res->length == 1)
+        if (res->length == 0)
+        {
+            safe_script("throw(UndefVarError(:" + function_name + "))");
+        }
+        else if (not res->length == 1)
         {
             std::vector<std::string> candidate_modules;
             static jl_function_t* get_all_modules_defining = jl_get_function(_jlwrap_module, "get_all_modules_defining");
@@ -162,7 +170,7 @@ namespace jlwrap
 
             throw AmbiguousCandidateException(function_name, candidate_modules);
         }
-        //else
-          //  return jlwrap::Function(jl_arrayref(res, 0));
+        else
+          return (jl_function_t*) jl_arrayref(res, 0);
     }
 }

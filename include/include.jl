@@ -10,6 +10,7 @@ module jlwrap
     include("../.src/julia/common.jl")
     include("../.src/julia/exception_handler.jl")
     include("../.src/julia/memory_handler.jl")
+    include("../.src/julia/state_interface.jl")
     include("../.src/julia/introspection.jl")
 end
 

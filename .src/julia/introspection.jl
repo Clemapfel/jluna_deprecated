@@ -4,7 +4,6 @@
 #
 
 begin
-
     """
     recursively list all modules and submodules, excluding those that are a submodule of a module in exclude_roots
     """
@@ -17,7 +16,7 @@ begin
             for symbol in names(m)
 
                 current = Base.eval(m, symbol)
-                if (typeof(current) == Module) && (current != m) && !exists(current, out) && !exists(current, exclude_roots)
+                if (typeof(current) == Module) && (current != m) && !exists(out, current) && !exists(exclude_roots, current)
                     push!(out, current)
                     aux(current)
                 end
@@ -32,12 +31,12 @@ begin
     """
     searches for function in any module currently loaded, returns vector of all functions with that name
     """
-    function get_function(function_name::Symbol, top::Module = Main) ::Vector{Function}
+    function get_function(function_name::Symbol) ::Vector{Function}
 
         candidates = Vector{Function}()
 
-        for m in list_all_modules(jlwrap; exclude_roots = Vector{Module}())
-            if (isdefined(m, function_name))
+        for m in list_all_modules(; exclude_roots = Vector{Module}())
+            if exists(names(m), function_name)
                 push!(candidates, m.eval(function_name))
             end
         end
@@ -53,12 +52,12 @@ begin
 
         out = Vector{Module}()
         for m in list_all_modules(; exclude_roots = Vector{Module}())
-            if exists(x, names(m))
+            if exists(names(m), x)
                 push!(out, m)
             end
         end
 
         return out
     end
-
+    export get_all_modules_defining
 end
