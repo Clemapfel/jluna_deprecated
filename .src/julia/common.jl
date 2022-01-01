@@ -30,7 +30,7 @@ begin # included into module jlwrap
     """
     check if element exists in array
     """
-    function exists(v, array::T) ::Bool where T <: AbstractArray
+    function exists(array::T, v::Any) ::Bool where T <: AbstractArray
 
         return !isempty(findall(x -> x == v, array))
     end

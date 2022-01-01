@@ -25,7 +25,7 @@ namespace jlwrap
     AmbiguousCandidateException::AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidate_modules)
     {
         std::stringstream str;
-        str << "querying the julia state for variable with symbol \":" << symbol_name << "\" returns more than one result. Please manually specify which module the variable is defined in.\n";
+        str << "querying the julia state for value with symbol \":" << symbol_name << "\" returns more than one result. Please manually specify which module the value is defined in.\n";
         str << "candidates are:\n";
 
         for (auto s : candidate_modules)
