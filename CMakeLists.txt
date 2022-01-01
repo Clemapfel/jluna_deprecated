@@ -26,8 +26,8 @@ add_library(jlwrap STATIC
     include/julia_extension.h
     include/exceptions.hpp
 
-    include/function_proxy.hpp
-    .src/function_proxy.inl
+    #include/function_proxy.hpp
+    #.src/function_proxy.inl
 
     include/array_proxy.hpp
     .src/array_proxy.inl

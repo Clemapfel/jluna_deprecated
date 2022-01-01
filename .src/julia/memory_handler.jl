@@ -14,6 +14,7 @@ begin # included into module jlwrap
         typealias, 64-bit C-pointer
         """
         const Cpointer = UInt64
+        export Cpointer
 
         """
         convert pointer to C++ to_string notation
@@ -24,6 +25,7 @@ begin # included into module jlwrap
         function string(ptr::Cpointer) ::String
             return "0x" * Base.string(ptr; base=16)
         end
+        export string
 
         _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
         _ref_counter = Ref(IdDict{Cpointer, UInt64}())
