@@ -11,7 +11,6 @@
 
 namespace jlwrap
 {
-    static jl_value_t* _refs;
     static void on_exit()
     {
         jl_eval_string("jlwrap.memory_handler.force_free()");
@@ -94,7 +93,7 @@ namespace jlwrap
 
         {
             size_t i = 0;
-            (insert(i++, args), ...);
+            (insert(i++, box(args)), ...);
         }
 
         return jl_call(function, params.data(), params.size());
@@ -153,6 +152,7 @@ namespace jlwrap
         if (res->length == 0)
         {
             safe_script("throw(UndefVarError(:" + function_name + "))");
+            return nullptr;
         }
         else if (not res->length == 1)
         {
@@ -169,6 +169,7 @@ namespace jlwrap
             }
 
             throw AmbiguousCandidateException(function_name, candidate_modules);
+            return nullptr;
         }
         else
           return (jl_function_t*) jl_arrayref(res, 0);

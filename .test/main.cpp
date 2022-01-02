@@ -14,14 +14,19 @@
 
 #include <array>
 #include <thread>
+#include <function_proxy.hpp>
+
 using namespace jlwrap;
 
 int main()
 {
     State::initialize();
 
+    auto f = SafeFunction(State::safe_script("return (+)"));
+    int what = unbox<int>(f(1, 2));
+    std::cout << what << std::endl;
+
     //auto* first = State::get_function("asdas", "Main.jlwrap");
-    auto* second = State::get_function("asdas");
     /*
 
     jl_eval_string(R"(

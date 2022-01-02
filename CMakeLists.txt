@@ -36,7 +36,7 @@ add_library(jlwrap STATIC
 
     include/unbox_any.hpp
     include/box_any.hpp
-        .src/exceptions.inl include/symbol_proxy.hpp)
+        .src/exceptions.inl include/symbol_proxy.hpp include/function_proxy.hpp .src/function_proxy.inl)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)
