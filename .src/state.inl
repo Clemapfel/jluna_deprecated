@@ -89,28 +89,28 @@ namespace jlwrap
     }
 
     template<typename... Args_t>
-    auto State::call(jl_function_t* function, Args_t... args)
+    auto State::call(jl_function_t* function, Args_t&&... args)
     {
         std::array<jl_value_t*, sizeof...(Args_t)> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
 
         {
             size_t i = 0;
-            (insert(i++, box(args)), ...);
+            (insert(i++, box(std::forward<Args_t>(args))), ...);
         }
 
         return jl_call(function, params.data(), params.size());
     }
 
     template<typename... Args_t>
-    auto State::safe_call(jl_function_t* function, Args_t... args)
+    auto State::safe_call(jl_function_t* function, Args_t&&... args)
     {
         std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
         {
             params.at(0) = (jl_value_t*) function;
             size_t i = 1;
-            (insert(i++, box(args)), ...);
+            (insert(i++, box(std::forward<Args_t>(args))), ...);
         }
 
         jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
@@ -124,6 +124,7 @@ namespace jlwrap
     jl_value_t* State::create_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
+        std::cout << "added " << in << std::endl;
         jl_value_t* value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
@@ -133,6 +134,7 @@ namespace jlwrap
     void State::free_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
+        std::cout << "freed " << in << std::endl;
         safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();

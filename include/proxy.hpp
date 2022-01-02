@@ -49,7 +49,7 @@ namespace jlwrap
             /// @brief implicitly decay into value so it can be unbox<T>'d
             operator jl_value_t*();
 
-            /// @brief cast to string using julias Base.string
+            virtual /// @brief cast to string using julias Base.string
             explicit operator std::string();
 
             /// @brief implicitly convert to T

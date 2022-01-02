@@ -4,6 +4,7 @@
 //
 
 #include <module_proxy.hpp>
+#include <symbol_proxy.hpp>
 
 namespace jlwrap
 {
@@ -16,7 +17,7 @@ namespace jlwrap
 
     auto Module::operator[](const std::string& name)
     {
-        return State::safe_call(_eval, _value, jl_symbol(name.c_str()));
+        return State::safe_call(_eval, _value, Symbol(name));
     }
 
     Module::operator jl_module_t*()

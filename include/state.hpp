@@ -41,14 +41,14 @@ namespace jlwrap
             /// @param arguments
             /// @returns function result as jl_value_t*
             template<typename... Args_t>
-            static auto call(jl_function_t*, Args_t...);
+            static auto call(jl_function_t*, Args_t&&...);
 
             /// @brief call julia function with exception forwarding
             /// @param function
             /// @param arguments
             /// @returns function result as jl_value_t*
             template<typename... Args_t>
-            static auto safe_call(jl_function_t*, Args_t...);
+            static auto safe_call(jl_function_t*, Args_t&&...);
 
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
