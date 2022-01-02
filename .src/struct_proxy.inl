@@ -7,16 +7,20 @@
 
 namespace jlwrap
 {
-    MutableStruct::MutableStruct(jl_value_t* instance)
-        : Proxy<State>(instance)
+    auto MutableStruct::operator[](const std::string& field_name)
     {
-        auto* type = jl_typeof(instance);
-        for (size_t i = 0; i < jl_nfields(instance); ++i)
-            _fieldname_to_index.insert({jl_symbol_name(jl_field_name(type, i)), i});
+        return Proxy<State>::operator[](field_name);
     }
 
-    auto MutableStruct::operator[](std::string name) const
+    template<typename T>
+    T MutableStruct::operator[](const std::string& field_name) const
     {
-        return MutableStruct::FieldProxy(*this, _fieldname_to_index.at(name));
+        return Proxy<State>::operator[]<T>(field_name);
+    }
+
+    template<typename T>
+    T Struct::operator[](const std::string& field_name) const
+    {
+        return Proxy<State>::operator[]<T>(field_name);
     }
 }

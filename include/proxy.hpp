@@ -7,8 +7,6 @@
 
 #include <julia.h>
 #include <unordered_map>
-#include <function_proxy.hpp>
-#include <array_proxy.hpp>
 
 namespace jlwrap
 {
@@ -54,18 +52,6 @@ namespace jlwrap
             /// @brief cast to string using julias Base.string
             explicit operator std::string();
 
-            /// @brief access field
-            /// @param field_name: exact name of field, as defined julia-side
-            /// @returns proxy holding value of field
-            auto operator[](const std::string& field_name);
-
-            /// @brief access field but immediately decay into type
-            /// @tparam T: type the result will be unbox<T>'d to
-            /// @param field_name: exact name of field, as defined julia-side
-            /// @returns value as T
-            template<typename T>
-            T operator[](const std::string& field_name) const;
-
             /// @brief implicitly convert to T
             /// @returns value as T
             template<typename T>
@@ -83,6 +69,18 @@ namespace jlwrap
             auto& operator=(jl_value_t*);
 
         protected:
+            /// @brief access field
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns proxy holding value of field
+            auto operator[](const std::string& field_name);
+
+            /// @brief access field but immediately decay into type
+            /// @tparam T: type the result will be unbox<T>'d to
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns value as T
+            template<typename T>
+            T operator[](const std::string& field_name) const;
+
             jl_value_t* _value;
 
         private:

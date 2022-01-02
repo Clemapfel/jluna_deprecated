@@ -18,16 +18,10 @@ add_library(jlwrap STATIC
     include/state.hpp
     .src/state.inl
 
-    include/primitive_proxy.hpp
-    .src/primitive_proxy.inl
-
     include/proxy.hpp
     .src/proxy.inl
     include/julia_extension.h
     include/exceptions.hpp
-
-    #include/function_proxy.hpp
-    #.src/function_proxy.inl
 
     include/array_proxy.hpp
     .src/array_proxy.inl
@@ -36,7 +30,11 @@ add_library(jlwrap STATIC
 
     include/unbox_any.hpp
     include/box_any.hpp
-        .src/exceptions.inl include/symbol_proxy.hpp include/function_proxy.hpp .src/function_proxy.inl)
+        .src/exceptions.inl include/function_proxy.hpp .src/function_proxy.inl
+
+        include/struct_proxy.hpp
+        .src/struct_proxy.inl
+)
 
 set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)

@@ -200,6 +200,6 @@ namespace jlwrap
     template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::SafeFunction>, bool> = true>
     T unbox(jl_value_t* value)
     {
-        return Function(value);
+        return SafeFunction(value);
     }
 }
