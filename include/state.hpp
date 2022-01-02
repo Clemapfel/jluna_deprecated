@@ -11,8 +11,6 @@
 #include <map>
 #include <set>
 
-#include <primitive_proxy.hpp>
-
 // https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
 // https://docs.julialang.org/en/v1/devdocs/init/
 

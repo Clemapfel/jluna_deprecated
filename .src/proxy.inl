@@ -65,7 +65,7 @@ namespace jlwrap
     }
 
     template<typename State_t>
-    auto Proxy<State_t>::operator[](const std::string& field_name)
+    auto Proxy<State_t>::get_field(const std::string& field_name)
     {
         auto it = _field_to_index.find(field_name);
 
@@ -81,7 +81,7 @@ namespace jlwrap
 
     template<typename State_t>
     template<typename T>
-    T Proxy<State_t>::operator[](const std::string& field_name) const
+    T Proxy<State_t>::get_field(const std::string& field_name) const
     {
         auto it = _field_to_index.find(field_name);
 

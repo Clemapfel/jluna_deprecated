@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#include <primitive_proxy.hpp>
 #include <state.hpp>
 #include <julia_extension.h>
 #include <array_proxy.hpp>
@@ -15,6 +14,8 @@
 #include <array>
 #include <thread>
 #include <function_proxy.hpp>
+#include <struct_proxy.hpp>
+#include <module_proxy.hpp>
 
 using namespace jlwrap;
 
@@ -22,6 +23,19 @@ int main()
 {
     State::initialize();
 
+    Module module = State::safe_script("return Base");
+    jl_value_t* f = module["println"];
+
+    std::cout << jl_typeof_str(f) << std::endl;
+
+
+    assert(f != nullptr);
+
+    //f("test");
+
+
+    return 0;
+    /*
     SafeFunction f = State::get_function("+", "Base");
     int what = f(1, 2);
     std::cout << what << std::endl;

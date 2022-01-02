@@ -72,14 +72,14 @@ namespace jlwrap
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
             /// @returns proxy holding value of field
-            auto operator[](const std::string& field_name);
+            auto get_field(const std::string& field_name);
 
             /// @brief access field but immediately decay into type
             /// @tparam T: type the result will be unbox<T>'d to
             /// @param field_name: exact name of field, as defined julia-side
             /// @returns value as T
             template<typename T>
-            T operator[](const std::string& field_name) const;
+            T get_field(const std::string& field_name) const;
 
             jl_value_t* _value;
 
