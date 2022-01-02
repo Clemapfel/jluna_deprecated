@@ -76,6 +76,8 @@ namespace jlwrap
             static inline jl_function_t* _get_value = nullptr;
             static inline jl_function_t* _get_reference = nullptr;
     };
+
+
 }
 
 #include ".src/state.inl"

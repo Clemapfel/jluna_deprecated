@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include <array_proxy.hpp>
+#include <function_proxy.hpp>
 
 namespace jlwrap
 {
@@ -32,6 +33,12 @@ namespace jlwrap
                 std::is_same_v<T, double>,
                 std::true_type,
                 std::false_type>::type;
+    }
+
+    /// @brief unbox identity
+    jl_value_t* unbox(jl_value_t* value)
+    {
+        return value;
     }
 
     /// @brief unbox to primitive
@@ -182,9 +189,17 @@ namespace jlwrap
         return Array<Value_t, Rank>(value);
     }
 
-    /// @brief unbox identity
-    jl_value_t* unbox(jl_value_t* value)
+    /// @brief unbox to function proxy
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Function>, bool> = true>
+    T unbox(jl_value_t* value)
     {
-        return value;
+        return Function(value);
+    }
+
+    /// @brief unbox to safe function proxy
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::SafeFunction>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return Function(value);
     }
 }

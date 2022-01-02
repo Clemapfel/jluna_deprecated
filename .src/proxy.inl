@@ -6,6 +6,7 @@
 #include <proxy.hpp>
 #include <sstream>
 #include <box_any.hpp>
+#include <function_proxy.hpp>
 
 namespace jlwrap
 {
@@ -47,6 +48,13 @@ namespace jlwrap
     Proxy<State_t>::operator jl_value_t*()
     {
         return _value;
+    }
+
+    template<typename State_t>
+    Proxy<State_t>::operator std::string()
+    {
+        static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
+        return std::string(jl_string_data(jl_call1(to_string, _value)));
     }
 
     template<typename State_t>
