@@ -22,8 +22,8 @@ int main()
 {
     State::initialize();
 
-    auto f = SafeFunction(State::safe_script("return (+)"));
-    int what = unbox<int>(f(1, 2));
+    SafeFunction f = State::get_function("+", "Base");
+    int what = f(1, 2);
     std::cout << what << std::endl;
 
     //auto* first = State::get_function("asdas", "Main.jlwrap");

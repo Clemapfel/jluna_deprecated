@@ -20,32 +20,31 @@ namespace jlwrap
             protected:
                 FunctionProxy(jl_function_t*);
 
-            protected:
                 using Proxy<State>::_value;
         };
     }
 
-    class SafeFunction : public detail::FunctionProxy
+    class SafeFunction : protected detail::FunctionProxy
     {
         public:
             SafeFunction(jl_function_t*);
             using detail::FunctionProxy::operator jl_function_t*;
 
             template<typename... Args_t>
-            jl_value_t* operator()(Args_t&&...);
+            auto operator()(Args_t&&...);
 
         private:
             using detail::FunctionProxy::_value;
     };
 
-    class Function : public detail::FunctionProxy
+    class Function : protected detail::FunctionProxy
     {
         public:
             Function(jl_function_t*);
             using detail::FunctionProxy::operator jl_function_t*;
 
             template<typename... Args_t>
-            jl_value_t* operator()(Args_t...);
+            auto operator()(Args_t&&...);
 
         private:
             using detail::FunctionProxy::_value;

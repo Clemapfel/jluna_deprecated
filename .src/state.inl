@@ -11,10 +11,13 @@
 
 namespace jlwrap
 {
-    static void on_exit()
+    namespace detail
     {
-        jl_eval_string("jlwrap.memory_handler.force_free()");
-        jl_atexit_hook(0);
+        static void on_exit()
+        {
+            jl_eval_string("jlwrap.memory_handler.force_free()");
+            jl_atexit_hook(0);
+        }
     }
 
     void State::initialize()
@@ -33,7 +36,7 @@ namespace jlwrap
             end
         )");
 
-        std::atexit(&on_exit);
+        std::atexit(&detail::on_exit);
 
         _jlwrap_module = (jl_module_t*) jl_eval_string("return jlwrap");
 
@@ -144,9 +147,9 @@ namespace jlwrap
         return safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v);
     }
 
-    jl_function_t* State::get_function(const std::string& function_name)
+    jl_function_t* State::find_function(const std::string& function_name)
     {
-        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "get_function");
+        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "find_function");
         jl_array_t* res = (jl_array_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
 
         if (res->length == 0)

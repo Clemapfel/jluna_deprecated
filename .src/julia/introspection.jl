@@ -16,7 +16,9 @@ begin
             for symbol in names(m)
 
                 current = Base.eval(m, symbol)
-                if (typeof(current) == Module) && (current != m) && !exists(out, current) && !exists(exclude_roots, current)
+
+                # shortcut operator order relevant for runtime
+                if (typeof(current) == Module) && (current != m) && !exists(exclude_roots, current) && !exists(out, current)
                     push!(out, current)
                     aux(current)
                 end
@@ -31,11 +33,20 @@ begin
     """
     searches for function in any module currently loaded, returns vector of all functions with that name
     """
-    function get_function(function_name::Symbol) ::Vector{Function}
+    function find_function(function_name::Symbol) ::Vector{Function}
 
         candidates = Vector{Function}()
 
-        for m in list_all_modules(; exclude_roots = Vector{Module}())
+        # skip likely base/core for better runtime
+        if (isdefined(Base, function_name))
+            push!(candidates, Base.eval(function_name))
+        end
+
+        if (isdefined(Core, function_name))
+            push!(candidates, Core.eval(function_name))
+        end
+
+        for m in list_all_modules(; exclude_roots = Vector{Module}([Base, Core]))
             if exists(names(m), function_name)
                 push!(candidates, m.eval(function_name))
             end
@@ -43,7 +54,7 @@ begin
 
         return candidates
     end
-    export get_function
+    export find_function
 
     """
     get all modules for whom Base.isdefined(m, x) returns true
@@ -51,7 +62,16 @@ begin
     function get_all_modules_defining(x::Symbol) ::Vector{Module}
 
         out = Vector{Module}()
-        for m in list_all_modules(; exclude_roots = Vector{Module}())
+
+        if (isdefined(Base, x))
+            push!(out, Base.eval(x))
+        end
+
+        if (isdefined(Core, function_name))
+            push!(out, Core.eval(x))
+        end
+
+        for m in list_all_modules(; exclude_roots = Vector{Module}([Base, Core]))
             if exists(names(m), x)
                 push!(out, m)
             end

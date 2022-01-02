@@ -24,9 +24,9 @@ namespace jlwrap
     {}
 
     template<typename... Args_t>
-    jl_value_t* SafeFunction::operator()(Args_t&&... args)
+    auto SafeFunction::operator()(Args_t&&... args)
     {
-        return State::call((jl_function_t*) _value, std::forward<Args_t>(args)...);
+        return Proxy<State>(State::safe_call((jl_function_t*) _value, std::forward<Args_t>(args)...));
     }
 
     /*
@@ -42,9 +42,9 @@ namespace jlwrap
     {}
 
     template<typename... Args_t>
-    jl_value_t* Function::operator()(Args_t... args)
+    auto Function::operator()(Args_t&&... args)
     {
-        return State::safe_call((jl_function_t*) _value, args...);
+        return Proxy<State>(State::call((jl_function_t*) _value, std::forward<Args_t>(args)...));
     }
 
 }
