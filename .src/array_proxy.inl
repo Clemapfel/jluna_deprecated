@@ -10,6 +10,7 @@
 #include <proxy.hpp>
 #include <unbox_any.hpp>
 #include <box_any.hpp>
+#include <state.hpp>
 
 namespace jlwrap
 {
@@ -17,12 +18,7 @@ namespace jlwrap
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {
-        if (not jl_is_array(value))
-        {
-            std::stringstream str;
-            str << jl_typeof(value) << std::endl;
-            assert(false);
-        }
+        assert(jl_isa(value, (jl_value_t*) jl_array_type) && "value being bound is not an array");
     }
 
     template<typename T, size_t R>

@@ -4,7 +4,6 @@
 //
 
 #include <array_proxy.hpp>
-#include <primitive_proxy.hpp>
 
 namespace jlwrap
 {

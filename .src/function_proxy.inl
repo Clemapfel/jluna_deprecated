@@ -21,7 +21,9 @@ namespace jlwrap
 
     SafeFunction::SafeFunction(jl_function_t* value)
         : detail::FunctionProxy(value)
-    {}
+    {
+        assert(jl_isa(value, (jl_value_t*) jl_function_type) && "value being bound is not a function");
+    }
 
     template<typename... Args_t>
     auto SafeFunction::operator()(Args_t&&... args)
@@ -39,7 +41,9 @@ namespace jlwrap
 
     Function::Function(jl_function_t* value)
         : detail::FunctionProxy(value)
-    {}
+    {
+        assert(jl_isa(value, (jl_value_t*) jl_function_type) && "value being bound is not a function");
+    }
 
     template<typename... Args_t>
     auto Function::operator()(Args_t&&... args)

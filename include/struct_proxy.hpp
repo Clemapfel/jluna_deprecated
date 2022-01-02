@@ -14,6 +14,9 @@ namespace jlwrap
     struct MutableStruct : public Proxy<State>
     {
         public:
+            /// @brief ctor
+            MutableStruct(jl_value_t*);
+
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
             /// @returns proxy holding value of field
@@ -31,6 +34,9 @@ namespace jlwrap
     struct Struct : public Proxy<State>
     {
         public:
+            /// @brief ctor
+            Struct(jl_value_t*);
+
             /// @brief access field but immediately decay into type
             /// @tparam T: type the result will be unbox<T>'d to
             /// @param field_name: exact name of field, as defined julia-side
@@ -39,3 +45,5 @@ namespace jlwrap
             T operator[](const std::string& field_name) const;
     };
 }
+
+#include ".src/struct_proxy.inl"

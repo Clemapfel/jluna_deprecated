@@ -7,6 +7,7 @@
 
 #include <julia.h>
 #include <vector>
+#include <proxy.hpp>
 #include <state.hpp>
 
 namespace jlwrap
