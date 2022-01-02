@@ -9,12 +9,7 @@
 namespace jlwrap
 {
     Symbol::Symbol(const std::string& str)
-        : Proxy<State>([](const std::string& str) -> jl_value_t*
-                       {
-                            std::stringstream command;
-                            command << "return Symbol(\"" << str << "\")" << std::endl;
-                            return jl_eval_string(command.str().c_str());
-                       }(str))
+        : Proxy<State>((jl_value_t*) jl_symbol(str.c_str()))
     {}
 
     Symbol::Symbol(jl_value_t* value)
