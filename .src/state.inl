@@ -124,7 +124,7 @@ namespace jlwrap
     jl_value_t* State::create_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
-        std::cout << "added " << in << std::endl;
+        //std::cout << "added " << in << std::endl;
         jl_value_t* value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
@@ -134,7 +134,7 @@ namespace jlwrap
     void State::free_reference(jl_value_t* in)
     {
         JL_GC_PUSH1(in);
-        std::cout << "freed " << in << std::endl;
+        //std::cout << "freed " << in << std::endl;
         safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
         assert(jl_exception_occurred() == nullptr);
         JL_GC_POP();
