@@ -24,8 +24,9 @@ int main()
     State::initialize();
 
     auto proxy = Proxy<State>(jl_eval_string("return Base"));
-    //jl_value_t* ptr = proxy;
-    auto module = Proxy<State>(jl_eval_string("return Base"));
+    Module module = proxy;
+
+    assert(module["println"] != nullptr);
 
     //Module module = State::safe_script("return Base");
     //assert(module["println"] != nullptr);

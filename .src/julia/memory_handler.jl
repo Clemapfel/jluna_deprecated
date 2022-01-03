@@ -110,7 +110,7 @@ begin # included into module jlwrap
                 _ref_counter[][ptr] += 1
             else
                 _refs[][ptr] = Base.RefValue{Any}(to_wrap)
-                _ref_counter[][ptr] = 0
+                _ref_counter[][ptr] = 1
             end
 
             return _refs[][ptr].x
@@ -129,7 +129,7 @@ begin # included into module jlwrap
             count = _ref_counter[][ptr]
 
             if (count == 1)
-                _ref_counter[][ptr] = 0#delete!(_ref_counter[], ptr)
+                delete!(_ref_counter[], ptr)
             else
                 _ref_counter[][ptr] -= 1
             end
@@ -143,8 +143,8 @@ begin # included into module jlwrap
         function force_free() ::Nothing
 
             for k in keys(_refs)
-                delete!(_refs, k)
-                delete!(_ref_counter, k)
+                delete!(_refs[], k)
+                delete!(_ref_counter[], k)
             end
 
             @assert isempty(_refs) && isempty(_ref_counter)
