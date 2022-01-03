@@ -19,6 +19,26 @@ namespace jlwrap
         return (jl_value_t*) value.operator jl_array_t*();
     }
 
+    /// @brief unbox to vector, flattens multidimensional arrays
+    template<typename T,
+        typename Value_t = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::vector<Value_t>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        if (not jl_is_array(value))
+            assert(false);
+
+        auto* as_array = (jl_array_t*) value;
+
+        std::vector<Value_t> out;
+        out.reserve(as_array->length);
+
+        for (size_t i = 0; i < as_array->length; ++i)
+            out.push_back(unbox<Value_t>(jl_arrayref(as_array, i)));
+
+        return out;
+    }
+
     template<typename T>
     Vector<T>::Vector()
     {

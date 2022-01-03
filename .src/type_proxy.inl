@@ -7,10 +7,26 @@
 
 namespace jlwrap
 {
+    inline jl_value_t* box(Type type)
+    {
+        return (jl_value_t*) type.operator _jl_datatype_t *();
+    }
+
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Type>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return Type(value);
+    }
+
     Type::Type(jl_value_t* v)
         : _singleton(v)
     {
         assert(jl_isa(v, (jl_value_t*) jl_datatype_type) && "value is not a datatype");
+    }
+
+    Type::operator _jl_datatype_t*()
+    {
+        return (jl_datatype_t*) _singleton;
     }
 
     Type::operator std::string()

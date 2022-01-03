@@ -154,55 +154,5 @@ namespace jlwrap
         return std::string(jl_string_data(jl_call1(to_string, value)));
     }
 
-    /// @brief unbox to vector, flattens multidimensional arrays
-    template<typename T,
-        typename Value_t = typename T::value_type,
-        std::enable_if_t<std::is_same_v<T, std::vector<Value_t>>, bool> = true>
-    T unbox(jl_value_t* value)
-    {
-        if (not jl_is_array(value))
-            assert(false);
-
-        auto* as_array = (jl_array_t*) value;
-
-        std::vector<Value_t> out;
-        out.reserve(as_array->length);
-
-        for (size_t i = 0; i < as_array->length; ++i)
-            out.push_back(unbox<Value_t>(jl_arrayref(as_array, i)));
-
-        return out;
-    }
-
-    /// @brief unbox to array
-    template<typename T,
-        typename Value_t = typename T::value_type,
-        size_t Rank = T::rank,
-        std::enable_if_t<std::is_same_v<T, jlwrap::Array<Value_t, Rank>>, bool> = true>
-    T unbox(jl_value_t* value)
-    {
-        assert(jl_is_array(value));
-
-        // assert dimensionality
-        static jl_function_t* ndims = jl_get_function(jl_base_module, "ndims");
-        assert(jl_unbox_int64(jl_call1(ndims, value)) == Rank && "dimensionality mismatch");
-
-        return Array<Value_t, Rank>(value);
-    }
-
-    /// @brief unbox to function proxy
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Function>, bool> = true>
-    T unbox(jl_value_t* value)
-    {
-        return Function(value);
-    }
-
-    /// @brief unbox to safe function proxy
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::SafeFunction>, bool> = true>
-    T unbox(jl_value_t* value)
-    {
-        return SafeFunction(value);
-    }
-
 
 }

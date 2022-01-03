@@ -124,20 +124,48 @@ namespace jlwrap
 
     jl_value_t* State::create_reference(jl_value_t* in)
     {
+        if (in == nullptr)
+            return nullptr;
+
         JL_GC_PUSH1(in);
-        //std::cout << "added " << in << std::endl;
-        jl_value_t* value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
-        assert(jl_exception_occurred() == nullptr);
+        std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+
+        jl_value_t* value;
+        try
+        {
+            value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
+        }
+        catch (jlwrap::JuliaException& exc)
+        {
+            std::cerr << "[C++][ERROR][FATAL] illegal allocation of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
+            std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
+            std::cerr << exc.what() << std::endl;
+            throw exc;
+            exit(1);
+        }
         JL_GC_POP();
         return value;
     }
 
     void State::free_reference(jl_value_t* in)
     {
+        if (in == nullptr)
+            return;
+
         JL_GC_PUSH1(in);
-        //std::cout << "freed " << in << std::endl;
-        safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
-        assert(jl_exception_occurred() == nullptr);
+        std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+        try
+        {
+            safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
+        }
+        catch (jlwrap::JuliaException& exc)
+        {
+            std::cerr << "[C++][ERROR][FATAL] illegal freeing of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
+            std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
+            std::cerr << exc.what() << std::endl;
+            throw exc;
+            exit(1);
+        }
         JL_GC_POP();
     }
 

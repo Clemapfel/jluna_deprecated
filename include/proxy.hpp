@@ -11,6 +11,19 @@
 
 namespace jlwrap
 {
+    /// @brief concept that states that unbox<T>(jl_value_t*) must compile
+    template<typename T>
+    concept Unboxable = requires(T t, jl_value_t* v)
+    {
+        {unbox<T>(v)};
+    };
+
+    template<typename T>
+    concept Boxable = requires(T t, jl_value_t* v)
+    {
+        {box(v)};
+    };
+
     /// @brief concept of a variable, has a type, name (symbol) and value
     /// @note do not inherit from this class unless you know what you're doing, improper handling of references to julia-side values can result in memory leaks or the garbage collector freeing in-use memory
     template<typename State_t>
@@ -53,15 +66,20 @@ namespace jlwrap
             /// @brief cast to string using julias Base.string
             virtual explicit operator std::string();
 
-            /// @brief implicitly convert to T
+            /// @brief implicitly convert to T via unboxing
             /// @returns value as T
-            template<typename T>
+            template<Unboxable T>
+            operator T();
+
+            /// @brief implicitly downcast to base
+            /// @returns value as T
+            template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool> = true>
             operator T();
 
             /// @brief assign value to proxy, this modifies the value julia-side
             /// @param T: value
             /// @returns reference to self
-            template<typename T>
+            template<Boxable T>
             auto& operator=(T);
 
             /// @brief assign value to proxy, this modifies the value julia-side

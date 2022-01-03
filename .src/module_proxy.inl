@@ -18,6 +18,12 @@ namespace jlwrap
         return value.operator jl_value_t*();
     }
 
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Module>, bool> = true>
+    inline T unbox(jl_value_t* value)
+    {
+        return Module(value);
+    }
+
     Module::Module(jl_value_t* value)
         : Proxy<State>(value)
     {

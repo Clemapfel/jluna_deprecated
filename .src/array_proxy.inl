@@ -26,6 +26,22 @@ namespace jlwrap
         return (jl_value_t*) value.operator jl_array_t*();
     }
 
+    /// @brief unbox to array
+    template<typename T,
+        typename Value_t = typename T::value_type,
+        size_t Rank = T::rank,
+        std::enable_if_t<std::is_same_v<T, jlwrap::Array<Value_t, Rank>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        assert(jl_is_array(value));
+
+        // assert dimensionality
+        static jl_function_t* ndims = jl_get_function(jl_base_module, "ndims");
+        assert(jl_unbox_int64(jl_call1(ndims, value)) == Rank && "dimensionality mismatch");
+
+        return Array<Value_t, Rank>(value);
+    }
+
     template<typename T, size_t R>
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))

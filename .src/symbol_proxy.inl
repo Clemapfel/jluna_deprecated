@@ -18,6 +18,12 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Symbol>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return Symbol(value);
+    }
+
     Symbol::Symbol(const std::string& str)
         : Proxy<State>((jl_value_t*) jl_symbol(str.c_str()))
     {}

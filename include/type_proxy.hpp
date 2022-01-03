@@ -17,6 +17,9 @@ namespace jlwrap
             /// @brief ctor from already existing type
             Type(jl_value_t*);
 
+            /// @brief decay to julia c-type
+            operator jl_datatype_t*();
+
             /// @brief cast to string
             explicit operator std::string();
 

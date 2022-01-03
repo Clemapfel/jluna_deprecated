@@ -23,24 +23,14 @@ int main()
 {
     State::initialize();
 
-    State::safe_script("Vector{Float64} = 1");
+    auto proxy = Proxy<State>(jl_eval_string("return Base"));
+    //jl_value_t* ptr = proxy;
+    auto module = Proxy<State>(jl_eval_string("return Base"));
 
-    Proxy<State> type_a = State::safe_script("return Base.Type{Vector{Int64}}");
-    Proxy<State> type_b = State::safe_script("return Base.Type{Vector{Int32}}");
-
-    std::cout << (type_a.type == type_b.type) << std::endl;
-
-    Module module = State::safe_script("return Base");
-    jl_value_t* f = module["println"];
-
-    std::cout << jl_typeof_str(f) << std::endl;
-
-
-    assert(f != nullptr);
+    //Module module = State::safe_script("return Base");
+    //assert(module["println"] != nullptr);
 
     //f("test");
-
-
     return 0;
     /*
     SafeFunction f = State::get_function("+", "Base");

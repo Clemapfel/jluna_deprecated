@@ -24,11 +24,9 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _field_to_index(), _value(value), type(jl_typeof(value))
+        : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1), type(jl_typeof(value))
     {
-        if (_value != nullptr)
-            State_t::create_reference(value);
-
+        State_t::create_reference(value);
         setup_field_to_index();
     }
 
@@ -36,9 +34,7 @@ namespace jlwrap
     Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
         : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), type(jl_typeof(value))
     {
-        if (_value != nullptr)
-            State_t::create_reference(value);
-
+        State_t::create_reference(value);
         setup_field_to_index();
     }
 
@@ -58,8 +54,8 @@ namespace jlwrap
     template<typename State_t>
     Proxy<State_t>::~Proxy()
     {
-        if (_value != nullptr)
-            State_t::free_reference(_value);
+        State_t::free_reference(_value);
+        _value = nullptr;
     }
 
     template<typename State_t>
@@ -94,16 +90,24 @@ namespace jlwrap
     }
 
     template<typename State_t>
-    template<typename T>
+    template<Unboxable T>
     Proxy<State_t>::operator T()
     {
         return unbox<T>(_value);
     }
 
     template<typename State_t>
+    template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool>>
+    Proxy<State_t>::operator T()
+    {
+        return T(this->_value);
+    }
+
+    template<typename State_t>
     Proxy<State_t>::Proxy(Proxy&& other) noexcept
         : _value(other._value), type(other.type)
     {
+        //State_t::create_reference(_value);
         other._value = nullptr;
     }
 
@@ -139,7 +143,7 @@ namespace jlwrap
     }
 
     template<typename State_t>
-    template<typename T>
+    template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
         if (_field_i == -1)

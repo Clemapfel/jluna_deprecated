@@ -128,8 +128,8 @@ begin # included into module jlwrap
 
             count = _ref_counter[][ptr]
 
-            if (count <= 1)
-                delete!(_ref_counter[], ptr)
+            if (count == 1)
+                _ref_counter[][ptr] = 0#delete!(_ref_counter[], ptr)
             else
                 _ref_counter[][ptr] -= 1
             end

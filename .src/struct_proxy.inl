@@ -17,6 +17,12 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Struct>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return Struct(value);
+    }
+
     inline jl_value_t* box(MutableStruct value)
     {
         return value.operator jl_value_t *();
@@ -25,6 +31,12 @@ namespace jlwrap
     inline jl_value_t* box(Struct value)
     {
         return value.operator jl_value_t *();
+    }
+
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::MutableStruct>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return MutableStruct(value);
     }
 
     auto MutableStruct::operator[](const std::string& field_name)

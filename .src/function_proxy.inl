@@ -29,6 +29,12 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::SafeFunction>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return SafeFunction(value);
+    }
+
     inline jl_value_t* box(Function& value)
     {
         return value.operator jl_value_t *();
@@ -37,6 +43,12 @@ namespace jlwrap
     inline jl_value_t* box(Function value)
     {
         return value.operator jl_value_t *();
+    }
+
+    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Function>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        return Function(value);
     }
 
     SafeFunction::SafeFunction(jl_function_t* value)
