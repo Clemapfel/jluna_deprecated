@@ -11,9 +11,6 @@
 #include <map>
 #include <set>
 
-// https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
-// https://docs.julialang.org/en/v1/devdocs/init/
-
 namespace jlwrap
 {
     template<typename>
@@ -74,8 +71,6 @@ namespace jlwrap
             static inline jl_function_t* _get_value = nullptr;
             static inline jl_function_t* _get_reference = nullptr;
     };
-
-
 }
 
 #include ".src/state.inl"

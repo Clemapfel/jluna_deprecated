@@ -17,11 +17,6 @@ namespace jlwrap
         return _message.c_str();
     }
 
-    JuliaExceptionType JuliaException::get_type()
-    {
-        return _type;
-    }
-
     AmbiguousCandidateException::AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidate_modules)
     {
         std::stringstream str;

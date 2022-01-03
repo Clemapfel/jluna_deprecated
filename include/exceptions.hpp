@@ -12,42 +12,6 @@
 
 namespace jlwrap
 {
-    /// @brief julia exception type
-    enum JuliaExceptionType
-    {
-        // error thrown via jl_error() c-side
-        ERROR_EXCEPTION = -1,
-
-        // no exception placeholder
-        NO_EXCEPTION = NULL,
-
-        //
-        ARGUMENT_ERROR ,
-        BOUNDS_ERROR,
-        COMPOSITE_EXCEPTION,
-        DIMENSION_MISMATCH,
-        DIVIDE_ERROR,
-        DOMAIN_ERROR,
-        EOF_ERROR,
-        INEXACT_ERROR,
-        INIT_ERROR,
-        INTERRUPT_EXCEPTION,
-        INVALID_STATE_EXCEPTION,
-        KEY_ERROR,
-        LOAD_ERROR,
-        OUT_OF_MEMORY_ERROR,
-        READ_ONLY_MEMORY_ERROR,
-        REMOTE_EXCEPTION,
-        METHOD_ERROR,
-        OVERFLOW_ERROR,
-        META_PARSE_ERROR,
-        SYSTEM_ERROR,
-        TYPE_ERROR,
-        UNDEF_REF_ERROR,
-        UNDEF_VAR_ERROR,
-        STRING_INDEX_ERROR
-    };
-
     /// @brief wrapper for julia exceptions
     class JuliaException : public std::exception
     {
@@ -64,14 +28,9 @@ namespace jlwrap
             /// @returns c-string
             virtual const char* what() const noexcept override final;
 
-            /// @brief get type
-            /// @returns type
-            JuliaExceptionType get_type();
-
         protected:
             jl_value_t* _value;
             std::string _message;
-            JuliaExceptionType _type;
     };
 
     /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
@@ -88,7 +47,6 @@ namespace jlwrap
 
         private:
             std::string message;
-
     };
 }
 

@@ -15,6 +15,18 @@
 namespace jlwrap
 {
     template<typename T, size_t R>
+    inline jl_value_t* box(Array<T, R> value)
+    {
+        return (jl_value_t*) value.operator jl_array_t*();
+    }
+
+    template<typename T, size_t R>
+    inline jl_value_t* box(Array<T, R>& value)
+    {
+        return (jl_value_t*) value.operator jl_array_t*();
+    }
+
+    template<typename T, size_t R>
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {

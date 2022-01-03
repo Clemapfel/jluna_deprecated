@@ -8,6 +8,16 @@
 
 namespace jlwrap
 {
+    inline jl_value_t* box(Symbol value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(Symbol& value)
+    {
+        return value.operator jl_value_t *();
+    }
+
     Symbol::Symbol(const std::string& str)
         : Proxy<State>((jl_value_t*) jl_symbol(str.c_str()))
     {}

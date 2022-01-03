@@ -8,6 +8,7 @@
 #include <sstream>
 #include <exceptions.hpp>
 #include <box_any.hpp>
+#include <symbol_proxy.hpp>
 
 namespace jlwrap
 {

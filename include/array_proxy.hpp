@@ -40,7 +40,6 @@ namespace jlwrap
             /// @param julia-side array value
             Array(jl_array_t*);
 
-
             /// @brief decay to julia C-API pointer
             operator jl_array_t*();
 
@@ -142,87 +141,6 @@ namespace jlwrap
             static inline jl_function_t* _insert = nullptr;
             static inline jl_function_t* _erase = nullptr;
             static inline jl_function_t* _replace = nullptr;
-    };
-
-    /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
-    template<typename T, size_t R>
-    class Array<T, R>::Iterator
-    {
-        friend class Array<T, R>;
-
-        public:
-            /// @brief increment
-            void operator++();
-
-            /// @brief post-fix increment
-            void operator++(int);
-
-            /// @brief post-fix decrement
-            void operator--();
-
-            /// @brief post-fix decrement
-            void operator--(int);
-
-            /// @brief equality operator
-            /// @param other
-            /// @returns bool
-            bool operator==(const Iterator&) const;
-
-            /// @brief inequality operator
-            /// @param other
-            /// @returns bool
-            bool operator!=(const Iterator&) const;
-
-            /// @brief decays into value_type if called in const-context
-            /// @returns non-reference value_type
-            T operator*() const;
-
-            /// @brief stays as assignable proxy iterator in non-const-context
-            /// @returns reference to self
-            auto& operator*();
-
-            /// @brief cast to value_type
-            operator T();
-
-            /// @brief cast to julia C-API pointer
-            explicit operator const jl_value_t*() const;
-
-        protected:
-            Iterator(jl_array_t*, size_t);
-
-            jl_array_t* _data;
-            size_t _index;
-
-            static inline jl_function_t* _replace = nullptr;
-    };
-
-    template<typename T, size_t R>
-    class Array<T, R>::NonConstIterator : public Array<T, R>::Iterator
-    {
-        public:
-            /// @brief assign julia-side
-            /// @param new value
-            /// @returns reference to self
-            auto& operator=(T);
-
-            /// @brief ctor
-            /// @param array
-            /// @param index, 0-base
-            NonConstIterator(jl_array_t*, size_t);
-
-        private:
-            using Array<T, R>::Iterator::_data;
-            using Array<T, R>::Iterator::_index;
-            using Array<T, R>::Iterator::_replace;
-    };
-
-    template<typename T, size_t R>
-    struct Array<T, R>::ConstIterator : public Array<T, R>::Iterator
-    {
-        /// @brief ctor
-        /// @param array
-        /// @param index, 0-base
-        ConstIterator(jl_array_t*, size_t);
     };
 }
 

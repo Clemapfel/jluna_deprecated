@@ -19,6 +19,26 @@ namespace jlwrap
         {}
     }
 
+    inline jl_value_t* box(SafeFunction& value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(SafeFunction value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(Function& value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(Function value)
+    {
+        return value.operator jl_value_t *();
+    }
+
     SafeFunction::SafeFunction(jl_function_t* value)
         : detail::FunctionProxy(value)
     {
@@ -30,14 +50,6 @@ namespace jlwrap
     {
         return Proxy<State>(State::safe_call((jl_function_t*) _value, std::forward<Args_t>(args)...));
     }
-
-    /*
-    template<typename... Args_t>
-    jl_value_t* SafeFunction::operator()(Args_t&&... args)
-    {
-        return State::call((jl_function_t*) _value, std::forward<Args_t>(args)...);
-    }
-     */
 
     Function::Function(jl_function_t* value)
         : detail::FunctionProxy(value)

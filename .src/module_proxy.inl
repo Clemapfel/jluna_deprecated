@@ -8,6 +8,16 @@
 
 namespace jlwrap
 {
+    inline jl_value_t* box(Module value)
+    {
+        return value.operator jl_value_t*();
+    }
+
+    inline jl_value_t* box(Module& value)
+    {
+        return value.operator jl_value_t*();
+    }
+
     Module::Module(jl_value_t* value)
         : Proxy<State>(value)
     {

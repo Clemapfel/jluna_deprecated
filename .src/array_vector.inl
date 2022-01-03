@@ -8,6 +8,18 @@
 namespace jlwrap
 {
     template<typename T>
+    inline jl_value_t* box(Vector<T> value)
+    {
+        return (jl_value_t*) value.operator jl_array_t*();
+    }
+
+    template<typename T>
+    inline jl_value_t* box(Vector<T>& value)
+    {
+        return (jl_value_t*) value.operator jl_array_t*();
+    }
+
+    template<typename T>
     Vector<T>::Vector()
     {
        if (_push_front == nullptr)

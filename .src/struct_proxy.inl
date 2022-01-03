@@ -7,6 +7,26 @@
 
 namespace jlwrap
 {
+    inline jl_value_t* box(MutableStruct& value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(Struct& value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(MutableStruct value)
+    {
+        return value.operator jl_value_t *();
+    }
+
+    inline jl_value_t* box(Struct value)
+    {
+        return value.operator jl_value_t *();
+    }
+
     auto MutableStruct::operator[](const std::string& field_name)
     {
         return Proxy<State>::get_field(field_name);
