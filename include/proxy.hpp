@@ -87,6 +87,23 @@ namespace jlwrap
             /// @returns reference to self
             auto& operator=(jl_value_t*);
 
+
+            virtual Proxy<State_t> operator[](const std::string& str)
+            {
+                if (jl_isa(_value, (jl_value_t*) jl_module_type))
+                {
+                    return dynamic_cast<Module*>(this)->operator[](str);
+                }
+                else if (jl_is_structtype(jl_typeof(_value)))
+                {
+                    return dynamic_cast<MutableStruct*>(this)->operator[](str);
+                }
+                else if (jl_is_array_type(jl_typeof(_value)))
+                {
+
+                }
+            }
+
             /// @brief type
             const Type type;
 
