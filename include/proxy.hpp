@@ -7,6 +7,7 @@
 
 #include <julia.h>
 #include <unordered_map>
+#include <type_proxy.hpp>
 
 namespace jlwrap
 {
@@ -49,8 +50,8 @@ namespace jlwrap
             /// @brief implicitly decay into value so it can be unbox<T>'d
             operator jl_value_t*();
 
-            virtual /// @brief cast to string using julias Base.string
-            explicit operator std::string();
+            /// @brief cast to string using julias Base.string
+            virtual explicit operator std::string();
 
             /// @brief implicitly convert to T
             /// @returns value as T
@@ -67,6 +68,9 @@ namespace jlwrap
             /// @param jl_value_t*
             /// @returns reference to self
             auto& operator=(jl_value_t*);
+
+            /// @brief type
+            const Type type;
 
         protected:
             /// @brief access field

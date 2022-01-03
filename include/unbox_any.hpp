@@ -12,6 +12,7 @@
 
 #include <array_proxy.hpp>
 #include <function_proxy.hpp>
+#include <module_proxy.hpp>
 
 namespace jlwrap
 {
@@ -202,4 +203,6 @@ namespace jlwrap
     {
         return SafeFunction(value);
     }
+
+
 }

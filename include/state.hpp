@@ -18,9 +18,15 @@ namespace jlwrap
 
     union State
     {
+        template<typename>
+        friend class Proxy;
+
         public:
-            State();
-            ~State();
+            /// @brief ctor deleted, singleton static-only object
+            State() = delete;
+
+            /// @brief dtor deleted, singleton static-only object
+            ~State() = delete;
 
             /// @brief init environment
             static void initialize();
@@ -47,15 +53,6 @@ namespace jlwrap
             template<typename... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
-            /// @brief add a value to be safeguarded from the garbage collector
-            /// @param pointer to value
-            /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
-            static jl_value_t* create_reference(jl_value_t*);
-
-            /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
-            /// @param pointer to value
-            static void free_reference(jl_value_t*);
-
             /// @brief access a function in a specific module
             /// @param function_name: exact function name, e.g. "push!"
             /// @param module_name: name of module including submodule, e.g. "Base.InteractiveUtils"
@@ -64,6 +61,16 @@ namespace jlwrap
             /// @brief access a function just by name, searches for it in any module currently loaded
             /// @param function_name: exact function name, e.g. "push!"
             static jl_function_t* find_function(const std::string& function_name);
+
+        protected:
+            /// @brief add a value to be safeguarded from the garbage collector
+            /// @param pointer to value
+            /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
+            static jl_value_t* create_reference(jl_value_t*);
+
+            /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
+            /// @param pointer to value
+            static void free_reference(jl_value_t*);
 
         private:
             static void forward_last_exception();

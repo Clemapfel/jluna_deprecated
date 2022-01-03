@@ -24,10 +24,8 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _field_to_index()
+        : _field_to_index(), _value(value), type(jl_typeof(value))
     {
-        _value = value;
-
         if (_value != nullptr)
             State_t::create_reference(value);
 
@@ -36,7 +34,7 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
-        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i)
+        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), type(jl_typeof(value))
     {
         if (_value != nullptr)
             State_t::create_reference(value);
@@ -104,14 +102,14 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(Proxy&& other) noexcept
-        : _value(other._value)
+        : _value(other._value), type(other.type)
     {
         other._value = nullptr;
     }
 
     template<typename State_t>
     Proxy<State_t>::Proxy(const Proxy& other)
-        : _value(other._value)
+        : _value(other._value), type(other.type)
     {
         State_t::create_reference(_value);
     }

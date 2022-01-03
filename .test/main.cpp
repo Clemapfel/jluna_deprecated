@@ -23,6 +23,13 @@ int main()
 {
     State::initialize();
 
+    State::safe_script("Vector{Float64} = 1");
+
+    Proxy<State> type_a = State::safe_script("return Base.Type{Vector{Int64}}");
+    Proxy<State> type_b = State::safe_script("return Base.Type{Vector{Int32}}");
+
+    std::cout << (type_a.type == type_b.type) << std::endl;
+
     Module module = State::safe_script("return Base");
     jl_value_t* f = module["println"];
 

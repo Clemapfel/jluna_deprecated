@@ -62,7 +62,7 @@ namespace jlwrap
 
     auto State::script(const std::string& str) noexcept
     {
-        return jl_eval_string(str.c_str());
+        return Proxy<State>(jl_eval_string(str.c_str()));
     }
 
     auto State::safe_script(const std::string& command)
@@ -86,7 +86,7 @@ namespace jlwrap
         auto* result = jl_eval_string(str.str().c_str());
         forward_last_exception();
 
-        return result;
+        return Proxy<State>(result);
     }
 
     template<typename... Args_t>
@@ -164,7 +164,7 @@ namespace jlwrap
         {
             std::vector<std::string> candidate_modules;
             static jl_function_t* get_all_modules_defining = jl_get_function(_jlwrap_module, "get_all_modules_defining");
-            auto* candidate_array = (jl_array_t*) safe_call(get_all_modules_defining, script("return Symbol(\"" + function_name + "\")"));
+            auto* candidate_array = (jl_array_t*) safe_call(get_all_modules_defining, (jl_value_t*) script("return Symbol(\"" + function_name + "\")"));
 
             static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
 
