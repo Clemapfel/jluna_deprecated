@@ -23,14 +23,16 @@ int main()
 {
     State::initialize();
 
-    auto* rng = (jl_value_t*) jl_datatype_type;
+    jl_value_t* var = State::script("test = \"abc\"");
+    State::script("println(\"before: \", test)");
 
-    jl_value_t* var = jl_eval_string("return 123");
+    {
 
-    State::create_reference(var);
-    State::free_reference(var);
-    State::create_reference(var);
-    State::free_reference(var);
+    }
+    State::script("println(\"after: \", test)");
+
+
+
 
 
     /*

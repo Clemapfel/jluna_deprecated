@@ -53,9 +53,8 @@ begin # included into module jlwrap
 
             result = undef
             try
-                #result = f(args...)
-                throw(KeyError(:abc))
-                #update()
+                result = f(args...)
+                update()
             catch exc
                 result = nothing
                 update(exc)
@@ -70,8 +69,10 @@ begin # included into module jlwrap
         """
         function update(exception::Exception) ::Nothing
 
+            try
             global _state[]._last_message = sprint(Base.showerror, exception, catch_backtrace())
             global _state[]._last_exception = exception
+            catch e end
             return nothing
         end
 

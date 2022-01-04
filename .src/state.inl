@@ -154,9 +154,10 @@ namespace jlwrap
         if (in == nullptr)
             return nullptr;
 
-        JL_GC_PUSH1(in);
         //std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
+        auto before = jl_gc_is_enabled();
+        jl_gc_enable(false);
         jl_value_t* value;
         try
         {
@@ -168,9 +169,10 @@ namespace jlwrap
             std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
-            //exit(1);
+            exit(1);
         }
-        JL_GC_POP();
+        jl_gc_enable(before);
+
         return value;
     }
 
@@ -179,9 +181,9 @@ namespace jlwrap
         if (in == nullptr)
             return;
 
-        JL_GC_PUSH1(in);
         //std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
-
+        auto before = jl_gc_is_enabled();
+        jl_gc_enable(false);
         try
         {
             safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
@@ -192,9 +194,9 @@ namespace jlwrap
             std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
-            //exit(1);
+            exit(1);
         }
-        JL_GC_POP();
+        jl_gc_enable(before);
     }
 
     jl_function_t* State::get_function(const std::string& function_name, const std::string& module_name)
