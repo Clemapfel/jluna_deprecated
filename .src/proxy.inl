@@ -11,6 +11,18 @@
 namespace jlwrap
 {
     template<typename State_t>
+    jl_value_t* box(Proxy<State_t> value)
+    {
+        return value.operator _jl_value_t *();
+    }
+
+    template<typename State_t>
+    jl_value_t* box(Proxy<State_t>& value)
+    {
+        return value.operator _jl_value_t *();
+    }
+
+    template<typename State_t>
     void Proxy<State_t>::setup_field_to_index()
     {
         auto* type = (jl_datatype_t*) jl_typeof(_value);
@@ -24,9 +36,10 @@ namespace jlwrap
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1), type(jl_typeof(value))
+        : _field_to_index(), _owner(nullptr), _field_i(-1), type(jl_typeof(value))
     {
         State_t::create_reference(value);
+        _value = value;
         setup_field_to_index();
     }
 
@@ -107,7 +120,6 @@ namespace jlwrap
     Proxy<State_t>::Proxy(Proxy&& other) noexcept
         : _value(other._value), type(other.type)
     {
-        //State_t::create_reference(_value);
         other._value = nullptr;
     }
 

@@ -10,6 +10,7 @@
 #include <box_any.hpp>
 #include <symbol_proxy.hpp>
 
+
 namespace jlwrap
 {
     namespace detail
@@ -83,10 +84,10 @@ namespace jlwrap
 
         str << "\")" << std::endl;
 
-        auto* result = jl_eval_string(str.str().c_str());
+        auto result = Proxy<State>(jl_eval_string(str.str().c_str()));
         forward_last_exception();
 
-        return Proxy<State>(result);
+        return result;
     }
 
     template<typename... Args_t>
@@ -106,21 +107,45 @@ namespace jlwrap
     template<typename... Args_t>
     auto State::safe_call(jl_function_t* function, Args_t&&... args)
     {
+        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
         std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
+
         {
             params.at(0) = (jl_value_t*) function;
             size_t i = 1;
             (insert(i++, box(std::forward<Args_t>(args))), ...);
         }
 
-        jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
-        jl_function_t* safe_call = jl_get_function(module, "safe_call");
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
+        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
+        auto* result = jl_call(safe_call, params.data(), params.size());
+
+        forward_last_exception();
+        return result;
+    }
+
+    /*
+    template<Decayable... Args_t>
+    auto State::safe_call(jl_function_t* function, Args_t&&... args)
+    {
+        std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
+        auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
+
+        {
+            params.at(0) = (jl_value_t*) function;
+            size_t i = 1;
+            (insert(i++, (jl_value_t*) args), ...);
+        }
+
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
+        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
         auto* result = jl_call(safe_call, params.data(), params.size());
         forward_last_exception();
 
         return result;
     }
+     */
 
     jl_value_t* State::create_reference(jl_value_t* in)
     {
@@ -133,7 +158,7 @@ namespace jlwrap
         jl_value_t* value;
         try
         {
-            value = safe_call(_create_reference, jl_box_uint64(reinterpret_cast<size_t>(in)), in);
+            value = safe_call(_create_reference, reinterpret_cast<size_t>(in), in);
         }
         catch (jlwrap::JuliaException& exc)
         {
@@ -141,7 +166,7 @@ namespace jlwrap
             std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
-            exit(1);
+            //exit(1);
         }
         JL_GC_POP();
         return value;
@@ -154,6 +179,7 @@ namespace jlwrap
 
         JL_GC_PUSH1(in);
         std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+
         try
         {
             safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
@@ -164,7 +190,7 @@ namespace jlwrap
             std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
-            exit(1);
+            //exit(1);
         }
         JL_GC_POP();
     }

@@ -21,7 +21,7 @@ namespace jlwrap
             operator jl_datatype_t*();
 
             /// @brief cast to string
-            explicit operator std::string();
+            explicit operator std::string() const;
 
             /// @brief compare
             /// @param other

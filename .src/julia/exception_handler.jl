@@ -55,6 +55,7 @@ begin # included into module jlwrap
             try
                 result = f(args...)
                 update()
+
             catch exc
                 result = nothing
                 update(exc)
@@ -69,7 +70,8 @@ begin # included into module jlwrap
         """
         function update(exception::Exception) ::Nothing
 
-            global _state[]._last_message = sprint(Base.showerror, exception, catch_backtrace());
+            #Base.showerror(exception, backtrace());
+            global _state[]._last_message = string(exception) #sprint(Base.showerror, exception, stacktrace)
             global _state[]._last_exception = exception
             return nothing
         end

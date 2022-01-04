@@ -11,7 +11,6 @@
 
 namespace jlwrap
 {
-    /// @brief concept that states that unbox<T>(jl_value_t*) must compile
     template<typename T>
     concept Unboxable = requires(T t, jl_value_t* v)
     {
@@ -87,27 +86,10 @@ namespace jlwrap
             /// @returns reference to self
             auto& operator=(jl_value_t*);
 
-
-            virtual Proxy<State_t> operator[](const std::string& str)
-            {
-                if (jl_isa(_value, (jl_value_t*) jl_module_type))
-                {
-                    return dynamic_cast<Module*>(this)->operator[](str);
-                }
-                else if (jl_is_structtype(jl_typeof(_value)))
-                {
-                    return dynamic_cast<MutableStruct*>(this)->operator[](str);
-                }
-                else if (jl_is_array_type(jl_typeof(_value)))
-                {
-
-                }
-            }
-
             /// @brief type
-            const Type type;
+            const Type type = Type((jl_value_t*) jl_nothing_type);
 
-        protected:
+        //protected:
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
             /// @returns proxy holding value of field

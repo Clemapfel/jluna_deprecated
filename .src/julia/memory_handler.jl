@@ -103,8 +103,7 @@ begin # included into module jlwrap
         """
         function create_reference(ptr::Cpointer, to_wrap::T) ::T where T
 
-            #println("[JULIA] allocated" * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
-
+            #println("[JULIA] allocated " * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
             if (haskey(_refs[], ptr))
                 @assert _refs[][ptr].x == to_wrap && typeof(to_wrap) == typeof(_refs[][ptr].x)
                 _ref_counter[][ptr] += 1
@@ -127,11 +126,10 @@ begin # included into module jlwrap
             #println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
 
             count = _ref_counter[][ptr]
+            _ref_counter[][ptr] -= 1
 
-            if (count == 1)
+            if (count == 0)
                 delete!(_ref_counter[], ptr)
-            else
-                _ref_counter[][ptr] -= 1
             end
 
             return nothing;

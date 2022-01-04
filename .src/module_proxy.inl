@@ -27,7 +27,7 @@ namespace jlwrap
     Module::Module(jl_value_t* value)
         : Proxy<State>(value)
     {
-        assert(jl_isa(value, (jl_value_t*) jl_module_type));
+        assert(jl_isa(value, (jl_value_t*) jl_module_type) && "value is not of type Module");
         _eval = jl_get_function(jl_base_module, "eval");
     }
 

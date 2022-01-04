@@ -16,6 +16,12 @@ namespace jlwrap
     template<typename>
     class Proxy;
 
+    template<typename T>
+    concept Decayable = requires(T t)
+    {
+        {t.operator jl_value_t*() || std::is_same_v<T, jl_value_t*>};
+    };
+
     union State
     {
         template<typename>
@@ -51,6 +57,9 @@ namespace jlwrap
             /// @param arguments
             /// @returns function result as jl_value_t*
             template<typename... Args_t>
+            static auto safe_call(jl_function_t*, Args_t&&...);
+
+            template<Decayable... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
             /// @brief access a function in a specific module

@@ -29,7 +29,7 @@ namespace jlwrap
         return (jl_datatype_t*) _singleton;
     }
 
-    Type::operator std::string()
+    Type::operator std::string() const
     {
         static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
         return std::string(jl_string_data(jl_call1(to_string, _singleton)));

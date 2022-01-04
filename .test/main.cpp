@@ -23,6 +23,9 @@ int main()
 {
     State::initialize();
 
+    State::script("return 123");
+    State::script("return 123");
+    /*
     auto proxy = Proxy<State>(jl_eval_string("return Base"));
     Module module = proxy;
 
