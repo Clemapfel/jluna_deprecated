@@ -71,7 +71,7 @@ namespace jlwrap
             /// @param function_name: exact function name, e.g. "push!"
             static jl_function_t* find_function(const std::string& function_name);
 
-        protected:
+        //protected:
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
             /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced

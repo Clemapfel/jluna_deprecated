@@ -27,7 +27,7 @@ begin # included into module jlwrap
         @param command: julia code as string
         @returns result of expression or nothing if an exception was thrown
         """
-        function safe_call(command::String) #::Auto
+        function safe_call(command::String) ::Any
 
             as_expression = Meta.parse(command; raise = true)
             result = undef
@@ -53,9 +53,9 @@ begin # included into module jlwrap
 
             result = undef
             try
-                result = f(args...)
-                update()
-
+                #result = f(args...)
+                throw(KeyError(:abc))
+                #update()
             catch exc
                 result = nothing
                 update(exc)
@@ -70,8 +70,7 @@ begin # included into module jlwrap
         """
         function update(exception::Exception) ::Nothing
 
-            #Base.showerror(exception, backtrace());
-            global _state[]._last_message = string(exception) #sprint(Base.showerror, exception, stacktrace)
+            global _state[]._last_message = sprint(Base.showerror, exception, catch_backtrace())
             global _state[]._last_exception = exception
             return nothing
         end

@@ -23,8 +23,16 @@ int main()
 {
     State::initialize();
 
-    State::script("return 123");
-    State::script("return 123");
+    auto* rng = (jl_value_t*) jl_datatype_type;
+
+    jl_value_t* var = jl_eval_string("return 123");
+
+    State::create_reference(var);
+    State::free_reference(var);
+    State::create_reference(var);
+    State::free_reference(var);
+
+
     /*
     auto proxy = Proxy<State>(jl_eval_string("return Base"));
     Module module = proxy;

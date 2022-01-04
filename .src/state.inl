@@ -68,8 +68,11 @@ namespace jlwrap
 
     auto State::safe_script(const std::string& command)
     {
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("jlwrap.exception_handler");
+        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
+
         std::stringstream str;
-        str << "jlwrap.exception_handler.safe_call(\"";
+        //str << "jlwrap.exception_handler.safe_call(\"";
 
         // promote \" to \\\"
         for (char c : command)
@@ -82,12 +85,13 @@ namespace jlwrap
                 str << c;
         }
 
-        str << "\")" << std::endl;
+        //str << "\")" << std::endl;
 
-        auto result = Proxy<State>(jl_eval_string(str.str().c_str()));
+
+        auto* result = jl_call1(safe_call, jl_eval_string(("return \"" + command + "\"").c_str()));
         forward_last_exception();
 
-        return result;
+        return Proxy<State>(result);
     }
 
     template<typename... Args_t>
@@ -125,7 +129,6 @@ namespace jlwrap
         return result;
     }
 
-    /*
     template<Decayable... Args_t>
     auto State::safe_call(jl_function_t* function, Args_t&&... args)
     {
@@ -145,7 +148,6 @@ namespace jlwrap
 
         return result;
     }
-     */
 
     jl_value_t* State::create_reference(jl_value_t* in)
     {
@@ -153,7 +155,7 @@ namespace jlwrap
             return nullptr;
 
         JL_GC_PUSH1(in);
-        std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+        //std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
         jl_value_t* value;
         try
@@ -178,7 +180,7 @@ namespace jlwrap
             return;
 
         JL_GC_PUSH1(in);
-        std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+        //std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
         try
         {
@@ -207,7 +209,7 @@ namespace jlwrap
     jl_function_t* State::find_function(const std::string& function_name)
     {
         static jl_function_t* get_function = jl_get_function(_jlwrap_module, "find_function");
-        jl_array_t* res = (jl_array_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
+        jl_array_t* res = (jl_array_t*) (jl_value_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
 
         if (res->length == 0)
         {
