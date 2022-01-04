@@ -158,14 +158,26 @@ namespace jlwrap
     template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
+        auto before = jl_gc_is_enabled();
+        jl_gc_enable(false);
+
         if (_field_i == -1)
         {
-
+            State::free_reference(_value);
+            _value = box<T>(value);
+            State::create_reference(_value);
         }
         else
         {
+            State::free_reference(_value);
+
             jl_set_nth_field(_owner, size_t(_field_i), box<T>(value));
+            _value = jl_get_nth_field(_owner, size_t(_field_i));
+
+            State::create_reference(_value);
         }
+
+        jl_gc_enable(before);
 
         return *this;
     }
@@ -173,14 +185,24 @@ namespace jlwrap
     template<typename State_t>
     auto & Proxy<State_t>::operator=(jl_value_t* value)
     {
+        auto before = jl_gc_is_enabled();
+        jl_gc_enable(false);
+
         if (_field_i == -1)
         {
-
+            State::free_reference(_value);
+            _value = value;
+            State::create_reference(_value);
         }
         else
         {
+            State::free_reference(_value);
             jl_set_nth_field(_owner, size_t(_field_i), value);
+            _value = jl_get_nth_field(_owner, size_t(_field_i));
+            State::create_reference(_value);
         }
+
+        jl_gc_enable(before);
 
         return *this;
     }
