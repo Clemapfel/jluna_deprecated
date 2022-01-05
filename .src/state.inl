@@ -72,7 +72,6 @@ namespace jlwrap
         static jl_function_t* safe_call = jl_get_function(module, "safe_call");
 
         std::stringstream str;
-        //str << "jlwrap.exception_handler.safe_call(\"";
 
         // promote \" to \\\"
         for (char c : command)
@@ -84,9 +83,6 @@ namespace jlwrap
             else
                 str << c;
         }
-
-        //str << "\")" << std::endl;
-
 
         auto* result = jl_call1(safe_call, jl_eval_string(("return \"" + command + "\"").c_str()));
         forward_last_exception();
@@ -182,6 +178,7 @@ namespace jlwrap
             return;
 
         //std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
         try

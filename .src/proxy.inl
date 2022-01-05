@@ -170,10 +170,8 @@ namespace jlwrap
         else
         {
             State::free_reference(_value);
-
             jl_set_nth_field(_owner, size_t(_field_i), box<T>(value));
             _value = jl_get_nth_field(_owner, size_t(_field_i));
-
             State::create_reference(_value);
         }
 

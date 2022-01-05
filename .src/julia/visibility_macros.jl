@@ -98,4 +98,57 @@ begin
 
         return nothing
     end
+
+    macro public(expr::Expr)
+
+        function aux(expr::Expr)
+
+            # function keyword function
+            if expr.head == :function
+                Basel.eval(@__MODULE__, Meta.parse("export " * string(expr.args[1].args[1])))
+
+            # assignment including inline function
+            elseif expr.head == :(=)
+                if typeof(expr.args[1]) == Symbol
+                    Basel.eval(@__MODULE__, Meta.parse("export " * string(expr.args[1])))
+
+                elseif typeof(expr.args[1]) == Expr
+                    Basel.eval(@__MODULE__, Meta.parse("export " * string(expr.args[1].args[1])))
+                else
+                    throw(ErrorException("uncovered assignment case"))
+                end
+
+            # module or structs
+            elseif expr.head == :module || expr.head == :struct
+                @assert typeof(expr.args[1]) == Bool
+                Basel.eval(@__MODULE__, Meta.parse("export " * string(expr.args[2])))
+
+                for (i, e) in enumerate(expr.args)
+                    if i >= 3 && typeof(e) == Expr
+                        aux(e)
+                    end
+                end
+
+            # block-like
+            elseif expr.head == :block || expr.head == :const || expr.head == :(::)
+                for e in expr.args
+                    if typeof(e) == Symbol
+                        Basel.eval(@__MODULE__, Meta.parse("export " * string(e)))
+                    elseif typeof(e) == Expr
+                        aux(e)
+                    end
+                end
+            end
+
+            if false
+            println("___________")
+            println(expr.head)
+            for e in expr.args
+                println(string(e) * " (" * string(typeof(e)) * ")")
+            end
+            end
+        end
+
+        aux(expr)
+    end
 end

@@ -3,6 +3,8 @@
 # Created on 28.12.2021 by clem (mail@clemens-cords.com)
 #
 
+include("./visibility_macros.jl")
+
 begin # included into module jlwrap
 
     """
