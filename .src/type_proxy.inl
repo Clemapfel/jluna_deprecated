@@ -12,38 +12,38 @@ namespace jluna
         return (jl_value_t*) type.operator _jl_datatype_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Type>, bool> = true>
-    T unbox(jl_value_t* value)
-    {
-        return Type(value);
-    }
-
     Type::Type(jl_value_t* v)
-        : _singleton(v)
+        : Proxy<State>(v)
     {
-        assert(jl_isa(v, (jl_value_t*) jl_datatype_type) && "value is not a datatype");
+        assert(jl_isa(v, (jl_value_t*) jl_type_type) || jl_isa(v, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }
 
-    Type::operator _jl_datatype_t*()
+    Type::operator jl_datatype_t*()
     {
-        return (jl_datatype_t*) _singleton;
+        return (jl_datatype_t*) _value;
     }
 
     Type::operator std::string() const
     {
         static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
-        return std::string(jl_string_data(jl_call1(to_string, _singleton)));
+        return std::string(jl_string_data(jl_call1(to_string, _value)));
     }
 
     bool Type::operator==(const Type& other) const
     {
         static jl_function_t* equals = jl_get_function(jl_base_module, "==");
-        return jl_unbox_bool(jl_call2(equals, this->_singleton, other._singleton));
+        return jl_unbox_bool(jl_call2(equals, this->_value, other._value));
     }
 
     bool Type::operator!=(const Type& other) const
     {
         static jl_function_t* not_equals = jl_get_function(jl_base_module, "!=");
-        return jl_unbox_bool(jl_call2(not_equals, this->_singleton, other._singleton));
+        return jl_unbox_bool(jl_call2(not_equals, this->_value, other._value));
+    }
+
+    bool Type::is_mutable() const
+    {
+        static jl_function_t* is_mutable = jl_get_function(jl_base_module, "ismutable");
+        return jl_unbox_bool(jl_call1(is_mutable, _value));
     }
 }

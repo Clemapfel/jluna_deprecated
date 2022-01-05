@@ -5,7 +5,7 @@
 
 #include <proxy.hpp>
 #include <sstream>
-#include <box_any.hpp>
+#include <.src/box_any.hpp>
 #include <function_proxy.hpp>
 
 namespace jluna
@@ -36,8 +36,11 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _field_to_index(), _owner(nullptr), _field_i(-1), type(jl_typeof(value))
+        : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1)
     {
+        if (_value == nullptr)
+            return;
+
         State_t::create_reference(value);
         _value = value;
         setup_field_to_index();
@@ -45,8 +48,11 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
-        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), type(jl_typeof(value))
+        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i)
     {
+        if (_value == nullptr)
+            return;
+
         State_t::create_reference(value);
         setup_field_to_index();
     }
@@ -118,14 +124,14 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::Proxy(Proxy&& other) noexcept
-        : _value(other._value), type(other.type)
+        : _value(other._value)
     {
         other._value = nullptr;
     }
 
     template<typename State_t>
     Proxy<State_t>::Proxy(const Proxy& other)
-        : _value(other._value), type(other.type)
+        : _value(other._value)
     {
         State_t::create_reference(_value);
     }
@@ -205,4 +211,9 @@ namespace jluna
         return *this;
     }
 
+    template<typename State_t>
+    bool Proxy<State_t>::is_const() const
+    {
+        return false;
+    }
 }

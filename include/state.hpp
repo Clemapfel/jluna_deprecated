@@ -23,6 +23,7 @@ namespace jluna
         {t.operator jl_value_t*() || std::is_same_v<T, jl_value_t*>};
     };
 
+    /// @brief static interface to the julia state
     union State
     {
         template<typename>
@@ -60,6 +61,7 @@ namespace jluna
             template<typename... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
+            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
             template<Decayable... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 

@@ -48,6 +48,22 @@ namespace jluna
         private:
             std::string message;
     };
+
+    /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
+    class ParseException : public std::exception
+    {
+        public:
+            /// @brief ctor
+            /// @param symbol_name: name of the symbol for which multiple results exist
+            ParseException(const std::string& original_command);
+
+            /// @brief get description
+            /// @returns c-string
+            virtual const char* what() const noexcept override final;
+
+        private:
+            std::string message;
+    };
 }
 
 #include ".src/exceptions.inl"

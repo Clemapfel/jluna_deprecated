@@ -6,7 +6,7 @@
 #pragma once
 
 #include <julia.h>
-#include <julia_extension.h>
+#include <.src/julia_extension.h>
 
 #include <type_traits>
 

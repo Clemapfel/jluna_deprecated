@@ -7,7 +7,7 @@
 #include <state.hpp>
 #include <sstream>
 #include <exceptions.hpp>
-#include <box_any.hpp>
+#include <.src/box_any.hpp>
 #include <symbol_proxy.hpp>
 
 
@@ -73,18 +73,30 @@ namespace jluna
 
         std::stringstream str;
 
-        // promote \" to \\\"
+        str << "global __parse_error_maybe = \"\"\n";
+        str << "try" << std::endl;
+        str << "jluna.exception_handler.safe_call(\"";
         for (char c : command)
         {
+            // promote \" to \\\"
             if (c == '\\')
                 str << "\\\\";
             else if (c == '\"')
                 str << "\\\"";
+            else if (c == '\t')
+                continue;
             else
                 str << c;
         }
+        str << "\")" << std::endl;
+        str << "catch e\n";
+        str << "__parse_error_maybe = println(string(e)); throw(e) end";
+        auto* result = jl_eval_string(str.str().c_str());
 
-        auto* result = jl_call1(safe_call, jl_eval_string(("return \"" + command + "\"").c_str()));
+        if (jl_exception_occurred())
+            throw std::invalid_argument(jl_string_data(jl_eval_string("return __parse_error_maybe")));
+
+        // check content exception
         forward_last_exception();
 
         return Proxy<State>(result);

@@ -7,16 +7,17 @@
 
 #include <julia.h>
 #include <unordered_map>
-#include <type_proxy.hpp>
 
 namespace jluna
 {
+    /// @brief concept that requires a value to be unboxed from a julia-side value
     template<typename T>
     concept Unboxable = requires(T t, jl_value_t* v)
     {
         {unbox<T>(v)};
     };
 
+    /// @brief concept that requires a value to be boxable into a julia-side value
     template<typename T>
     concept Boxable = requires(T t, jl_value_t* v)
     {
@@ -86,10 +87,11 @@ namespace jluna
             /// @returns reference to self
             auto& operator=(jl_value_t*);
 
-            /// @brief type
-            const Type type = Type((jl_value_t*) jl_nothing_type);
+            /// @brief check if mutable
+            /// @returns if the proxy holds a variable, true if the variable is not const. If the proxy holds a type, true if it is a mutable type, false otherwise
+            bool is_const() const;
 
-        //protected:
+        protected:
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
             /// @returns proxy holding value of field

@@ -26,7 +26,6 @@ jl_datatype_t* jl_array_value_t(jl_array_t* v)
     return (jl_datatype_t*) jl_call1(get_type, (jl_value_t*) v);
 }
 
-
 /// @brief return value as string
 char* jl_to_string(jl_value_t* v)
 {

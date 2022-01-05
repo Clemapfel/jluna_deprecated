@@ -10,6 +10,7 @@
 
 namespace jluna
 {
+    /// @brief module proxy
     class Module : public Proxy<State>
     {
         public:

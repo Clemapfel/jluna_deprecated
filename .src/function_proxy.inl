@@ -57,7 +57,7 @@ namespace jluna
         assert(jl_isa(value, (jl_value_t*) jl_function_type) && "value being bound is not a function");
     }
 
-    template<typename... Args_t>
+    template<Boxable... Args_t>
     auto SafeFunction::operator()(Args_t&&... args)
     {
         return Proxy<State>(State::safe_call((jl_function_t*) _value, std::forward<Args_t>(args)...));
@@ -69,7 +69,7 @@ namespace jluna
         assert(jl_isa(value, (jl_value_t*) jl_function_type) && "value being bound is not a function");
     }
 
-    template<typename... Args_t>
+    template<Boxable... Args_t>
     auto Function::operator()(Args_t&&... args)
     {
         return Proxy<State>(State::call((jl_function_t*) _value, std::forward<Args_t>(args)...));

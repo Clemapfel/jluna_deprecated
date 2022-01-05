@@ -6,16 +6,17 @@
 #include <iostream>
 
 #include <state.hpp>
-#include <julia_extension.h>
+#include <.src/julia_extension.h>
 #include <array_proxy.hpp>
-#include <unbox_any.hpp>
-#include <box_any.hpp>
+#include <.src/unbox_any.hpp>
+#include <.src/box_any.hpp>
 
 #include <array>
 #include <thread>
 #include <function_proxy.hpp>
 #include <struct_proxy.hpp>
 #include <module_proxy.hpp>
+#include <type_proxy.hpp>
 
 using namespace jluna;
 
@@ -23,14 +24,11 @@ int main()
 {
     State::initialize();
 
-    jl_value_t* var = State::script("test = \"abc\"");
-    State::script("println(\"before: \", test)");
+    auto test = State::safe_script(R"(
+        println("test")
+    )");
 
-    {
-
-    }
-    State::script("println(\"after: \", test)");
-
+    //State::safe_script("println(isdefined(Main, :test))");
 
 
 
