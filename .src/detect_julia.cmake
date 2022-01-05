@@ -1,4 +1,4 @@
-# file meant to be included from jlwrap/CMakeLists.txt
+# file meant to be included from jluna/CMakeLists.txt
 
 # detect julia directory
 execute_process(
@@ -17,7 +17,7 @@ execute_process(
 )
 
 if ("${JULIA_VERSION}" LESS "1.7.0")
-    message(WARNING "julia version is ${JULIA_VERSION} but jlwrap uses version 1.7.0 or higher. Some features may not work correctly.\nYou can download the latest version at https://julialang.org/downloads/#current_stable_release")
+    message(WARNING "julia version is ${JULIA_VERSION} but jluna uses version 1.7.0 or higher. Some features may not work correctly.\nYou can download the latest version at https://julialang.org/downloads/#current_stable_release")
 endif()
 
 # include dir of julia.h

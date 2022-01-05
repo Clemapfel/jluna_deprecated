@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-namespace jlwrap
+namespace jluna
 {
     /// @brief wrapper for julia exceptions
     class JuliaException : public std::exception

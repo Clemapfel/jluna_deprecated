@@ -5,7 +5,7 @@
 
 #include <struct_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     inline jl_value_t* box(MutableStruct& value)
     {
@@ -17,7 +17,7 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Struct>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Struct>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return Struct(value);
@@ -33,7 +33,7 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::MutableStruct>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::MutableStruct>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return MutableStruct(value);

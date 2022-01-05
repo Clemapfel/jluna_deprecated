@@ -8,7 +8,7 @@
 #include <box_any.hpp>
 #include <unbox_any.hpp>
 
-namespace jlwrap
+namespace jluna
 {
 
 

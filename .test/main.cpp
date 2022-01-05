@@ -17,7 +17,7 @@
 #include <struct_proxy.hpp>
 #include <module_proxy.hpp>
 
-using namespace jlwrap;
+using namespace jluna;
 
 int main()
 {
@@ -51,7 +51,7 @@ int main()
     int what = f(1, 2);
     std::cout << what << std::endl;
 
-    //auto* first = State::get_function("asdas", "Main.jlwrap");
+    //auto* first = State::get_function("asdas", "Main.jluna");
     /*
 
     jl_eval_string(R"(
@@ -74,17 +74,17 @@ int main()
     /*
     inner = State::safe_script("return InnerStruct(99)");
 
-    State::safe_script("println(string(jlwrap.memory_handler._refs))");
+    State::safe_script("println(string(jluna.memory_handler._refs))");
 
     inner = outer["field"];
 
-    State::safe_script("println(string(jlwrap.memory_handler._refs))");
+    State::safe_script("println(string(jluna.memory_handler._refs))");
 
 
     outer = Proxy<State>(State::safe_script("return OuterStruct(InnerStruct(123))"));
     inner = outer["field"];
 
-    State::safe_script("println(string(jlwrap.memory_handler._refs))");;
+    State::safe_script("println(string(jluna.memory_handler._refs))");;
 
     /*
     auto* struct_type = (jl_datatype_t*) jl_typeof(struct_instance);

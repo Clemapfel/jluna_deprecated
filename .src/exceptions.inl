@@ -6,7 +6,7 @@
 #include <exceptions.hpp>
 #include <julia.h>
 
-namespace jlwrap
+namespace jluna
 {
     JuliaException::JuliaException(jl_value_t* exception, std::string stacktrace)
                 : _value(exception), _message("[JULIA][EXCEPTION] " + stacktrace)

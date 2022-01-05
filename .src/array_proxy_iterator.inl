@@ -7,7 +7,7 @@
 #include <box_any.hpp>
 
 // NON CONST
-namespace jlwrap
+namespace jluna
 {
     /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
     template<typename T, size_t R>

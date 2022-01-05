@@ -8,7 +8,7 @@
 #include <box_any.hpp>
 #include <function_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     template<typename State_t>
     jl_value_t* box(Proxy<State_t> value)

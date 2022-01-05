@@ -11,13 +11,13 @@
 #include <symbol_proxy.hpp>
 
 
-namespace jlwrap
+namespace jluna
 {
     namespace detail
     {
         static void on_exit()
         {
-            jl_eval_string("jlwrap.memory_handler.force_free()");
+            jl_eval_string("jluna.memory_handler.force_free()");
             jl_atexit_hook(0);
         }
     }
@@ -25,10 +25,10 @@ namespace jlwrap
     void State::initialize()
     {
         jl_init_with_image("/home/clem/Applications/julia/bin", NULL);
-        jl_eval_string("include(\"/home/clem/Workspace/jlwrap/include/include.jl\")");
+        jl_eval_string("include(\"/home/clem/Workspace/jluna/include/include.jl\")");
 
         jl_eval_string(R"(
-            if isdefined(Main, :jlwrap)
+            if isdefined(Main, :jluna)
                 print("[JULIA][LOG] ")
                 Base.printstyled("initialization successfull.\n"; color = :green)
             else
@@ -40,9 +40,9 @@ namespace jlwrap
 
         std::atexit(&detail::on_exit);
 
-        _jlwrap_module = (jl_module_t*) jl_eval_string("return jlwrap");
+        _jluna_module = (jl_module_t*) jl_eval_string("return jluna");
 
-        jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.memory_handler");
+        jl_module_t* module = (jl_module_t*) jl_eval_string("return jluna.memory_handler");
         _create_reference = jl_get_function(module, "create_reference");
         _free_reference =  jl_get_function(module, "free_reference");
         _force_free =  jl_get_function(module, "force_free");
@@ -52,11 +52,11 @@ namespace jlwrap
 
     void State::forward_last_exception()
     {
-        if (jl_unbox_bool(jl_eval_string("return jlwrap.exception_handler.has_exception_occurred()")))
+        if (jl_unbox_bool(jl_eval_string("return jluna.exception_handler.has_exception_occurred()")))
         {
             throw JuliaException(
-                    jl_eval_string("return jlwrap.exception_handler.get_last_exception()"),
-                    std::string(jl_string_data(jl_eval_string("return jlwrap.exception_handler.get_last_message()")))
+                    jl_eval_string("return jluna.exception_handler.get_last_exception()"),
+                    std::string(jl_string_data(jl_eval_string("return jluna.exception_handler.get_last_message()")))
             );
         }
     }
@@ -68,7 +68,7 @@ namespace jlwrap
 
     auto State::safe_script(const std::string& command)
     {
-        static jl_module_t* module = (jl_module_t*) jl_eval_string("jlwrap.exception_handler");
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("jluna.exception_handler");
         static jl_function_t* safe_call = jl_get_function(module, "safe_call");
 
         std::stringstream str;
@@ -117,7 +117,7 @@ namespace jlwrap
             (insert(i++, box(std::forward<Args_t>(args))), ...);
         }
 
-        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jluna.exception_handler");
         static jl_function_t* safe_call = jl_get_function(module, "safe_call");
         auto* result = jl_call(safe_call, params.data(), params.size());
 
@@ -137,7 +137,7 @@ namespace jlwrap
             (insert(i++, (jl_value_t*) args), ...);
         }
 
-        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jlwrap.exception_handler");
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jluna.exception_handler");
         static jl_function_t* safe_call = jl_get_function(module, "safe_call");
         auto* result = jl_call(safe_call, params.data(), params.size());
         forward_last_exception();
@@ -159,10 +159,10 @@ namespace jlwrap
         {
             value = safe_call(_create_reference, reinterpret_cast<size_t>(in), in);
         }
-        catch (jlwrap::JuliaException& exc)
+        catch (jluna::JuliaException& exc)
         {
             std::cerr << "[C++][ERROR][FATAL] illegal allocation of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
-            std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
+            std::cerr << "If this exception was triggered in an unmodified release version of jluna, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
             exit(1);
@@ -185,10 +185,10 @@ namespace jlwrap
         {
             safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
         }
-        catch (jlwrap::JuliaException& exc)
+        catch (jluna::JuliaException& exc)
         {
             std::cerr << "[C++][ERROR][FATAL] illegal freeing of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
-            std::cerr << "If this exception was triggered in an unmodified release version of jlwrap, please notify the developer.\n" << std::endl;
+            std::cerr << "If this exception was triggered in an unmodified release version of jluna, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;
             exit(1);
@@ -201,13 +201,13 @@ namespace jlwrap
         jl_value_t* module_v = safe_script("return " + module_name);
         assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
 
-        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "get_function");
+        static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
         return safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v);
     }
 
     jl_function_t* State::find_function(const std::string& function_name)
     {
-        static jl_function_t* get_function = jl_get_function(_jlwrap_module, "find_function");
+        static jl_function_t* get_function = jl_get_function(_jluna_module, "find_function");
         jl_array_t* res = (jl_array_t*) (jl_value_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
 
         if (res->length == 0)
@@ -218,7 +218,7 @@ namespace jlwrap
         else if (not res->length == 1)
         {
             std::vector<std::string> candidate_modules;
-            static jl_function_t* get_all_modules_defining = jl_get_function(_jlwrap_module, "get_all_modules_defining");
+            static jl_function_t* get_all_modules_defining = jl_get_function(_jluna_module, "get_all_modules_defining");
             auto* candidate_array = (jl_array_t*) safe_call(get_all_modules_defining, (jl_value_t*) script("return Symbol(\"" + function_name + "\")"));
 
             static jl_function_t* to_string = jl_get_function(jl_base_module, "string");

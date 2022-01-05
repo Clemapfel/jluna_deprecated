@@ -8,7 +8,7 @@
 #include <proxy.hpp>
 #include <state.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     class Module : public Proxy<State>
     {

@@ -8,7 +8,7 @@
 #include <state.hpp>
 #include <proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     /// @brief symbol wrapper
     class Symbol : public Proxy<State>

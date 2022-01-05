@@ -14,7 +14,7 @@
 #include <function_proxy.hpp>
 #include <module_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     namespace detail
     {
@@ -145,7 +145,7 @@ namespace jlwrap
         if (jl_isa(value, (jl_value_t*) jl_string_type))
             return std::string(jl_string_data(value));
 
-        static jl_function_t* is_method_available = State::script("return jlwrap.is_method_available");
+        static jl_function_t* is_method_available = State::script("return jluna.is_method_available");
         static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
 
         if (not jl_unbox_bool(jl_call2(is_method_available, (jl_value_t*) to_string, value)))

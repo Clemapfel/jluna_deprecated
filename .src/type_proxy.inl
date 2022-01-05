@@ -5,14 +5,14 @@
 
 #include <type_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     inline jl_value_t* box(Type type)
     {
         return (jl_value_t*) type.operator _jl_datatype_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Type>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Type>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return Type(value);

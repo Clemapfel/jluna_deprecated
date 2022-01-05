@@ -22,11 +22,15 @@ begin # state wrappers for exception-safe calling of c-functions
 
     """
     """
-    function forward_assignment(command::String) ::Assignment
+    function forward_assignment(expr::Expr) ::Assignment
+
+        function aux(expr::Expr)
+
+        end
 
         out = Assignment(Main, Symbol(""), nothing)
 
-        eval(Meta.parse())
+        eval(Meta.parse(expr))
     end
 
 end

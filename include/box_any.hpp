@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <string>
 
-namespace jlwrap
+namespace jluna
 {
     jl_value_t* box(jl_value_t* value)
     {

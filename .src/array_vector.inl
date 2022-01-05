@@ -5,7 +5,7 @@
 
 #include <array_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     template<typename T>
     inline jl_value_t* box(Vector<T> value)

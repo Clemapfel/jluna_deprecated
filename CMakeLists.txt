@@ -4,16 +4,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
-project(jlwrap)
+project(jluna)
 
 ### DEPENDENCIES #######################################################################################
 
 set(JULIA_EXECUTABLE /home/clem/Applications/julia/bin/julia) # modify this if necessary
 include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
 
-### JLWRAP #############################################################################################
+### jluna #############################################################################################
 
-add_library(jlwrap STATIC
+add_library(jluna STATIC
 
     include/state.hpp
     .src/state.inl
@@ -36,8 +36,8 @@ add_library(jlwrap STATIC
         .src/struct_proxy.inl
         include/module_proxy.hpp .src/module_proxy.inl include/symbol_proxy.hpp .src/symbol_proxy.inl include/type_proxy.hpp .src/type_proxy.inl include/concepts.hpp include/concepts.hpp)
 
-set_target_properties(jlwrap PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(jlwrap ${JULIA_DIR}/lib/libjulia.so)
+set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
 
 include_directories("./include")
 include_directories("./")
@@ -45,6 +45,6 @@ include_directories("./")
 ### EXECUTABLES ########################################################################################
 
 add_executable(TEST .test/main.cpp)
-target_link_libraries(TEST jlwrap)
+target_link_libraries(TEST jluna)
 
 

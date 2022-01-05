@@ -8,7 +8,7 @@
 #include <proxy.hpp>
 #include <state.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     /// @brief proxy with non-const field access
     struct MutableStruct : public Proxy<State>

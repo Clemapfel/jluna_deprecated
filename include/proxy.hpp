@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <type_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     template<typename T>
     concept Unboxable = requires(T t, jl_value_t* v)

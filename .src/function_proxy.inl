@@ -5,7 +5,7 @@
 
 #include <function_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     namespace detail
     {
@@ -29,7 +29,7 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::SafeFunction>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::SafeFunction>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return SafeFunction(value);
@@ -45,7 +45,7 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Function>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Function>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return Function(value);

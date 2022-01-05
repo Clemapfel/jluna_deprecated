@@ -8,7 +8,7 @@
 #include <julia.h>
 #include <string>
 
-namespace jlwrap
+namespace jluna
 {
     /// @brief proxy for julia-side singleton instances of Base.Type{T}
     class Type

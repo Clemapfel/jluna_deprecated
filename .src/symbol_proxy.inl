@@ -6,7 +6,7 @@
 #include <julia.h>
 #include <symbol_proxy.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     inline jl_value_t* box(Symbol value)
     {
@@ -18,7 +18,7 @@ namespace jlwrap
         return value.operator jl_value_t *();
     }
 
-    template<typename T, std::enable_if_t<std::is_same_v<T, jlwrap::Symbol>, bool> = true>
+    template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Symbol>, bool> = true>
     T unbox(jl_value_t* value)
     {
         return Symbol(value);

@@ -2,7 +2,7 @@
 # Copyright 2021 Clemens Cords
 # Created on 26.12.2021 by clem (mail@clemens-cords.com)
 #
-begin # included into module jlwrap
+begin # included into module jluna
 
     """
     offers verbose exception interface. Any call with safe_call will store
@@ -89,7 +89,7 @@ begin # included into module jlwrap
         """
         safe the current state of the handler
 
-        @returns jlwrap.ExceptionHandler.State
+        @returns jluna.ExceptionHandler.State
         """
         function state() ::State
 
@@ -97,7 +97,7 @@ begin # included into module jlwrap
         end
 
         """
-        is last exception type no "jlwrap.exception_handler.NoException"
+        is last exception type no "jluna.exception_handler.NoException"
 
         @returns bool
         """

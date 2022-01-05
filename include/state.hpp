@@ -11,7 +11,7 @@
 #include <map>
 #include <set>
 
-namespace jlwrap
+namespace jluna
 {
     template<typename>
     class Proxy;
@@ -85,7 +85,7 @@ namespace jlwrap
         private:
             static void forward_last_exception();
 
-            static inline jl_module_t* _jlwrap_module = nullptr;
+            static inline jl_module_t* _jluna_module = nullptr;
 
             // memory handler interface
             static inline jl_function_t* _create_reference = nullptr;

@@ -5,10 +5,10 @@
 
 include("./visibility_macros.jl")
 
-begin # included into module jlwrap
+begin # included into module jluna
 
     """
-    offers julia-side memory management for C++ jlwrap
+    offers julia-side memory management for C++ jluna
     """
     module memory_handler
 

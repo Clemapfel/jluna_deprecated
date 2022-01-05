@@ -10,7 +10,7 @@
 #include <proxy.hpp>
 #include <state.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     /// @brief wrapper for julia arrays of arbitrary value type
     template<typename T, size_t Rank>

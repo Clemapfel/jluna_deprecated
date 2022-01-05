@@ -12,7 +12,7 @@
 #include <box_any.hpp>
 #include <state.hpp>
 
-namespace jlwrap
+namespace jluna
 {
     template<typename T, size_t R>
     inline jl_value_t* box(Array<T, R> value)
@@ -30,7 +30,7 @@ namespace jlwrap
     template<typename T,
         typename Value_t = typename T::value_type,
         size_t Rank = T::rank,
-        std::enable_if_t<std::is_same_v<T, jlwrap::Array<Value_t, Rank>>, bool> = true>
+        std::enable_if_t<std::is_same_v<T, jluna::Array<Value_t, Rank>>, bool> = true>
     T unbox(jl_value_t* value)
     {
         assert(jl_is_array(value));
