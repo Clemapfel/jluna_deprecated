@@ -1,4 +1,4 @@
-# `jlwrap`: A modern and convenient C++ ⇔ Julia Interface
+# `jluna`: A modern and convenient C++ ⇔ Julia Interface
 
 ## (this documentation and codebase is still incomplete. For the version actively being worked on, see: https://github.com/Clemapfel/jlwrap/tree/import)
 
