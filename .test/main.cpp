@@ -24,11 +24,9 @@ int main()
 {
     State::initialize();
 
-    auto test = State::safe_script(R"(
-        println("test")
+    State::safe_script(R"(
+        print("test")
     )");
-
-    //State::safe_script("println(isdefined(Main, :test))");
 
 
 

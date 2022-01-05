@@ -20,6 +20,7 @@ begin # included into module jluna
         end
 
         _state = Ref{State}(State(NoException(), ""));
+        _meta_exception_message = ""
 
         """
         call any line of code, update the handler then forward the result, if any

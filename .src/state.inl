@@ -68,13 +68,8 @@ namespace jluna
 
     auto State::safe_script(const std::string& command)
     {
-        static jl_module_t* module = (jl_module_t*) jl_eval_string("jluna.exception_handler");
-        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
-
         std::stringstream str;
 
-        str << "global __parse_error_maybe = \"\"\n";
-        str << "try" << std::endl;
         str << "jluna.exception_handler.safe_call(\"";
         for (char c : command)
         {
@@ -89,14 +84,18 @@ namespace jluna
                 str << c;
         }
         str << "\")" << std::endl;
-        str << "catch e\n";
-        str << "__parse_error_maybe = println(string(e)); throw(e) end";
+
         auto* result = jl_eval_string(str.str().c_str());
 
         if (jl_exception_occurred())
-            throw std::invalid_argument(jl_string_data(jl_eval_string("return __parse_error_maybe")));
+        {
+            static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
 
-        // check content exception
+            std::stringstream str;
+            str << "[C++][EXCEPTION] " << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << " in State::safe_script\n Expression: \" \n" << command << "\"" << std::endl;
+            throw std::invalid_argument(str.str());
+        }
+
         forward_last_exception();
 
         return Proxy<State>(result);
