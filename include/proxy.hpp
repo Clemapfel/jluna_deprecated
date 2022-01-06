@@ -7,23 +7,11 @@
 
 #include <julia.h>
 #include <unordered_map>
+#include <box_any.hpp>
+#include <unbox_any.hpp>
 
 namespace jluna
 {
-    /// @brief concept that requires a value to be unboxed from a julia-side value
-    template<typename T>
-    concept Unboxable = requires(T t, jl_value_t* v)
-    {
-        {unbox<T>(v)};
-    };
-
-    /// @brief concept that requires a value to be boxable into a julia-side value
-    template<typename T>
-    concept Boxable = requires(T t, jl_value_t* v)
-    {
-        {box(v)};
-    };
-
     /// @brief concept of a variable, has a type, name (symbol) and value
     /// @note do not inherit from this class unless you know what you're doing, improper handling of references to julia-side values can result in memory leaks or the garbage collector freeing in-use memory
     template<typename State_t>

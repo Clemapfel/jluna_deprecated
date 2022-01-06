@@ -5,7 +5,7 @@
 
 #include <proxy.hpp>
 #include <sstream>
-#include <.src/box_any.hpp>
+#include <box_any.hpp>
 #include <function_proxy.hpp>
 
 namespace jluna

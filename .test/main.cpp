@@ -15,7 +15,7 @@ int main()
     jluna::State::script("println(\"hello luna\")");
 
     auto returned_value = jluna::State::script("return 123");
-    int as_int = returned_value;
+    int as_int = returned_value.operator int();
     as_int += 1;
     std::cout << as_int << std::endl;
 

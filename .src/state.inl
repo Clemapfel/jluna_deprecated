@@ -7,7 +7,7 @@
 #include <state.hpp>
 #include <sstream>
 #include <exceptions.hpp>
-#include <.src/box_any.hpp>
+#include <box_any.hpp>
 #include <symbol_proxy.hpp>
 
 namespace jluna

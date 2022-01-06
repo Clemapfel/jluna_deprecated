@@ -4,7 +4,7 @@
 //
 
 #include <array_proxy.hpp>
-#include <.src/box_any.hpp>
+#include <box_any.hpp>
 
 // NON CONST
 namespace jluna
