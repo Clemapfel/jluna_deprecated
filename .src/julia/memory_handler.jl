@@ -29,8 +29,8 @@ begin # included into module jluna
         end
         export string
 
-        _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
-        _ref_counter = Ref(IdDict{Cpointer, UInt64}())
+        const _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
+        const _ref_counter = Ref(IdDict{Cpointer, UInt64}())
         
         """
         reassign variable in global scope

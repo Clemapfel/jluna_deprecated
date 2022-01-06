@@ -24,8 +24,9 @@ namespace jluna
 
     void State::initialize()
     {
-        jl_init_with_image("/home/clem/Applications/julia/bin", NULL);
+        jl_init(); //_with_image("/home/clem/Applications/julia/bin", NULL);
         jl_eval_string("include(\"/home/clem/Workspace/jluna/include/include.jl\")");
+        forward_last_exception();
 
         jl_eval_string(R"(
             if isdefined(Main, :jluna)
@@ -77,31 +78,12 @@ namespace jluna
 
         std::stringstream str;
 
-        str << "jluna.exception_handler.safe_call(\"";
-        for (char c : command)
-        {
-            // promote \" to \\\"
-            if (c == '\\')
-                str << "\\\\";
-            else if (c == '\"')
-                str << "\\\"";
-            else if (c == '\t')
-                continue;
-            else
-                str << c;
-        }
-        str << "\")" << std::endl;
-
+        str << "jluna.exception_handler.safe_call(quote " << command << " end);";
         auto* result = jl_eval_string(str.str().c_str());
-
         if (jl_exception_occurred()) // catch parse errors in command
         {
-            static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
-
-            std::stringstream str;
-            str << "[C++][EXCEPTION] " << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << " in State::safe_script\n Expression: \" \n" << command << "\"" << std::endl;
-            throw std::invalid_argument(str.str());
-            jl_exception_clear();
+            std::cerr << "error in jluna::State::safe_script when parsing expression:\n\"" << str.str().c_str() << "\"\n" << std::endl;
+            forward_last_exception();
         }
 
         forward_last_exception();

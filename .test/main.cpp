@@ -12,14 +12,15 @@ int main()
 {
     State::initialize();
 
-    State::safe_script(R"(
-        mutable struct MyDatatype
-            _field1::Int64
-            _field2::Ref{MyDatatype}
+    State::safe_script("println(\"test\")");
+    forward_last_exception();
+    return 0;
 
-            MyDatatype() = new(42, Ref{MyDatatype}())
-            MyDatatype(a::Int64, b::MyDatatype) = new(a, Ref(b))
-        end)");
+    auto* test = jl_eval_string("const test = Outer(Inner())");
+    jl_eval_string("test._field._field = 456");
+    forward_last_exception();
+    return 0;
+
 
 
     State::safe_script("instance = MyDatatype()");

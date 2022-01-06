@@ -42,7 +42,7 @@ namespace jluna
 
             /// @brief construct as proxy of a field of an owner
             /// @param value: pointer to the value of the variable
-            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i);
+            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i, bool is_mutable = false);
 
             /// @brief dtor, frees the reference so it can be garbage collected if appropriate
             ~Proxy();
@@ -94,6 +94,18 @@ namespace jluna
             /// @returns if the proxy holds a variable, true if the variable is not const. If the proxy holds a type, true if it is a mutable type, false otherwise
             bool is_const() const;
 
+             /// @brief access field
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns proxy holding value of field
+            auto operator[](const std::string& field_name);
+
+            /// @brief access field but immediately decay into type
+            /// @tparam T: type the result will be unbox<T>'d to
+            /// @param field_name: exact name of field, as defined julia-side
+            /// @returns value as T
+            template<typename T>
+            T operator[](const std::string& field_name) const;
+
             /// @brief check if both proxies point to the same instance
             /// @param other
             /// @returns true if julia-side (===) would return true
@@ -122,6 +134,7 @@ namespace jluna
         private:
             jl_value_t* _owner = nullptr;
             long int _field_i = -1;
+            bool _is_mutable = false;
 
             void setup_field_to_index();
             std::unordered_map<std::string, size_t> _field_to_index;

@@ -49,8 +49,8 @@ namespace jluna
     }
 
     template<typename State_t>
-    Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
-        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i)
+    Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i, bool is_mutable)
+        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), _is_mutable(is_mutable)
     {
         THROW_IF_UNINITIALIZED;
 
@@ -231,5 +231,18 @@ namespace jluna
     bool Proxy<State_t>::operator!=(const Proxy<State_t>& other) const
     {
         return this->_value != other._value;
+    }
+
+    template<typename State_t>
+    auto Proxy<State_t>::operator[](const std::string& field_name)
+    {
+        return get_field(field_name);
+    }
+
+    template<typename State_t>
+    template<typename T>
+    T Proxy<State_t>::operator[](const std::string& field_name) const
+    {
+        return get_field<T>(field_name);
     }
 }

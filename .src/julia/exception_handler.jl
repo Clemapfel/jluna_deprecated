@@ -19,18 +19,17 @@ begin # included into module jluna
             _last_message::String
         end
 
-        _state = Ref{State}(State(NoException(), ""));
+        const _state = Ref{State}(State(NoException(), ""));
         _meta_exception_message = ""
 
         """
         call any line of code, update the handler then forward the result, if any
 
-        @param command: julia code as string
+        @param command: julia code as expression
         @returns result of expression or nothing if an exception was thrown
         """
-        function safe_call(command::String) ::Any
+        function safe_call(as_expression::Expr) ::Any
 
-            as_expression = Meta.parse(command; raise = true)
             result = undef
             try
                 result = Main.eval(as_expression)
