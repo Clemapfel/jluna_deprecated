@@ -24,7 +24,7 @@ namespace jluna
 
             /// @brief convert to string
             /// @returns string
-            explicit operator std::string() override;
+            explicit operator std::string() const override;
 
         private:
             using Proxy<State>::_value;

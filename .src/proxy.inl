@@ -64,7 +64,7 @@ namespace jluna
     }
 
     template<typename State_t>
-    Proxy<State_t>::operator std::string()
+    Proxy<State_t>::operator std::string() const
     {
         static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
         return std::string(jl_string_data(jl_call1(to_string, _value)));
@@ -110,7 +110,7 @@ namespace jluna
 
     template<typename State_t>
     template<Unboxable T>
-    Proxy<State_t>::operator T()
+    Proxy<State_t>::operator T() const
     {
         return unbox<T>(_value);
     }

@@ -64,12 +64,12 @@ namespace jluna
             operator jl_value_t*();
 
             /// @brief cast to string using julias Base.string
-            virtual explicit operator std::string();
+            virtual operator std::string() const;
 
             /// @brief implicitly convert to T via unboxing
             /// @returns value as T
             template<Unboxable T>
-            operator T();
+            operator T() const;
 
             /// @brief implicitly downcast to base
             /// @returns value as T

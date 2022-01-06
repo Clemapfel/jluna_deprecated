@@ -34,7 +34,7 @@ namespace jluna
         assert(jl_isa(value, (jl_value_t*) jl_symbol_type) && "value being bound is not a symbol");
     }
 
-    Symbol::operator std::string()
+    Symbol::operator std::string() const
     {
         return std::string(jl_symbol_name((jl_sym_t*) _value));
     }

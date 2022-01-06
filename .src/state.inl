@@ -10,13 +10,13 @@
 #include <.src/box_any.hpp>
 #include <symbol_proxy.hpp>
 
-
 namespace jluna
 {
     namespace detail
     {
         static void on_exit()
         {
+            jl_eval_string(R"([JULIA][LOG] Shutting down...)");
             jl_eval_string("jluna.memory_handler.force_free()");
             jl_atexit_hook(0);
         }
@@ -48,6 +48,18 @@ namespace jluna
         _force_free =  jl_get_function(module, "force_free");
         _get_value =  jl_get_function(module, "get_reference");
         _get_reference =  jl_get_function(module, "get_value");
+    }
+
+    void State::shutdown()
+    {
+        detail::on_exit();
+
+        _jluna_module = nullptr;
+        _create_reference = nullptr;
+        _free_reference = nullptr;
+        _force_free = nullptr;
+        _get_value = nullptr;
+        _get_reference = nullptr;
     }
 
     void State::forward_last_exception()
@@ -87,7 +99,7 @@ namespace jluna
 
         auto* result = jl_eval_string(str.str().c_str());
 
-        if (jl_exception_occurred())
+        if (jl_exception_occurred()) // catch parse errors in command
         {
             static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
 
@@ -97,7 +109,6 @@ namespace jluna
         }
 
         forward_last_exception();
-
         return Proxy<State>(result);
     }
 

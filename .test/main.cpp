@@ -4,19 +4,7 @@
 //
 
 #include <iostream>
-
-#include <state.hpp>
-#include <.src/julia_extension.h>
-#include <array_proxy.hpp>
-#include <.src/unbox_any.hpp>
-#include <.src/box_any.hpp>
-
-#include <array>
-#include <thread>
-#include <function_proxy.hpp>
-#include <struct_proxy.hpp>
-#include <module_proxy.hpp>
-#include <type_proxy.hpp>
+#include <jluna.hpp>
 
 using namespace jluna;
 
@@ -24,12 +12,12 @@ int main()
 {
     State::initialize();
 
-    State::safe_script(R"(
-        print("test")
-    )");
+    jluna::State::script("println(\"hello luna\")");
 
-
-
+    auto returned_value = jluna::State::script("return 123");
+    int as_int = returned_value;
+    as_int += 1;
+    std::cout << as_int << std::endl;
 
     /*
     auto proxy = Proxy<State>(jl_eval_string("return Base"));

@@ -39,6 +39,9 @@ namespace jluna
             /// @brief init environment
             static void initialize();
 
+            /// @brief exit julia environment and deallocate all variables
+            static void shutdown();
+
             /// @brief execute line of code
             /// @exceptions if an error occurs julia-side it will be ignore and the result of the call will be undefined
             static auto script(const std::string&) noexcept;

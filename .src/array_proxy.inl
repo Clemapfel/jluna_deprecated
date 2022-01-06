@@ -26,6 +26,7 @@ namespace jluna
         return (jl_value_t*) value.operator jl_array_t*();
     }
 
+    /*
     /// @brief unbox to array
     template<typename T,
         typename Value_t = typename T::value_type,
@@ -41,6 +42,7 @@ namespace jluna
 
         return Array<Value_t, Rank>(value);
     }
+     */
 
     template<Boxable T, size_t R>
     Array<T, R>::Array(jl_value_t* value)

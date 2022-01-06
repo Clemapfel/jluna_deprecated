@@ -20,21 +20,34 @@ add_library(jluna STATIC
 
     include/proxy.hpp
     .src/proxy.inl
-    include/julia_extension.h
-    include/exceptions.hpp
+
+    .src/julia_extension.h
 
     include/array_proxy.hpp
     .src/array_proxy.inl
     .src/array_proxy_iterator.inl
     .src/array_vector.inl
 
-    include/unbox_any.hpp
-    include/box_any.hpp
-        .src/exceptions.inl include/function_proxy.hpp .src/function_proxy.inl
+    .src/unbox_any.hpp
+    .src/box_any.hpp
 
-        include/struct_proxy.hpp
-        .src/struct_proxy.inl
-        include/module_proxy.hpp .src/module_proxy.inl include/symbol_proxy.hpp .src/symbol_proxy.inl include/type_proxy.hpp .src/type_proxy.inl include/concepts.hpp include/concepts.hpp)
+    include/exceptions.hpp
+    .src/exceptions.inl
+
+    include/function_proxy.hpp
+    .src/function_proxy.inl
+
+    include/struct_proxy.hpp
+    .src/struct_proxy.inl
+
+    include/module_proxy.hpp
+    .src/module_proxy.inl
+
+    include/symbol_proxy.hpp
+    .src/symbol_proxy.inl
+
+    include/type_proxy.hpp
+    .src/type_proxy.inl jluna.hpp)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
