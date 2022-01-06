@@ -274,10 +274,9 @@ If a proxy is a `struct` or `mutable struct` julia-side, we can assign a `jluna:
 State::safe_script(R"(
     mutable struct MyDatatype
             _field1::Int64
-            _field2::Ref{MyDatatype}
 
-            MyDatatype() = new(42, Ref{MyDatatype}())
-            MyDatatype(a::Int64, b::MyDatatype) = new(a, Ref(b))
+            MyDatatype() = new(42)
+            MyDatatype(a::Int64) = new(a)
     end)");
 ```
 
@@ -286,7 +285,7 @@ This type has two fields, `_field1` of type Int64 and `_field2` which is a refer
 We can now instance this type and bind it to a `jluna::Proxy`:
 
 ```cpp
-State::safe_script("instance = MyDatatype()")
+State::safe_script("instance = MyDatatype()");
 auto instance = State::safe_script("return instance");
 ```
 This proxy is not very useful because we have no way to access its fields. To do so we need to convert it to a `jluna::Struct` or `jluna::MutableStruct`, where mutable structs can bind to immutable proxies but immutable structs cannot bind to mutable proxies as this would break const-correctness.
@@ -294,17 +293,37 @@ We can then access fields using `operator[](const std::string&)`:
 
 ```cpp
 MutableStruct as_struct = instance;
-auto field1_proxy = as_struct["_field1"];
+auto field_proxy = as_struct["_field1"];
+
+std::cout << field_proxy.operator int() << std::endl;
+```
+```
+42
 ```
 
-Accessing fields this way returns a new `jluna::Proxy` that points to the data in the owners field. This means anything returned by `operator[]` can be converted just like a proxy optained via `script` can be, but we furthermore can assign such a proxy and it will modify it's original owners field values:
+`field_proxy` holds ownership of part of the memory of `instance`, this means assigning to `field_proxy` also modifies the field of it's owner `instance`:
 
 ```
-MutableStruct as_struct = instance;
-auto field1_proxy = as_struct["_field1"];
-std::cout << field1_proxy.operator int() << std::endl;
-field1_proxy = 43;
+field_proxy = 123;
+State::safe_script("println(instance._field1)");
+```
+```
+123
+```
 
+This means we have full access to any field and can modify to our hearts content, that is as long as the struct is mutable.
+
+To close this section, while we intentionally spread things out for the sake of clarifying the way `operator[]` returns itself a proxy, the following syntax will often be more convenient and works just the same:
+
+```cpp
+MutableStruct as_struct = State::safe_script("return instance");
+as_struct["_field1"] = 789;
+
+State::safe_script("println(instance._field1)");
+```
+```
+789
+```
 
 
 

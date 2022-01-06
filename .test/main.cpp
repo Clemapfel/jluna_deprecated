@@ -21,6 +21,26 @@ int main()
             MyDatatype(a::Int64, b::MyDatatype) = new(a, Ref(b))
         end)");
 
+
+    State::safe_script("instance = MyDatatype()");
+    auto instance = State::safe_script("return instance");
+
+    MutableStruct as_struct = instance;
+    auto field_proxy = as_struct["_field1"];
+
+    std::cout << field_proxy.operator int() << std::endl;
+
+    field_proxy = 123;
+    State::safe_script("println(instance._field1)");
+
+    as_struct["_field1"] = 456;
+    State::safe_script("println(instance._field1)");
+
+    as_struct = State::safe_script("return instance");
+    as_struct["_field1"] = 1234;
+    State::safe_script("println(instance._field1)");
+
+    /*
     State::safe_script("instance = MyDatatype()");
     MutableStruct instance = State::safe_script("return MyDatatype()");
 
@@ -28,10 +48,13 @@ int main()
     std::cout << (field1_proxy.operator int()) << std::endl;
 
     instance["_field1"] = 123;
+
+    std::cout << (instance["_field1"].operator int()) << std::endl;
+
     State::safe_script("println(instance._field1)");
 
 
-    /*
+
     auto proxy = Proxy<State>(jl_eval_string("return Base"));
     Module module = proxy;
 
