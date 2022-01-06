@@ -52,13 +52,12 @@ namespace jluna
             std::string message;
     };
 
-    /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
-    class ParseException : public std::exception
+    /// @brief exception raised if a julia-side computation is requested before the state is initialized
+    class UninitializedStateException : public std::exception
     {
         public:
             /// @brief ctor
-            /// @param symbol_name: name of the symbol for which multiple results exist
-            ParseException(const std::string& original_command);
+            UninitializedStateException();
 
             /// @brief get description
             /// @returns c-string
@@ -67,6 +66,9 @@ namespace jluna
         private:
             std::string message;
     };
+
+    /// @brief throws an exception if State::initialize was not called yet
+    extern void throw_if_uninitialized();
 }
 
 #include ".src/exceptions.inl"

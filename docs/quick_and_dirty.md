@@ -18,7 +18,7 @@ int main()
 [JULIA][LOG] initialization successfull.
 ```
 
-Only after this call, all functionality will be available so make sure to always initialize it first. You don't have to worry about "shutting down", all cleaning up and properly deallocating julia-side things is done automatically on exit. If you wish to do so manually anyway, you can call
+Only after this call, all functionality will be available so make sure to always initialize it first. You don't have to worry about "shutting down", all cleaning up and proper deallocation julia-side is done automatically on exit. If you wish to do so manually anyway, you do so via
 
 ```cpp
 jluna::State::shutdown();
@@ -27,7 +27,7 @@ jluna::State::shutdown();
 [JULIA][LOG] Shutting Down...
 ```
 
-However, this is usually unnecessary.
+However, this is usually unnecessary unless in an heavily restricted environment where every bit of RAM counts.
 
 ## 2. State
 

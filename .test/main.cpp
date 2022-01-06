@@ -12,10 +12,6 @@ int main()
 {
     State::initialize();
 
-    jl_eval_string("println(\"hello luna\"\")");
-    forward_last_exception();
-    return 0;
-
     auto returned_value = jluna::State::script("return 123");
 
     int as_int = returned_value;
