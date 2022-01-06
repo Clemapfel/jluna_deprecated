@@ -58,4 +58,16 @@ namespace jluna
     {
         return message.c_str();
     }
+
+    ImmutableVariableException::ImmutableVariableException(jl_value_t* value)
+    {
+        std::stringstream str;
+        str << "trying to modify value of type " << jl_typeof_str(value) << " which is immutable" << std::endl;"\t" << s << "." << symbol_name << "\n";
+        message = str.str();
+    }
+
+    const char * ImmutableVariableException::what() const noexcept
+    {
+        return message.c_str();
+    }
 }
