@@ -10,7 +10,7 @@
 namespace jluna
 {
     /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     class Array<T, R>::Iterator
     {
         friend class Array<T, R>;
@@ -61,7 +61,7 @@ namespace jluna
             static inline jl_function_t* _replace = nullptr;
     };
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     class Array<T, R>::NonConstIterator : public Array<T, R>::Iterator
     {
         public:
@@ -81,7 +81,7 @@ namespace jluna
             using Array<T, R>::Iterator::_replace;
     };
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     struct Array<T, R>::ConstIterator : public Array<T, R>::Iterator
     {
         /// @brief ctor
@@ -126,7 +126,7 @@ namespace jluna
         return value.operator const _jl_value_t *();
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::Iterator::Iterator(jl_array_t* array, size_t i)
         : _data(array), _index(i)
     {
@@ -136,85 +136,85 @@ namespace jluna
         assert(i <= array->length);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::Iterator::operator T()
     {
         return unbox<T>(jl_arrayref(const_cast<jl_array_t*>(_data), _index));
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::Iterator::operator const jl_value_t*() const
     {
         return jl_arrayref(const_cast<jl_array_t*>(_data), _index);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     T Array<T, R>::Iterator::operator*() const
     {
         return unbox<T>(jl_arrayref(const_cast<jl_array_t*>(_data), _index));
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto& Array<T, R>::Iterator::operator*()
     {
         return *this; //unbox<T>(jl_arrayref(const_cast<jl_array_t*>(_data), _index));
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     void Array<T, R>::Iterator::operator++()
     {
         if (_index + 1 <= _data->length)
             ++_index;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     void Array<T, R>::Iterator::operator++(int i)
     {
         if (_index + i <= _data->length)
             _index++;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     void Array<T, R>::Iterator::operator--()
     {
         if (_index - 1 >= 0)
             --_index;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     void Array<T, R>::Iterator::operator--(int i)
     {
         if (_index - i >= 0)
             _index--;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     bool Array<T, R>::Iterator::operator==(const Iterator& other) const
     {
         return other._index == _index;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     bool Array<T, R>::Iterator::operator!=(const Iterator& other) const
     {
         return other._index != _index;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto& Array<T, R>::NonConstIterator::operator=(T value)
     {
         auto* v = box<T>(value);
         auto* i = jl_box_uint64(_index + 1);
-        jl_call3(_replace, reinterpret_cast<jl_value_t*>(_data), v, i);
+        jl_call3(_replace, box<T>(_data), v, i);
         return *this;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::NonConstIterator::NonConstIterator(jl_array_t* array, size_t i)
         : Array<T, R>::Iterator(array, i)
     {}
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::ConstIterator::ConstIterator(jl_array_t* array, size_t i)
         : Array<T, R>::Iterator(array, i)
     {}

@@ -13,7 +13,7 @@
 namespace jluna
 {
     /// @brief wrapper for julia arrays of arbitrary value type
-    template<typename T, size_t Rank>
+    template<Boxable T, size_t Rank>
     class Array : public Proxy<State>
     {
         /// @brief iterator super class, detail only
@@ -99,7 +99,7 @@ namespace jluna
     };
 
     /// @brief 1-dimensional array specialization
-    template<typename T>
+    template<Boxable T>
     class Vector : public Array<T, 1>
     {
         public:

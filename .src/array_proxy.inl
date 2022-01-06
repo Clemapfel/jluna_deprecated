@@ -42,68 +42,68 @@ namespace jluna
         return Array<Value_t, Rank>(value);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {
         assert(jl_isa(value, (jl_value_t*) jl_array_type) && "value being bound is not an array");
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::Array(jl_array_t* value)
         : Array((jl_value_t*) value)
     {}
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     Array<T, R>::operator jl_array_t*()
     {
         return (jl_array_t*) _value;
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto Array<T, R>::operator[](size_t i)
     {
         return NonConstIterator((jl_array_t*) _value, i);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     const auto Array<T, R>::operator[](size_t i) const
     {
         return ConstIterator((jl_array_t*) _value, i);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto Array<T, R>::begin()
     {
         return NonConstIterator((jl_array_t*) _value, 0);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto Array<T, R>::begin() const
     {
         return ConstIterator((jl_array_t*) _value, 0);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto Array<T, R>::end()
     {
         return NonConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
     }
 
-    template<typename T, size_t R>
+    template<Boxable T, size_t R>
     auto Array<T, R>::end() const
     {
         return ConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
     }
 
-    template<typename T, size_t Rank>
+    template<Boxable T, size_t Rank>
     size_t Array<T, Rank>::get_dimension(size_t dimension)
     {
         static auto* size_at = jl_get_function(jl_base_module, "size");
         return jl_unbox_int64(jl_call2(size_at, (jl_value_t*) _value, jl_box_int64(dimension + 1)));
     }
 
-    template<typename T, size_t Rank>
+    template<Boxable T, size_t Rank>
     void Array<T, Rank>::throw_if_index_out_of_range(int index, size_t dimension)
     {
         if (index < 0)
@@ -136,7 +136,7 @@ namespace jluna
         }
     }
 
-    template<typename T, size_t Rank>
+    template<Boxable T, size_t Rank>
     template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
     auto Array<T, Rank>::at(Args... in)
     {
@@ -159,7 +159,7 @@ namespace jluna
         return operator[](index);
     }
 
-    template<typename T, size_t Rank>
+    template<Boxable T, size_t Rank>
     template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool>>
     const auto Array<T, Rank>::at(Args... in) const
     {
