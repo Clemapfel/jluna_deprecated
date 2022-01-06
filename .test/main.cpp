@@ -10,6 +10,29 @@ using namespace jluna;
 
 int main()
 {
+    State::initialize();
+    State::safe_script(R"(
+        function my_function() ::Nothing
+            println("I'm a function")
+            return nothing;
+        end)");
+
+    State::safe_script(R"(
+        function my_function(b::Bool) ::Nothing
+            if !b
+                println("I'm a dangerous function")
+            else
+                throw(ErrorException("I told you I was dangerous"))
+            end
+        end)");
+
+    Function unsafe_function = State::safe_script("return my_function");
+    SafeFunction safe_function = State::safe_script("return my_function");
+
+    unsafe_function();
+    safe_function(false);
+    safe_function(true);
+
     auto returned_value = jluna::State::script("return 123");
 
     int as_int = returned_value;

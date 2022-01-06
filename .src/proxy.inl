@@ -220,4 +220,16 @@ namespace jluna
     {
         return false;
     }
+
+    template<typename State_t>
+    bool Proxy<State_t>::operator==(const Proxy<State_t>& other) const
+    {
+        return this->_value == other._value;
+    }
+
+    template<typename State_t>
+    bool Proxy<State_t>::operator!=(const Proxy<State_t>& other) const
+    {
+        return this->_value != other._value;
+    }
 }

@@ -18,7 +18,7 @@ namespace jluna
             static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
 
             std::stringstream str;
-            str << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << "\n\t<no stacktrace available>" << std::endl;
+            str << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << "\nStacktrace: <no stacktrace available>" << std::endl;
             throw JuliaException(jl_exception_occurred(), str.str());
             return;
         }

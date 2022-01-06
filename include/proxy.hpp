@@ -94,6 +94,16 @@ namespace jluna
             /// @returns if the proxy holds a variable, true if the variable is not const. If the proxy holds a type, true if it is a mutable type, false otherwise
             bool is_const() const;
 
+            /// @brief check if both proxies point to the same instance
+            /// @param other
+            /// @returns true if julia-side (===) would return true
+            bool operator==(const Proxy<State_t>& other) const;
+
+            /// @brief check if both proxies point to the same instance
+            /// @param other
+            /// @returns false if julia-side (===) would return true
+            bool operator!=(const Proxy<State_t>& other) const;
+
         protected:
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
