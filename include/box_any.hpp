@@ -108,4 +108,17 @@ namespace jluna
     {
         return jl_box_float64(value);
     }
+
+    // explicit return type
+    template<typename From, typename To>
+    concept CastableTo = requires(From t)
+    {
+        {static_cast<To>(t)};
+    };
+
+    template<typename Return_t, CastableTo<Return_t> Arg_t>
+    jl_value_t* box(Arg_t t)
+    {
+        return box(static_cast<Return_t>(t));
+    }
 }

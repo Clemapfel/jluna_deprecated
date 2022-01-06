@@ -11,33 +11,25 @@ using namespace jluna;
 int main()
 {
     State::initialize();
-    State::safe_script(R"(
-        function my_function() ::Nothing
-            println("I'm a function")
-            return nothing;
-        end)");
 
     State::safe_script(R"(
-        function my_function(b::Bool) ::Nothing
-            if !b
-                println("I'm a dangerous function")
-            else
-                throw(ErrorException("I told you I was dangerous"))
-            end
+        mutable struct MyDatatype
+            _field1::Int64
+            _field2::Ref{MyDatatype}
+
+            MyDatatype() = new(42, Ref{MyDatatype}())
+            MyDatatype(a::Int64, b::MyDatatype) = new(a, Ref(b))
         end)");
 
-    Function unsafe_function = State::safe_script("return my_function");
-    SafeFunction safe_function = State::safe_script("return my_function");
+    State::safe_script("instance = MyDatatype()");
+    MutableStruct instance = State::safe_script("return MyDatatype()");
 
-    unsafe_function();
-    safe_function(false);
-    safe_function(true);
+    auto field1_proxy = instance["_field1"];
+    std::cout << (field1_proxy.operator int()) << std::endl;
 
-    auto returned_value = jluna::State::script("return 123");
+    instance["_field1"] = 123;
+    State::safe_script("println(instance._field1)");
 
-    int as_int = returned_value;
-    as_int += 1;
-    std::cout << as_int << std::endl;
 
     /*
     auto proxy = Proxy<State>(jl_eval_string("return Base"));

@@ -54,7 +54,7 @@ namespace jluna
         : Proxy<State>(value)
     {
         THROW_IF_UNINITIALIZED;
-        assert(jl_is_structtype(value) && "value being bound is not a struct");
+        assert(jl_is_structtype(jl_typeof(value)) && "value being bound is not a struct");
     }
 
     template<typename T>
@@ -67,6 +67,6 @@ namespace jluna
         : Proxy<State>(value)
     {
         THROW_IF_UNINITIALIZED;
-        assert(jl_is_structtype(value) && "value being bound is not a struct");
+        assert(jl_is_structtype(jl_typeof(value)) && "value being bound is not a struct");
     }
 }

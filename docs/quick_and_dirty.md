@@ -228,4 +228,83 @@ signal (6): Aborted
 in expression starting at (...)
 ```
 
-This 
+This may throw up the question: How can we make sure which method is called? Consider the following:
+
+```cpp
+State::safe_script(R"(float_function(f::Float32) = println("float 32 version called"))");
+State::safe_script(R"(float_function(f::Float64) = println("float 64 version called"))");
+
+SafeFunction f = State::safe_script("return float_function");
+f(1.);
+```
+Which version will this function call? In our case it will call the Float64 version as the literal `1.` is always defined as a `double` in C++ whos julia-equivalent is, of course, Float64. While this may seem obvious to some, in more complicated type-dependency scenarios it may not be quite so easy and either way it can be considered bad style. To make sure julia treats the value as the type we want it to, `jluna` provides the following box overload:
+
+```
+template<typename From, typename To>
+concept CastableTo = requires(From t)
+{
+    {static_cast<To>(t)};
+};
+
+template<typename Return_t, CastableTo<Return_t> Arg_t>
+jl_value_t* box(Arg_t t)
+{
+    return box(static_cast<Return_t>(t));
+}
+```
+This means we can call `box<T>(arg)` if `decltype(arg)` can be statically cast to `T`. Using this overload we can make sure the julia function arguments are treated correctly:
+
+```cpp
+SafeFunction f = State::safe_script("return float_function");
+f(box<float>(int(1));
+f(box<double>(size_t(-1.0));
+```
+```
+float 32 version called
+float 64 version called
+```
+
+As mentioned in the Proxy section, any class implementing `Boxable` can be used as function arguments. This includes all primitive C++ types, any `jluna` type inherting from `jluna::Proxy`, `jluna::JuliaException` as well as memory pointed to by a `jl_value_t*`, `jl_array_t*`, `jl_module_t*`, `jl_datatype_t*`, `jl_sym_t*` or similar julia C-API types.
+
+## X. Struct Proxy
+
+If a proxy is a `struct` or `mutable struct` julia-side, we can assign a `jluna::Proxy` attached to it to `jluna::Struct` or `jluna::MutableStruct` respectively. First, let's define our own new datatype:
+
+```cpp
+State::safe_script(R"(
+    mutable struct MyDatatype
+            _field1::Int64
+            _field2::Ref{MyDatatype}
+
+            MyDatatype() = new(42, Ref{MyDatatype}())
+            MyDatatype(a::Int64, b::MyDatatype) = new(a, Ref(b))
+    end)");
+```
+
+This type has two fields, `_field1` of type Int64 and `_field2` which is a reference to another datatype. It has two constructors, one "default constructor" (in C++ terminology) and one that wraps its second argument into a reference.
+
+We can now instance this type and bind it to a `jluna::Proxy`:
+
+```cpp
+State::safe_script("instance = MyDatatype()")
+auto instance = State::safe_script("return instance");
+```
+This proxy is not very useful because we have no way to access its fields. To do so we need to convert it to a `jluna::Struct` or `jluna::MutableStruct`, where mutable structs can bind to immutable proxies but immutable structs cannot bind to mutable proxies as this would break const-correctness.
+We can then access fields using `operator[](const std::string&)`:
+
+```cpp
+MutableStruct as_struct = instance;
+auto field1_proxy = as_struct["_field1"];
+```
+
+Accessing fields this way returns a new `jluna::Proxy` that points to the data in the owners field. This means anything returned by `operator[]` can be converted just like a proxy optained via `script` can be, but we furthermore can assign such a proxy and it will modify it's original owners field values:
+
+```
+MutableStruct as_struct = instance;
+auto field1_proxy = as_struct["_field1"];
+std::cout << field1_proxy.operator int() << std::endl;
+field1_proxy = 43;
+
+
+
+
