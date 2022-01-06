@@ -130,6 +130,8 @@ namespace jluna
     Array<T, R>::Iterator::Iterator(jl_array_t* array, size_t i)
         : _data(array), _index(i)
     {
+        THROW_IF_UNINITIALIZED;
+
         if (_replace == nullptr)
             _replace = jl_get_function(jl_base_module, "setindex!");
 
@@ -157,7 +159,7 @@ namespace jluna
     template<Boxable T, size_t R>
     auto& Array<T, R>::Iterator::operator*()
     {
-        return *this; //unbox<T>(jl_arrayref(const_cast<jl_array_t*>(_data), _index));
+        return *this;
     }
 
     template<Boxable T, size_t R>
@@ -212,10 +214,14 @@ namespace jluna
     template<Boxable T, size_t R>
     Array<T, R>::NonConstIterator::NonConstIterator(jl_array_t* array, size_t i)
         : Array<T, R>::Iterator(array, i)
-    {}
+    {
+        THROW_IF_UNINITIALIZED;
+    }
 
     template<Boxable T, size_t R>
     Array<T, R>::ConstIterator::ConstIterator(jl_array_t* array, size_t i)
         : Array<T, R>::Iterator(array, i)
-    {}
+    {
+        THROW_IF_UNINITIALIZED;
+    }
 }

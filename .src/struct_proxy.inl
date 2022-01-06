@@ -53,6 +53,7 @@ namespace jluna
     MutableStruct::MutableStruct(jl_value_t* value)
         : Proxy<State>(value)
     {
+        THROW_IF_UNINITIALIZED;
         assert(jl_is_structtype(value) && "value being bound is not a struct");
     }
 
@@ -65,6 +66,7 @@ namespace jluna
     Struct::Struct(jl_value_t* value)
         : Proxy<State>(value)
     {
+        THROW_IF_UNINITIALIZED;
         assert(jl_is_structtype(value) && "value being bound is not a struct");
     }
 }

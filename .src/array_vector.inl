@@ -25,6 +25,7 @@ namespace jluna
         std::enable_if_t<std::is_same_v<T, std::vector<Value_t>>, bool> = true>
     T unbox(jl_value_t* value)
     {
+        THROW_IF_UNINITIALIZED;
         if (not jl_is_array(value))
             assert(false);
 
@@ -42,19 +43,21 @@ namespace jluna
     template<Boxable T>
     Vector<T>::Vector()
     {
-       if (_push_front == nullptr)
+        THROW_IF_UNINITIALIZED;
+
+        if (_push_front == nullptr)
            _push_front = jl_get_function(jl_main_module, "pushfirst!");
 
-       if (_push_back== nullptr)
+        if (_push_back== nullptr)
            _push_back = jl_get_function(jl_main_module, "append!");
 
-       if (_insert == nullptr)
+        if (_insert == nullptr)
            _insert = jl_get_function(jl_main_module, "insert!");
 
-       if (_erase == nullptr)
+        if (_erase == nullptr)
            _erase = jl_get_function(jl_main_module, "deleteat!");
 
-       if (_replace == nullptr)
+        if (_replace == nullptr)
            _replace = jl_get_function(jl_main_module, "setindex!");
     }
 

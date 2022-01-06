@@ -10,6 +10,7 @@ namespace jluna
 {
     void forward_last_exception()
     {
+        THROW_IF_UNINITIALIZED;
 
         auto* maybe =jl_exception_occurred();
         if (maybe != nullptr)
@@ -56,20 +57,5 @@ namespace jluna
     const char * AmbiguousCandidateException::what() const noexcept
     {
         return message.c_str();
-    }
-
-    UninitializedStateException::UninitializedStateException()
-        : message("trying to access julia functionality before initialization. Call jlwrap::State::initialize before trying to interact with julia")
-    {}
-
-    const char* UninitializedStateException::what() const noexcept
-    {
-        return message.c_str();
-    }
-
-    void throw_if_uninitialized()
-    {
-        if (not jl_is_initialized())
-            throw UninitializedStateException();
     }
 }

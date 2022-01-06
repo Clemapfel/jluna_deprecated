@@ -10,8 +10,6 @@ using namespace jluna;
 
 int main()
 {
-    State::initialize();
-
     auto returned_value = jluna::State::script("return 123");
 
     int as_int = returned_value;

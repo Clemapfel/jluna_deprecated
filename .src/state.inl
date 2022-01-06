@@ -52,6 +52,8 @@ namespace jluna
 
     void State::shutdown()
     {
+        THROW_IF_UNINITIALIZED;
+
         detail::on_exit();
 
         _jluna_module = nullptr;
@@ -64,11 +66,15 @@ namespace jluna
 
     auto State::script(const std::string& str) noexcept
     {
+        THROW_IF_UNINITIALIZED;
+
         return Proxy<State>(jl_eval_string(str.c_str()));
     }
 
     auto State::safe_script(const std::string& command)
     {
+        THROW_IF_UNINITIALIZED;
+
         std::stringstream str;
 
         str << "jluna.exception_handler.safe_call(\"";
@@ -105,6 +111,8 @@ namespace jluna
     template<typename... Args_t>
     auto State::call(jl_function_t* function, Args_t&&... args)
     {
+        THROW_IF_UNINITIALIZED;
+
         std::array<jl_value_t*, sizeof...(Args_t)> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
 
@@ -119,6 +127,8 @@ namespace jluna
     template<typename... Args_t>
     auto State::safe_call(jl_function_t* function, Args_t&&... args)
     {
+        THROW_IF_UNINITIALIZED;
+
         static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
         std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
@@ -140,6 +150,8 @@ namespace jluna
     template<Decayable... Args_t>
     auto State::safe_call(jl_function_t* function, Args_t&&... args)
     {
+        THROW_IF_UNINITIALIZED;
+
         std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
         auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
 
@@ -159,6 +171,8 @@ namespace jluna
 
     jl_value_t* State::create_reference(jl_value_t* in)
     {
+        THROW_IF_UNINITIALIZED;
+
         if (in == nullptr)
             return nullptr;
 
@@ -186,6 +200,8 @@ namespace jluna
 
     void State::free_reference(jl_value_t* in)
     {
+        THROW_IF_UNINITIALIZED;
+
         if (in == nullptr)
             return;
 
@@ -210,6 +226,8 @@ namespace jluna
 
     jl_function_t* State::get_function(const std::string& function_name, const std::string& module_name)
     {
+        THROW_IF_UNINITIALIZED;
+
         jl_value_t* module_v = safe_script("return " + module_name);
         assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
 
@@ -219,6 +237,8 @@ namespace jluna
 
     jl_function_t* State::find_function(const std::string& function_name)
     {
+        THROW_IF_UNINITIALIZED;
+
         static jl_function_t* get_function = jl_get_function(_jluna_module, "find_function");
         jl_array_t* res = (jl_array_t*) (jl_value_t*) safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]));
 

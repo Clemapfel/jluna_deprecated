@@ -15,6 +15,7 @@ namespace jluna
     Type::Type(jl_value_t* v)
         : Proxy<State>(v)
     {
+        THROW_IF_UNINITIALIZED;
         assert(jl_isa(v, (jl_value_t*) jl_type_type) || jl_isa(v, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }
 

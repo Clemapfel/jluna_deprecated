@@ -46,6 +46,7 @@ namespace jluna
     Array<T, R>::Array(jl_value_t* value)
         : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
     {
+        THROW_IF_UNINITIALIZED;
         assert(jl_isa(value, (jl_value_t*) jl_array_type) && "value being bound is not an array");
     }
 
@@ -99,6 +100,7 @@ namespace jluna
     template<Boxable T, size_t Rank>
     size_t Array<T, Rank>::get_dimension(size_t dimension)
     {
+        THROW_IF_UNINITIALIZED;
         static auto* size_at = jl_get_function(jl_base_module, "size");
         return jl_unbox_int64(jl_call2(size_at, (jl_value_t*) _value, jl_box_int64(dimension + 1)));
     }

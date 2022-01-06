@@ -27,6 +27,8 @@ namespace jluna
     Module::Module(jl_value_t* value)
         : Proxy<State>(value)
     {
+        THROW_IF_UNINITIALIZED;
+
         assert(jl_isa(value, (jl_value_t*) jl_module_type) && "value is not of type Module");
         _eval = jl_get_function(jl_base_module, "eval");
     }
