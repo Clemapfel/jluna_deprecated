@@ -21,8 +21,6 @@ int main()
     forward_last_exception();
     return 0;
 
-
-
     State::safe_script("instance = MyDatatype()");
     auto instance = State::safe_script("return instance");
 

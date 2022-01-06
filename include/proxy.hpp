@@ -92,7 +92,15 @@ namespace jluna
 
             /// @brief check if mutable
             /// @returns if the proxy holds a variable, true if the variable is not const. If the proxy holds a type, true if it is a mutable type, false otherwise
-            bool is_const() const;
+            bool is_mutable() const;
+
+            /// @brief check if value is a struct or mutable struct
+            /// @returns true if julias Base.isstructtype would return true, false otherwise
+            bool is_struct() const;
+
+            /// @brief get fieldnames
+            /// @returns dictionary where each key is the fields name, the keys value is the fields index
+            const std::unordered_map<std::string, size_t>& get_fieldnames() const;
 
              /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side

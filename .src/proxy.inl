@@ -168,6 +168,9 @@ namespace jluna
     template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
+        if (not is_mutable())
+            throw ImmutableVariableException(_value);
+
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
@@ -193,6 +196,9 @@ namespace jluna
     template<typename State_t>
     auto & Proxy<State_t>::operator=(jl_value_t* value)
     {
+        if (not is_mutable())
+            throw ImmutableVariableException(_value);
+
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
@@ -216,9 +222,22 @@ namespace jluna
     }
 
     template<typename State_t>
-    bool Proxy<State_t>::is_const() const
+    bool Proxy<State_t>::is_mutable() const
     {
-        return false;
+        static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
+        return jl_unbox_bool(jl_call1(ismutable, _value));
+    }
+
+    template<typename State_t>
+    bool Proxy<State_t>::is_struct() const
+    {
+        return jl_is_structtype(jl_typeof(_value));
+    }
+
+    template<typename State_t>
+    const std::unordered_map<std::string, size_t> & Proxy<State_t>::get_fieldnames() const
+    {
+        return _field_to_index;
     }
 
     template<typename State_t>
