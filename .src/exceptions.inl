@@ -8,6 +8,30 @@
 
 namespace jluna
 {
+    void forward_last_exception()
+    {
+
+        auto* maybe =jl_exception_occurred();
+        if (maybe != nullptr)
+        {
+            static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+
+            std::stringstream str;
+            str << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << "\n\t<no stacktrace available>" << std::endl;
+            throw JuliaException(jl_exception_occurred(), str.str());
+            return;
+        }
+
+        else if (jl_unbox_bool(jl_eval_string("return jluna.exception_handler.has_exception_occurred()")))
+        {
+            throw JuliaException(
+                    jl_eval_string("return jluna.exception_handler.get_last_exception()"),
+                    std::string(jl_string_data(jl_eval_string("return jluna.exception_handler.get_last_message()")))
+            );
+            return;
+        }
+    }
+
     JuliaException::JuliaException(jl_value_t* exception, std::string stacktrace)
                 : _value(exception), _message("[JULIA][EXCEPTION] " + stacktrace)
             {}

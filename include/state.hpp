@@ -89,8 +89,6 @@ namespace jluna
             static void free_reference(jl_value_t*);
 
         private:
-            static void forward_last_exception();
-
             static inline jl_module_t* _jluna_module = nullptr;
 
             // memory handler interface

@@ -62,17 +62,6 @@ namespace jluna
         _get_reference = nullptr;
     }
 
-    void State::forward_last_exception()
-    {
-        if (jl_unbox_bool(jl_eval_string("return jluna.exception_handler.has_exception_occurred()")))
-        {
-            throw JuliaException(
-                    jl_eval_string("return jluna.exception_handler.get_last_exception()"),
-                    std::string(jl_string_data(jl_eval_string("return jluna.exception_handler.get_last_message()")))
-            );
-        }
-    }
-
     auto State::script(const std::string& str) noexcept
     {
         return Proxy<State>(jl_eval_string(str.c_str()));
@@ -106,6 +95,7 @@ namespace jluna
             std::stringstream str;
             str << "[C++][EXCEPTION] " << jl_string_data(jl_call1(tostring, jl_exception_occurred())) << " in State::safe_script\n Expression: \" \n" << command << "\"" << std::endl;
             throw std::invalid_argument(str.str());
+            jl_exception_clear();
         }
 
         forward_last_exception();

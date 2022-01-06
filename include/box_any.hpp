@@ -17,29 +17,10 @@ namespace jluna
         return value;
     }
 
-    /// @brief concept that requires a value to be boxable into a julia-side value
-    template<typename T>
-    concept Boxable = requires(T t, jl_value_t* v)
+    template<Decayable T>
+    jl_value_t* box(T&& value)
     {
-        {box(v)};
-    };
-
-    // from c array_t
-    jl_value_t* box(jl_array_t* value)
-    {
-        return (jl_value_t*) value;
-    }
-
-    // from c symbol_t
-    jl_value_t* box(jl_sym_t* value)
-    {
-        return (jl_value_t*) value;
-    }
-
-    // from c datatype_t
-    jl_value_t* box(jl_datatype_t* value)
-    {
-        return (jl_value_t*) value;
+        return (jl_value_t*) (std::forward<T*>(value));
     }
 
     // string

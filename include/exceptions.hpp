@@ -33,6 +33,9 @@ namespace jluna
             std::string _message;
     };
 
+    /// @brief if julia exception occurred, forward it to C++
+    extern void forward_last_exception();
+
     /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
     class AmbiguousCandidateException : public std::exception
     {

@@ -12,10 +12,13 @@ int main()
 {
     State::initialize();
 
-    jluna::State::script("println(\"hello luna\")");
+    jl_eval_string("println(\"hello luna\"\")");
+    forward_last_exception();
+    return 0;
 
     auto returned_value = jluna::State::script("return 123");
-    int as_int = returned_value.operator int();
+
+    int as_int = returned_value;
     as_int += 1;
     std::cout << as_int << std::endl;
 

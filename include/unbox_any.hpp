@@ -18,13 +18,6 @@ namespace jluna
         return value;
     }
 
-    /// @brief concept that requires a value to be unboxed from a julia-side value
-    template<typename T>
-    concept Unboxable = requires(T t, jl_value_t* v)
-    {
-        {unbox<T>(v)};
-    };
-
     /// @brief unbox to bool
     template<typename T, std::enable_if_t<std::is_same_v<T, bool>, bool> = true>
     T unbox(jl_value_t* value)
