@@ -18,6 +18,13 @@ int main()
         end
     )");
 
+    auto* names = jl_field_names((jl_datatype_t*) jl_eval_string("TestModule"));
+
+    for (size_t i = 0; i < jl_svec_len(names); ++i)
+        std::cout << std::string(jl_string_data(jl_svecref(names, i))) << std::endl;
+
+    return 0;
+
     auto test_module = State::safe_script("return TestModule");
     test_module["variable"] = 456;
     State::safe_script("println(TestModule.variable)");

@@ -50,6 +50,17 @@ begin # not part of jluna
 
     dot(x::Module, field_name::Symbol) = return x.eval(field_name);
 
+    """
+    assign value in module
+    """
+    function assign(m::Module, name::Symbol, new_value::Any) ::Nothing
+        Base.eval(m, :($name = $new_value))
+        return nothing
+    end
+
+    """
+    transform a quote block to an identical :() expression by removing the first quote node
+    """
     function unquote_aux(expr::Expr) ::Expr
 
         if typeof(expr.args[1]) == LineNumberNode && length(expr.args) >= 2
@@ -59,9 +70,6 @@ begin # not part of jluna
         end
     end
 
-    """
-    transform a quote block to an identical :() expression by removing the first quote node
-    """
     macro unquote(expr::Expr)
 
         return :(unquote_aux($expr));

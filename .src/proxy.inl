@@ -36,28 +36,48 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value)
-        : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1)
+        : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1), _symbol(nullptr)
     {
         THROW_IF_UNINITIALIZED;
 
         if (_value == nullptr)
             return;
 
-        State_t::create_reference(value);
+        State_t::create_reference(_owner);
+        State_t::create_reference(_value);
+        State_t::create_reference(_symbol);
         _value = value;
         setup_field_to_index();
     }
 
     template<typename State_t>
-    Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i, bool is_mutable)
-        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), _is_mutable(is_mutable)
+    Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
+        : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), _symbol(nullptr)
     {
         THROW_IF_UNINITIALIZED;
 
         if (_value == nullptr)
             return;
 
-        State_t::create_reference(value);
+        State_t::create_reference(_owner);
+        State_t::create_reference(_value);
+        State_t::create_reference(_symbol);
+
+        setup_field_to_index();
+    }
+
+    template<typename State_t>
+    Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, jl_sym_t* symbol)
+        : _value(value), _field_to_index(), _owner(owner), _field_i(-1), _symbol(symbol)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        if (_value == nullptr)
+            return;
+
+        State_t::create_reference(_owner);
+        State_t::create_reference(_value);
+        State_t::create_reference(_symbol);
         setup_field_to_index();
     }
 
@@ -77,7 +97,9 @@ namespace jluna
     template<typename State_t>
     Proxy<State_t>::~Proxy()
     {
+        State_t::free_reference(_owner);
         State_t::free_reference(_value);
+        State_t::free_reference(_symbol);
         _value = nullptr;
     }
 
@@ -90,15 +112,16 @@ namespace jluna
             static jl_function_t* dot = jl_get_function(jl_main_module, "dot");
             static jl_function_t* isdefined = jl_get_function(jl_base_module, "isdefined");
             static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+            auto* as_symbol = jl_symbol(field_name.c_str());
 
-            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) jl_symbol(field_name.c_str()))))
+            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) as_symbol)));
             {
                 std::stringstream str;
                 str << "member \"" << field_name << "\" is not defined in module " << jl_string_data(jl_call1(tostring, _value)) << std::endl;
                 throw std::out_of_range(str.str().c_str());
             }
 
-            return Proxy<State_t>(jl_call2(dot, _value, (jl_value_t*) jl_symbol(field_name.c_str())));
+            return Proxy<State_t>(jl_call2(dot, _value, (jl_value_t*) jl_symbol(field_name.c_str())), _value, as_symbol);
         }
         else if (jl_is_structtype(jl_typeof(_value)))
         {
@@ -252,22 +275,27 @@ namespace jluna
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
-        if (_field_i == -1)
+        if (_owner != nullptr and _field_i == -1) // module
         {
             State::free_reference(_value);
-            _value = value;
-            State::create_reference(_value);
+
+            write assign function
         }
-        else
+        else if (_owner != nullptr and _field_i >= 0) // struct field
         {
             State::free_reference(_value);
             jl_set_nth_field(_owner, size_t(_field_i), value);
             _value = jl_get_nth_field(_owner, size_t(_field_i));
             State::create_reference(_value);
         }
+        else
+        {
+            State::free_reference(_value);
+            _value = value;
+            State::create_reference(_value);
+        }
 
         jl_gc_enable(before);
-
         return *this;
     }
 

@@ -37,12 +37,13 @@ namespace jluna
             Proxy() = delete;
 
             /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
-            /// @param value: pointer to the value of the variable
             Proxy(jl_value_t* value);
 
             /// @brief construct as proxy of a field of an owner
-            /// @param value: pointer to the value of the variable
-            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i, bool is_mutable = false);
+            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i);
+
+            /// @brief construct as proxy of variable in a module
+            Proxy(jl_value_t* value, jl_value_t* owner, jl_sym_t* symbol);
 
             /// @brief dtor, frees the reference so it can be garbage collected if appropriate
             ~Proxy();
@@ -140,9 +141,13 @@ namespace jluna
             jl_value_t* _value;
 
         private:
+            // non-module, non-struct: owner = nullptr, field_i = -1
+            // struct field: owner != nullptr, field_i >= 0
+            // mutable member: owner != nullptr, field_i = -1;
+
             jl_value_t* _owner = nullptr;
             long int _field_i = -1;
-            bool _is_mutable = false;
+            jl_sym_t* _symbol;
 
             void setup_field_to_index();
             std::unordered_map<std::string, size_t> _field_to_index;
