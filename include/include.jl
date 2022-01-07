@@ -4,10 +4,10 @@
 #
 
 include("../.src/julia/visibility_macros.jl")
+include("../.src/julia/common.jl")
 
 module jluna
 
-    include("../.src/julia/common.jl")
     include("../.src/julia/exception_handler.jl")
     include("../.src/julia/memory_handler.jl")
     include("../.src/julia/state_interface.jl")

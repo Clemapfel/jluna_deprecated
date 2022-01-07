@@ -77,16 +77,13 @@ namespace jluna
         THROW_IF_UNINITIALIZED;
 
         std::stringstream str;
-
-        str << "jluna.exception_handler.safe_call(quote " << command << " end);";
+        str << "jluna.exception_handler.safe_call(@unquote(quote " << command << " end))";
         auto* result = jl_eval_string(str.str().c_str());
-        if (jl_exception_occurred()) // catch parse errors in command
+        if (jl_exception_occurred() or exception_occurred()) // catch parse errors in command
         {
-            std::cerr << "error in jluna::State::safe_script when parsing expression:\n\"" << str.str().c_str() << "\"\n" << std::endl;
+            std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << command << "\"\n" << std::endl;
             forward_last_exception();
         }
-
-        forward_last_exception();
         return Proxy<State>(result);
     }
 

@@ -10,7 +10,6 @@
 
 #include <include/array_proxy.hpp>
 #include <include/function_proxy.hpp>
-#include <include/module_proxy.hpp>
 #include <include/symbol_proxy.hpp>
 #include <include/type_proxy.hpp>
 

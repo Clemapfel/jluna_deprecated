@@ -8,6 +8,13 @@
 
 namespace jluna
 {
+    bool exception_occurred()
+    {
+        THROW_IF_UNINITIALIZED;
+
+        return jl_unbox_bool(jl_eval_string("return jluna.exception_handler.has_exception_occurred()"));
+    }
+
     void forward_last_exception()
     {
         THROW_IF_UNINITIALIZED;
@@ -62,7 +69,7 @@ namespace jluna
     ImmutableVariableException::ImmutableVariableException(jl_value_t* value)
     {
         std::stringstream str;
-        str << "trying to modify value of type " << jl_typeof_str(value) << " which is immutable" << std::endl;
+        str << "trying to modify value of type " << jl_typeof_str(value) << " which was declared immutable" << std::endl;
         message = str.str();
     }
 

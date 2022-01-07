@@ -2,7 +2,7 @@
 # Copyright 2021 Clemens Cords
 # Created on 17.12.21 by clem (mail@clemens-cords.com)
 #
-begin # included into module jluna
+begin # not part of jluna
 
     """
     get value type of array
@@ -33,6 +33,38 @@ begin # included into module jluna
     function exists(array::T, v::Any) ::Bool where T <: AbstractArray
 
         return !isempty(findall(x -> x == v, array))
+    end
+
+    """
+    wrap the dot operator to work on structs and modules
+    """
+    function dot(x::T, field_name::Symbol) ::Any where T
+
+        if (isstructtype(T))
+            return getfield(x, field_name)
+        else
+            return Base.eval(Main, :($x.$field_name))
+        end
+    end
+    export dot;
+
+    dot(x::Module, field_name::Symbol) = return x.eval(field_name);
+
+    function unquote_aux(expr::Expr) ::Expr
+
+        if typeof(expr.args[1]) == LineNumberNode && length(expr.args) >= 2
+            return expr.args[2]
+        else
+            return expr;
+        end
+    end
+
+    """
+    transform a quote block to an identical :() expression by removing the first quote node
+    """
+    macro unquote(expr::Expr)
+
+        return :(unquote_aux($expr));
     end
 end
 

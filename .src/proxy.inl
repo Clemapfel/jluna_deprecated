@@ -84,32 +84,82 @@ namespace jluna
     template<typename State_t>
     auto Proxy<State_t>::get_field(const std::string& field_name)
     {
-        auto it = _field_to_index.find(field_name);
+        if (jl_isa(_value, (jl_value_t*) jl_module_type))
+        {
+            static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
+            static jl_function_t* dot = jl_get_function(jl_main_module, "dot");
+            static jl_function_t* isdefined = jl_get_function(jl_base_module, "isdefined");
+            static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
 
-        if (it == _field_to_index.end())
+            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) jl_symbol(field_name.c_str()))))
+            {
+                std::stringstream str;
+                str << "member \"" << field_name << "\" is not defined in module " << jl_string_data(jl_call1(tostring, _value)) << std::endl;
+                throw std::out_of_range(str.str().c_str());
+            }
+
+            return Proxy<State_t>(jl_call2(dot, _value, (jl_value_t*) jl_symbol(field_name.c_str())));
+        }
+        else if (jl_is_structtype(jl_typeof(_value)))
+        {
+            auto it = _field_to_index.find(field_name);
+            if (it == _field_to_index.end())
+            {
+                std::stringstream str;
+                str << "field \"" << field_name << "\" does not exist for element of type " << jl_typeof_str(_value) << std::endl;
+                throw std::out_of_range(str.str().c_str());
+            }
+
+            return Proxy<State_t>(jl_get_nth_field(_value, it->second), _value, it->second);
+        }
+        else
         {
             std::stringstream str;
-            str << "field \"" << field_name << "\" does not exist for element of type " << jl_typeof_str(_value) << std::endl;
+            str << "value of type " << jl_typeof_str(_value) << " has no field or member \"" << field_name << "\"" << std::endl;
             throw std::out_of_range(str.str().c_str());
+            return Proxy<State_t>(nullptr);
         }
-
-        return Proxy<State_t>(jl_get_nth_field(_value, it->second), _value, it->second);
     }
 
     template<typename State_t>
     template<typename T>
     T Proxy<State_t>::get_field(const std::string& field_name) const
     {
-        auto it = _field_to_index.find(field_name);
+        if (jl_isa(_value, (jl_value_t*) jl_module_type))
+        {
+            static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
+            static jl_function_t* dot = jl_get_function(jluna_module, "dot");
+            static jl_function_t* isdefined = jl_get_function(jl_base_module, "isdefined");
+            static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
 
-        if (it == _field_to_index.end())
+            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) jl_symbol(field_name.c_str()))))
+            {
+                std::stringstream str;
+                str << "member \"" << field_name << "\" is not defined in module " << jl_string_data(jl_call1(tostring, _value)) << std::endl;
+                throw std::out_of_range(str.str().c_str());
+            }
+
+            return unbox<T>(jl_call2(dot, _value, (jl_value_t*) jl_symbol(field_name.c_str())));
+        }
+        else if (jl_is_structtype(jl_typeof(_value)))
+        {
+            auto it = _field_to_index.find(field_name);
+            if (it == _field_to_index.end())
+            {
+                std::stringstream str;
+                str << "field \"" << field_name << "\" does not exist for element of type " << jl_typeof_str(_value) << std::endl;
+                throw std::out_of_range(str.str().c_str());
+            }
+
+            return unbox<T>(jl_get_nth_field(_value, it->second));
+        }
+        else
         {
             std::stringstream str;
-            str << "field \"" << field_name << "\" does not exist for element of type " << jl_typeof_str(_value) << std::endl;
+            str << "value of type " << jl_typeof_str(_value) << " has no field or member \"" << field_name << "\"" << std::endl;
             throw std::out_of_range(str.str().c_str());
+            return T();
         }
-
-        return unbox<T>(jl_get_nth_field(_value, it->second));
     }
 
     template<typename State_t>
@@ -225,7 +275,15 @@ namespace jluna
     bool Proxy<State_t>::is_mutable() const
     {
         static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
-        return jl_unbox_bool(jl_call1(ismutable, _value));
+        static jl_function_t* isstructtype = jl_get_function(jl_base_module, "isstructtype");
+
+        if (jl_unbox_bool(jl_call1(isstructtype, (jl_value_t*) jl_typeof(_value))))
+            if (jl_unbox_bool(jl_call1(ismutable, _value)))
+                return true;
+            else
+                return false;
+        else
+            return true;
     }
 
     template<typename State_t>

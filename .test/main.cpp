@@ -13,19 +13,28 @@ int main()
     State::initialize();
 
     State::safe_script(R"(
-        struct InnerType
-            _field
-
-            InnerType() = new(123)
-        end
-
-        mutable struct OuterType
-            _inner::InnerType
-            _int::Integer
-
-            OuterType() = new(InnerType(), 123)
+        module TestModule
+            variable = Int64(123)
         end
     )");
+
+    auto test_module = State::safe_script("return TestModule");
+    test_module["variable"] = 456;
+    State::safe_script("println(TestModule.variable)");
+
+    /*
+    State::safe_script(R"(struct InnerType
+    _field
+
+    InnerType() = new(123)
+end
+
+mutable struct OuterType
+    _inner::InnerType
+    _int::Integer
+
+    OuterType() = new(InnerType(), 123)
+end)");
 
     State::safe_script("instance = OuterType()");
     auto instance = State::safe_script("return instance")["_int"];

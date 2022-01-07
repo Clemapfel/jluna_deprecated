@@ -33,6 +33,8 @@ namespace jluna
             std::string _message;
     };
 
+    extern bool expression_occurred();
+
     /// @brief if julia exception occurred, forward it to C++
     extern void forward_last_exception();
 
@@ -68,8 +70,8 @@ namespace jluna
             std::string message;
     };
 
-/// @brief throws an exception if State::initialize was not called yet
-#define THROW_IF_UNINITIALIZED assert(jl_is_initialized() && "initiate the state via jluna::State::initialize() before trying to interact with julia or jluna")
+    /// @brief throws an exception if State::initialize was not called yet
+    #define THROW_IF_UNINITIALIZED assert(jl_is_initialized() && "initiate the state via jluna::State::initialize() before trying to interact with julia or jluna")
 
 }
 
