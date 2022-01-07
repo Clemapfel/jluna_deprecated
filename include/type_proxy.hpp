@@ -37,7 +37,7 @@ namespace jluna
 
             /// @brief is mutable
             /// @returns true if Base.ismutable would return true
-            bool is_mutable() const;
+            bool is_mutable_type() const;
 
         private:
             using Proxy<State>::_value;

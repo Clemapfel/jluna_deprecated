@@ -42,9 +42,9 @@ namespace jluna
         return jl_unbox_bool(jl_call2(not_equals, this->_value, other._value));
     }
 
-    bool Type::is_mutable() const
+    bool Type::is_mutable_type() const
     {
-        static jl_function_t* is_mutable = jl_get_function(jl_base_module, "ismutable");
-        return jl_unbox_bool(jl_call1(is_mutable, _value));
+        static jl_function_t* ismutabletype = jl_get_function(jl_base_module, "ismutabletype");
+        return jl_call1(ismutabletype, _value);
     }
 }

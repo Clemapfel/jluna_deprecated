@@ -6,28 +6,6 @@
 begin
 
     """
-    returns true if value is either a struct type declared mutable or a non-struct type not declared const
-    """
-    function is_mutable(m::Module, symbol::Symbol) ::Bool
-
-        value = m.eval(symbol);
-
-        if isstructtype(typeof(value))
-            if (ismutable(value))
-                return true
-            else
-                return false
-            end
-        end
-
-        if isconst(m, symbol)
-            return false
-        else
-            return true
-        end
-    end
-
-    """
     recursively list all modules and submodules, excluding those that are a submodule of a module in exclude_roots
     """
     function list_all_modules(top::Module = Main; exclude_roots::Vector{Module} = [Base, Core, Main.InteractiveUtils]) ::Vector{Module}

@@ -12,32 +12,26 @@ int main()
 {
     State::initialize();
 
-    State::safe_script("println(\"test\")");
-    forward_last_exception();
-    return 0;
+    State::safe_script(R"(
+        struct InnerType
+            _field
 
-    auto* test = jl_eval_string("const test = Outer(Inner())");
-    jl_eval_string("test._field._field = 456");
-    forward_last_exception();
-    return 0;
+            InnerType() = new(123)
+        end
 
-    State::safe_script("instance = MyDatatype()");
-    auto instance = State::safe_script("return instance");
+        mutable struct OuterType
+            _inner::InnerType
+            _int::Integer
 
-    MutableStruct as_struct = instance;
-    auto field_proxy = as_struct["_field1"];
+            OuterType() = new(InnerType(), 123)
+        end
+    )");
 
-    std::cout << field_proxy.operator int() << std::endl;
+    State::safe_script("instance = OuterType()");
+    auto instance = State::safe_script("return instance")["_int"];
 
-    field_proxy = 123;
-    State::safe_script("println(instance._field1)");
-
-    as_struct["_field1"] = 456;
-    State::safe_script("println(instance._field1)");
-
-    as_struct = State::safe_script("return instance");
-    as_struct["_field1"] = 1234;
-    State::safe_script("println(instance._field1)");
+    instance = 456;
+    State::safe_script("println(instance._int)");
 
     /*
     State::safe_script("instance = MyDatatype()");
