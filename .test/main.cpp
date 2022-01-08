@@ -12,6 +12,7 @@ int main()
 {
     State::initialize();
 
+    /*
     State::safe_script(R"(
         module TestModule
             variable = Int64(123)
@@ -20,14 +21,37 @@ int main()
 
     auto* names = jl_field_names((jl_datatype_t*) jl_eval_string("TestModule"));
 
-    for (size_t i = 0; i < jl_svec_len(names); ++i)
-        std::cout << std::string(jl_string_data(jl_svecref(names, i))) << std::endl;
+    //for (size_t i = 0; i < jl_svec_len(names); ++i)
+      //  std::cout << std::string(jl_string_data(jl_svecref(names, i))) << std::endl;
 
-    return 0;
+    //return 0;
 
     auto test_module = State::safe_script("return TestModule");
     test_module["variable"] = 456;
     State::safe_script("println(TestModule.variable)");
+     */
+
+    State::safe_script(R"(
+        struct Immutable
+            _field
+        end
+
+        mutable struct Mutable
+            _field
+        end
+    )");
+
+    State::safe_script("immutable_instance = Immutable(123)");
+    State::safe_script("mutable_instance = Mutable(123);");
+
+    auto immutable_field_proxy = State::safe_script("return immutable_instance")["_field"];
+    auto mutable_field_proxy = State::safe_script("return mutable_instance")["_field"];
+
+    mutable_field_proxy = 456;
+    State::safe_script("println(mutable_instance._field)");
+
+    immutable_field_proxy = 456;
+    return 0;
 
     /*
     State::safe_script(R"(struct InnerType

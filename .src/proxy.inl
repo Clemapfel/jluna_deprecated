@@ -45,7 +45,7 @@ namespace jluna
 
         State_t::create_reference(_owner);
         State_t::create_reference(_value);
-        State_t::create_reference(_symbol);
+        State_t::create_reference((jl_value_t*) _symbol);
         _value = value;
         setup_field_to_index();
     }
@@ -61,7 +61,7 @@ namespace jluna
 
         State_t::create_reference(_owner);
         State_t::create_reference(_value);
-        State_t::create_reference(_symbol);
+        State_t::create_reference((jl_value_t*) _symbol);
 
         setup_field_to_index();
     }
@@ -77,7 +77,7 @@ namespace jluna
 
         State_t::create_reference(_owner);
         State_t::create_reference(_value);
-        State_t::create_reference(_symbol);
+        State_t::create_reference((jl_value_t*) _symbol);
         setup_field_to_index();
     }
 
@@ -99,7 +99,7 @@ namespace jluna
     {
         State_t::free_reference(_owner);
         State_t::free_reference(_value);
-        State_t::free_reference(_symbol);
+        State_t::free_reference((jl_value_t*) _symbol);
         _value = nullptr;
     }
 
@@ -114,7 +114,7 @@ namespace jluna
             static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
             auto* as_symbol = jl_symbol(field_name.c_str());
 
-            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) as_symbol)));
+            if (not jl_unbox_bool(jl_call2(isdefined, _value, (jl_value_t*) as_symbol)))
             {
                 std::stringstream str;
                 str << "member \"" << field_name << "\" is not defined in module " << jl_string_data(jl_call1(tostring, _value)) << std::endl;
@@ -241,48 +241,77 @@ namespace jluna
     template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
-        if (not is_mutable())
-            throw ImmutableVariableException(_value);
-
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
-        if (_field_i == -1)
+        if (_owner != nullptr and _symbol != nullptr) // module
         {
+            static jl_function_t* isconst = jl_get_function(jl_base_module, "isconst");
+
+            if (jl_unbox_bool(jl_call2(isconst, _owner, (jl_value_t*) _symbol)))
+                throw ImmutableVariableException(_value);
+
+            static jl_function_t* assign = jl_get_function(jl_main_module, "assign");
             State::free_reference(_value);
-            _value = box<T>(value);
+
+            jl_value_t* arr[3] = {_owner, (jl_value_t*) _symbol, box<T>(value)};
+            _value = jl_call(assign, &arr[0], 3);
+            forward_last_exception();
+
             State::create_reference(_value);
         }
-        else
+        else if (_owner != nullptr and _field_i >= 0) // struct field
         {
+            static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
+
+            if (not jl_unbox_bool(jl_call1(ismutable, jl_get_nth_field(_owner, size_t(_field_i)))))
+                throw ImmutableVariableException(_value);
+
             State::free_reference(_value);
             jl_set_nth_field(_owner, size_t(_field_i), box<T>(value));
             _value = jl_get_nth_field(_owner, size_t(_field_i));
             State::create_reference(_value);
         }
+        else
+        {
+            State::free_reference(_value);
+            _value = box<T>(value);
+            State::create_reference(_value);
+        }
 
         jl_gc_enable(before);
-
         return *this;
     }
 
     template<typename State_t>
     auto & Proxy<State_t>::operator=(jl_value_t* value)
     {
-        if (not is_mutable())
-            throw ImmutableVariableException(_value);
-
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
-        if (_owner != nullptr and _field_i == -1) // module
+        if (_owner != nullptr and _symbol != nullptr) // module
         {
-            State::free_reference(_value);
+            static jl_function_t* isconst = jl_get_function(jl_base_module, "isconst");
 
-            write assign function
+            if (jl_unbox_bool(jl_call2(isconst, _owner, (jl_value_t*) _symbol)))
+                throw ImmutableVariableException(_value);
+
+            static jl_function_t* assign = jl_get_function(jl_main_module, "assign");
+            State::free_reference(_value);
+            
+            jl_value_t* arr[3] = {_owner, (jl_value_t*) _symbol, value};
+            _value = jl_call(assign, &arr[0], 3);
+            forward_last_exception();
+            
+            State::create_reference(_value);
         }
         else if (_owner != nullptr and _field_i >= 0) // struct field
         {
+            static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
+
+            if (not jl_unbox_bool(jl_call1(ismutable, jl_get_nth_field(_owner, size_t(_field_i)))))
+                throw ImmutableVariableException(_value);
+
             State::free_reference(_value);
             jl_set_nth_field(_owner, size_t(_field_i), value);
             _value = jl_get_nth_field(_owner, size_t(_field_i));
@@ -302,16 +331,27 @@ namespace jluna
     template<typename State_t>
     bool Proxy<State_t>::is_mutable() const
     {
-        static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
-        static jl_function_t* isstructtype = jl_get_function(jl_base_module, "isstructtype");
-
-        if (jl_unbox_bool(jl_call1(isstructtype, (jl_value_t*) jl_typeof(_value))))
-            if (jl_unbox_bool(jl_call1(ismutable, _value)))
-                return true;
-            else
+         if (_owner != nullptr and _symbol != nullptr) // module
+        {
+            static jl_function_t* isconst = jl_get_function(jl_base_module, "isconst");
+            if (jl_unbox_bool(jl_call2(isconst, _owner, (jl_value_t*) _symbol)))
                 return false;
+            else
+                return true;
+        }
+        else if (_owner != nullptr and _field_i >= 0) // struct field
+        {
+            static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
+
+            if (not jl_unbox_bool(jl_call1(ismutable, jl_get_nth_field(_owner, size_t(_field_i)))))
+                return false;
+            else
+                return true;
+        }
         else
+        {
             return true;
+        }
     }
 
     template<typename State_t>
