@@ -15,6 +15,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
 
 add_library(jluna STATIC
 
+    jluna.hpp
+
     include/state.hpp
     .src/state.inl
 
@@ -37,20 +39,14 @@ add_library(jluna STATIC
     include/function_proxy.hpp
     .src/function_proxy.inl
 
-    include/struct_proxy.hpp
-    .src/struct_proxy.inl
-
-    include/module_proxy.hpp
-    .src/module_proxy.inl
-
     include/symbol_proxy.hpp
     .src/symbol_proxy.inl
 
     include/type_proxy.hpp
     .src/type_proxy.inl
 
-    jluna.hpp
-    include/julia_types.h)
+    include/global_utilities.hpp
+    .src/global_utilities.inl)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
