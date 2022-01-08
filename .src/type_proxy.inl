@@ -19,6 +19,12 @@ namespace jluna
         assert(jl_isa(v, (jl_value_t*) jl_type_type) || jl_isa(v, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }
 
+    Type::Type(const std::string& type_name)
+        : Proxy<State>(State::safe_script("return " + type_name))
+    {
+        assert(jl_isa(_value, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
+    }
+
     Type::operator jl_datatype_t*()
     {
         return (jl_datatype_t*) _value;
