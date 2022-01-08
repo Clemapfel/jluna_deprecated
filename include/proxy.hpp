@@ -22,9 +22,9 @@ namespace jluna
 
     /// @brief concept that requires a value to be boxable into a julia-side value
     template<typename T>
-    concept Boxable = requires(T t, jl_value_t* v)
+    concept Boxable = requires(T t)
     {
-        {box(v)};
+        {box(t)};
     };
 
     /// @brief concept of a variable, has a type, name (symbol) and value
@@ -148,6 +148,8 @@ namespace jluna
             jl_value_t* _owner = nullptr;
             long int _field_i = -1;
             jl_sym_t* _symbol;
+
+            bool _free_on_destruction = false;
 
             void setup_field_to_index();
             std::unordered_map<std::string, size_t> _field_to_index;
