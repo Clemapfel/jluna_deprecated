@@ -43,13 +43,31 @@ namespace jluna
             /// @brief exit julia environment and deallocate all variables
             static void shutdown();
 
-            /// @brief execute line of code
+            /// @brief execute line of code, evaluated in Main
+            /// @param command
+            /// @returns proxy to result, if any
             /// @exceptions if an error occurs julia-side it will be ignore and the result of the call will be undefined
             static auto script(const std::string&) noexcept;
 
+            /// @brief execute line of code, evaluated in Main
+            /// @param command
+            /// @param module: name of module the command will be evaluated in
+            /// @returns proxy to result, if any
+            /// @exceptions if an error occurs julia-side it will be ignore and the result of the call will be undefined
+            static auto script(const std::string& command, const std::string& module) noexcept;
+
             /// @brief execute line of code with exception handling
+            /// @param command
+            /// @returns proxy to result, if any
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string&);
+
+            /// @brief execute line of code with exception handling
+            /// @param command
+            /// @param module: name of module the command will be evaluated in
+            /// @returns proxy to result, if any
+            /// @exceptions if an error occurs julia-side a JuliaException will be thrown
+            static auto safe_script(const std::string& command, const std::string& module);
 
             /// @brief call julia function without exception forwarding
             /// @param function
@@ -77,6 +95,9 @@ namespace jluna
             /// @brief access a function just by name, searches for it in any module currently loaded
             /// @param function_name: exact function name, e.g. "push!"
             static jl_function_t* find_function(const std::string& function_name);
+
+            /// @brief trigger the garbage collector
+            static void collect_garbage();
 
         protected:
             /// @brief add a value to be safeguarded from the garbage collector

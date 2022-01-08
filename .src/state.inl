@@ -65,11 +65,22 @@ namespace jluna
         _get_reference = nullptr;
     }
 
-    auto State::script(const std::string& str) noexcept
+    auto State::script(const std::string& command) noexcept
     {
         THROW_IF_UNINITIALIZED;
 
-        return Proxy<State>(jl_eval_string(str.c_str()));
+        std::stringstream str;
+        str << "jluna.exception_handler.unsafe_call(quote " << command << " end)" << std::endl;
+        return Proxy<State>(jl_eval_string(str.str().c_str()));
+    }
+
+    auto State::script(const std::string& command, const std::string& module) noexcept
+    {
+        THROW_IF_UNINITIALIZED;
+
+        std::stringstream str;
+        str << "jluna.exception_handler.unsafe_call(quote " << command << " end, " << module << ")" << std::endl;
+        return Proxy<State>(jl_eval_string(str.str().c_str()));
     }
 
     auto State::safe_script(const std::string& command)
@@ -77,11 +88,26 @@ namespace jluna
         THROW_IF_UNINITIALIZED;
 
         std::stringstream str;
-        str << "jluna.exception_handler.safe_call(@unquote(quote " << command << " end))";
+        str << "jluna.exception_handler.safe_call(quote " << command << " end)" << std::endl;
         auto* result = jl_eval_string(str.str().c_str());
-        //if (jl_exception_occurred() or exception_occurred()) // catch parse errors in command
+        if (jl_exception_occurred() or exception_occurred())
         {
-            std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << str.str() << "\"\n" << std::endl;
+            std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << command << "\"\n" << std::endl;
+            forward_last_exception();
+        }
+        return Proxy<State>(result);
+    }
+
+    auto State::safe_script(const std::string& command, const std::string& module)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        std::stringstream str;
+        str << "jluna.exception_handler.safe_call(quote " << command << " end, " << module << ")" << std::endl;
+        auto* result = jl_eval_string(str.str().c_str());
+        if (jl_exception_occurred() or exception_occurred())
+        {
+            std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << command << "\"\n" << std::endl;
             forward_last_exception();
         }
         return Proxy<State>(result);
