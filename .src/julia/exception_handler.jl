@@ -28,7 +28,7 @@ begin # included into module jluna
         @param command: julia code as expression
         @returns result of expression or nothing if an exception was thrown
         """
-        function safe_call(expr::Expr) ::Any
+        function safe_call(expr::Expr, m::Module = Main) ::Any
 
             if expr.head == :block
                 expr.head = :toplevel
@@ -36,7 +36,7 @@ begin # included into module jluna
 
             result = undef
             try
-                result = Main.eval(expr)
+                result = Base.eval(m, expr)
                 update()
             catch exc
                 result = nothing
@@ -44,6 +44,21 @@ begin # included into module jluna
             end
 
             return result
+        end
+
+        """
+        call any line of code without updating the handler
+
+        @param command: julia code as expression
+        @returns result of expression
+        """
+        function unsafe_call(expr::Expr, m::Module = Main) ::Any
+
+            if expr.head == :block
+                expr.head = :toplevel
+            end
+
+            return Base.eval(m, expr);
         end
 
         """

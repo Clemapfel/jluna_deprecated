@@ -12,10 +12,19 @@ int main()
 {
     State::initialize();
 
-    /*
+    auto proxy = State::safe_script("return 123");
+
+    char s = (char) proxy;
+
+    auto vector = Type("Integer");
+
     State::safe_script(R"(
+
+        first = 0;
+
         module TestModule
-            variable = Int64(123)
+            v1 = Int64(123)
+            const v2 = Int64(0)
         end
     )");
 
@@ -27,9 +36,9 @@ int main()
     //return 0;
 
     auto test_module = State::safe_script("return TestModule");
-    test_module["variable"] = 456;
-    State::safe_script("println(TestModule.variable)");
-     */
+    test_module["v1"] = 456;
+    //test_module["v2"] = 123;
+    State::safe_script("println(TestModule.v1)");
 
     State::safe_script(R"(
         struct Immutable

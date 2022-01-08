@@ -30,7 +30,9 @@ jluna::State::shutdown();
 
 However, this is usually unnecessary.
 
-## X. (Safely) executing code
+## 1.1 C-API refresher
+
+## 2. (Safely) executing code
 
 All interaction with julia happens in some way through `jluna::State`. This is a C++ union class with only static methods. This means there is only ever exactly one state and it cannot be instanced, in julia we would call this a singleton.
 
@@ -68,15 +70,15 @@ signal (6): Aborted
 in expression starting at none:0
 gsignal at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 abort at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-unknown function (ip: 0x7f48deb04a30)
-unknown function (ip: 0x7f48deb104fb)
+unknown function (ip: 0x7fa109483a30)
+unknown function (ip: 0x7fa10948f4fb)
 _ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
 __cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
-forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:22
-main at /home/clem/Workspace/jluna/.test/main.cpp:15
+forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:29
+main at /home/clem/Workspace/jluna/.test/main.cpp:16
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 _start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
-Allocations: 2720 (Pool: 2712; Big: 8); GC: 0
+Allocations: 2722 (Pool: 2712; Big: 10); GC: 0
 
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 ```
@@ -87,6 +89,9 @@ Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 jluna::State::safe_script("println(this_variable_is_undefined)");
 ```
 ```
+exception in jluna::State::safe_script for expression:
+"println(this_variable_is_undefined)"
+
 terminate called after throwing an instance of 'jluna::JuliaException'
   what():  [JULIA][EXCEPTION] UndefVarError: this_variable_is_undefined not defined
 Stacktrace:
@@ -95,31 +100,159 @@ Stacktrace:
  [2] eval
    @ ./boot.jl:373 [inlined]
  [3] eval
-   @ ./client.jl:453 [inlined]
- [4] safe_call(command::String)
-   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:36
- [5] top-level scope
+   @ ./Base.jl:68 [inlined]
+ [4] safe_call(expr::Expr, m::Module)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:39
+ [5] safe_call(expr::Expr)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:33
+ [6] top-level scope
    @ none:1
 
 signal (6): Aborted
 in expression starting at none:0
 gsignal at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 abort at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-unknown function (ip: 0x7f04b33b2a30)
-unknown function (ip: 0x7f04b33be4fb)
+unknown function (ip: 0x7fe1eaa49a30)
+unknown function (ip: 0x7fe1eaa554fb)
 _ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
 __cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
-forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:31
-safe_script at /home/clem/Workspace/jluna/./.src/state.inl:107
-main at /home/clem/Workspace/jluna/.test/main.cpp:14
+forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:38
+safe_script at /home/clem/Workspace/jluna/./.src/state.inl:96
+main at /home/clem/Workspace/jluna/.test/main.cpp:15
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 _start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
-Allocations: 800005 (Pool: 799570; Big: 435); GC: 1
+Allocations: 798814 (Pool: 798379; Big: 435); GC: 1
 
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 ```
 
-Through `safe_script` we forward all information necessary to C++, making this way of calling julia functions well worth the slight performance overhead from the exception handling.
+When using `safe_script` we get a very verbose and useful error message, not only forwarding all julia-side error information but also printing the offending line of code as well as which line in C++ the exception was triggered from. This makes `safe_script` the superior way to call julia-code. 
+
+## 3. Values & Proxies
+
+When executing a line of code through `State`, the call to `safe_script` (which will be preferred to `script` henceforth) returns a class of type `jluna::Proxy`:
+
+```cpp
+auto result = State::safe_script("return 123");
+```
+
+`Proxy` is the most central class to jluna as it provides a way of interfacing with julia-side values in C++. It is best though of as the C++-equivalent of julias `Any`, because a proxy can bind to any julia value, be it a type, array, struct, singleton, function, usertype, etc.. 
+
+As long as the proxy stays in scope C++-side, the julia-side memory it points to is guaranteed to not be freed by the garbage collector, regardless of whether it is in use julia-side. This is a huge advantage to the julia C-API and increases safety. Internally this is handled by keeping a reference to the value pointed to by the proxy in scope in a dictionary. When a proxy is destructed, that reference is released at which point it is completely up to julias discretion to garbage collect it.
+
+## 3.1 (Un)Boxing
+
+While some basic C-types can be exchanged directly, most values cannot just be transferred to julia as-is, they need to be transformed into a memory-layout julia understands. This is called *boxing*. Similarly, to acquire a value understandable to C++ from julia, we need to *unbox* it.
+
+In `jluna` there are two concepts that describe types like these:
+
+```cpp
+template<typename T>
+concept Boxable = requires(T t)
+{
+    {box(t)};
+};
+
+template<typename T>
+concept Unboxable = requires(T t, jl_value_t* v)
+{
+    {unbox<T>(v)};
+};
+```
+
+We see that for a type to be considered `Boxable`, there needs to be a function definition of the form `jl_value_t* box(T value)` available. Of course `jluna` provides such a function for all primitives, all `jluna` types ~~and most of the common `std::` types~~ (not yet implemented). 
+
+Similarly for a type `T` to be considered `Unboxable`, a function definition of the form:
+
+```cpp
+template<typename U, std::enable_if_t<std::is_same_v<U, T>, bool> = true>
+U unbox(jl_value_t*);
+```
+
+This definition uses [SFINAE](https://en.cppreference.com/w/cpp/language/sfinae) to deduce which unbox overload to call for which type. The above definition will only be called for objects of type `T`.
+
+We point these internal implementation details out explicitly because being `Boxable` and `Unboxable` are the only requirements of a type to be compatible with `jluna` and thus `julia`. Let's see how we use such a value by going over proxy assignment and casting:
+
+## 3.2 Proxy Conversion
+
+`jluna::Proxy` has the following operator:
+
+```cpp
+template<Unboxable T>
+operator T() const;
+```
+
+This allows us to use the Proxy as if it was any unboxable type like so:
+
+```cpp
+auto this_should_be_an_int = State::safe_script("return 123");
+int actually_an_int = this_should_be_an_int;
+std::cout << actually_an_int << std::endl;
+```
+```
+123
+```
+
+Unlike the C-API however, `jluna` will try it's best to make the cast possible. Using the same proxy above we can cast it to many different types no problem:
+
+```cpp
+std::string as_string = this_should_be_an_int; // calls julia-side Base.string()
+char as_char = this_should_be_an_int;
+
+jluna::Type as_type = this_should_be_an_int;
+jluna::Module as_module = this_should_be_an_int;
+jluna::Array<size_t, 3> as_3d_array = this_should_be_an_int;
+```
+
+All of these calls will compile just fine, however if we are trying to cast a value `v` to type `T` then the julia-side call `Base.convert(T, v)` must be successfull, otherwise a runtime assertion is raised. For example in the above example, `this_should_be_an_int` is of type `Int64` so casting it to type `Type`, type `Module` and type `Array{UInt64, 3}` are all invalid, while casting it to a `String` or `Char`, of course, works fine.
+
+If we need to be syntactically more clear on which type we want a proxy to be cast to, the following methods are all exactly equivalent:
+
+```cpp
+auto proxy = State::safe_script("return /*...*/
+
+auto as_t = proxy.operator T();
+auto as_u = unbox<U>(proxy);
+auto as_v = (v) proxy;
+```
+
+This way of casting can be useful when we don't want to open a whole new variable just for one casted result and will increase readability and brevity.
+
+## 3.3 Proxy Assignment and Mutation Julia-Side
+
+We've seen how to convert from `Proxy` to `T`, however the other way around is maybe more important. `jluna::Proxy` has the following operator:
+
+```cpp
+template<Boxable T>
+auto& operator=(T);
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## X. Proxies
 
