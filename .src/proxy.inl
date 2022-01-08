@@ -264,8 +264,8 @@ namespace jluna
         {
             static jl_function_t* ismutable = jl_get_function(jl_base_module, "ismutable");
 
-            if (not jl_unbox_bool(jl_call1(ismutable, jl_get_nth_field(_owner, size_t(_field_i)))))
-                throw ImmutableVariableException(_value);
+            if (not jl_unbox_bool(jl_call1(ismutable, _owner)))
+                throw ImmutableVariableException(_owner);
 
             State::free_reference(_value);
             jl_set_nth_field(_owner, size_t(_field_i), box<T>(value));

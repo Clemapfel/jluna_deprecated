@@ -28,11 +28,15 @@ begin # included into module jluna
         @param command: julia code as expression
         @returns result of expression or nothing if an exception was thrown
         """
-        function safe_call(as_expression::Expr) ::Any
+        function safe_call(expr::Expr) ::Any
+
+            if expr.head == :block
+                expr.head = :toplevel
+            end
 
             result = undef
             try
-                result = Main.eval(as_expression)
+                result = Main.eval(expr)
                 update()
             catch exc
                 result = nothing

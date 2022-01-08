@@ -61,18 +61,28 @@ begin # not part of jluna
     """
     transform a quote block to an identical :() expression by removing the first quote node
     """
-    function unquote_aux(expr::Expr) ::Expr
-
-        if typeof(expr.args[1]) == LineNumberNode && length(expr.args) >= 2
-            return expr.args[2]
-        else
-            return expr;
-        end
-    end
-
     macro unquote(expr::Expr)
 
-        return :(unquote_aux($expr));
+        function aux!(args::Vector{Any}) ::Nothing
+
+            to_delete = Vector{Integer}()
+            for (i, x) in enumerate(args)
+                if x isa LineNumberNode
+                    push!(to_delete, i)
+                elseif x isa Expr
+                    aux!(x.args)
+                end
+            end
+
+            n_deleted = 0;
+            for i in to_delete
+                deleteat!(args, i - n_deleted)
+                n_deleted += 1
+            end
+        end
+
+        aux!(expr.args)
+        return Expr(expr.head, :($(expr.args...)))
     end
 end
 
