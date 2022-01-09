@@ -171,9 +171,63 @@ U unbox(jl_value_t*);
 
 This definition uses [SFINAE](https://en.cppreference.com/w/cpp/language/sfinae) to deduce which unbox overload to call for which type. The above definition will only be called for objects of type `T`.
 
-We point these internal implementation details out explicitly because being `Boxable` and `Unboxable` are the only requirements of a type to be compatible with `jluna` and thus `julia`. Let's see how we use such a value by going over proxy assignment and casting:
+We point these internal implementation details out explicitly because being `Boxable` and `Unboxable` are the only requirements of a type to be compatible with `jluna` and thus `julia`.
 
-## 3.2 Proxy Conversion
+## 3.X Calling Julia Functions
+
+Armed with a way to make C++-side values interpretable by julia, we can now use them for julia functions. There are two types of functions: `jluna::SafeFunction` which has full error handling and exception forward similar to `safe_script` and `jluna::Function` which has none of that, making it marginally faster to call.
+
+We can access a function and store it in a C++ variable like this:
+
+```cpp
+auto println = State::get_safe_function("println", "Base");
+// or 
+jluna::SafeFunction println = State::safe_script("return Base.println");
+// or 
+jluna::SafeFunction println = jluna::Main["println"];
+
+// then call it:
+println(box<std::string>("this string was boxed manually"));
+println("but we can also leave it out because it happens implicitly");
+```
+```
+this string was boxed manually
+but we can also leave it out because it happens implicitly
+```
+
+Indeed, the call operator of both functions will try their hardest to box whatever to hand them so it is usually unnecessary to manually call `box<T>` on each argument unless you want to invoke a specific method:
+
+```cpp
+State::safe_script(R"(
+    f(_::Int64) = println("using 64-bit version")
+    f(_::Int32) = println("using 32-bit version")
+)");
+
+auto f = State::get_safe_function("f", "Main");
+uint8_t value = 0;
+
+f(box<int64_t>(value));
+f(box<int32_t>(value));
+f(value);
+```
+```
+using 64-bit version
+using 32-bit version
+terminate called after throwing an instance of 'jluna::JuliaException'
+  what():  [JULIA][EXCEPTION] MethodError: no method matching f(::UInt8)
+Closest candidates are:
+  f(!Matched::Int64) at none:2
+  f(!Matched::Int32) at none:3
+Stacktrace:
+ [1] safe_call(f::Function, args::UInt8)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:75
+
+signal (6): Aborted
+```
+
+`jluna::Function` and `SafeFunction` are a type of proxy
+
+## 3.X Proxy Conversion
 
 `jluna::Proxy` has the following operator:
 
@@ -218,14 +272,32 @@ auto as_v = (v) proxy;
 
 This way of casting can be useful when we don't want to open a whole new variable just for one casted result and will increase readability and brevity.
 
-## 3.3 Proxy Assignment and Mutation Julia-Side
+## 3.X Proxy Assignment and Mutation Julia-Side
 
-We've seen how to convert from `Proxy` to `T`, however the other way around is maybe more important. `jluna::Proxy` has the following operator:
+We've seen how to convert from `Proxy` to `T`, however the other way around is maybe more important. For example, we can transform a value C++ side into a proxy like so:
 
 ```cpp
-template<Boxable T>
-auto& operator=(T);
+T our_value = T();
+auto proxy = Proxy<State>(box<T>(our_value))
 ```
+
+This expression boxes 'our_value' into a form julia can understand, allocates memory julia-side, moves our_value into said memory and then creates Proxy that takes ownership of the julia-side value, so it will stay in scope as long as it is use C++-side. 
+
+We can now of course use this proxy as an argument for any C++ function, however how would we access it in julia? Let's consider an example:
+
+```cpp
+auto our_value = "we want to print this message via Base.println";
+auto proxy = Proxy<State>(box<std::string>(our_value));
+```
+
+There are two ways to use this value, one way is to get `Base.println` from julia and call that function c++-side with 'our_value'
+
+
+
+
+
+
+
 
 
 
