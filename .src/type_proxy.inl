@@ -12,15 +12,15 @@ namespace jluna
         return (jl_value_t*) type.operator _jl_datatype_t *();
     }
 
-    Type::Type(jl_value_t* v)
-        : Proxy<State>(v)
+    Type::Type(jl_value_t* v, jl_value_t* owner, jl_sym_t* symbol)
+        : Proxy<State>(v, owner, symbol)
     {
         THROW_IF_UNINITIALIZED;
         assert(jl_isa(v, (jl_value_t*) jl_type_type) || jl_isa(v, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }
 
     Type::Type(const std::string& type_name)
-        : Proxy<State>(jl_eval_string(("return " + type_name).c_str()))
+        : Proxy<State>(jl_eval_string(("return " + type_name).c_str()), (jl_value_t*) jl_main_module, jl_symbol(type_name.c_str()))
     {
         assert(jl_isa(_value, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }

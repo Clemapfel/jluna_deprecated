@@ -15,13 +15,13 @@
 namespace jluna
 {
     /// @brief singleton proxy of main module
-    static inline Proxy<State> Main = Proxy<State>(nullptr);
+    static inline Proxy<State> Main = Proxy<State>(nullptr, nullptr, (jl_sym_t*) nullptr);
 
     /// @brief singleton proxy of base module
-    static inline Proxy<State> Base = Proxy<State>(nullptr);
+    static inline Proxy<State> Base = Proxy<State>(nullptr, nullptr, (jl_sym_t*) nullptr);
 
     /// @brief singleton proxy of base module
-    static inline Proxy<State> Core = Proxy<State>(nullptr);
+    static inline Proxy<State> Core = Proxy<State>(nullptr, nullptr, (jl_sym_t*) nullptr);
 
     /// @brief get type of proxy
     /// @param proxy
@@ -33,5 +33,10 @@ namespace jluna
     /// @param type
     /// @returns result of julia-side isa(proxy, type) call
     extern bool isa(Proxy<State>&, Type);
+
+    /// @brief call julia Base.string on value
+    /// @param value
+    /// @returns string
+    extern std::string to_string(jl_value_t*);
 }
 

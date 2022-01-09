@@ -43,7 +43,6 @@ namespace jluna
     {
         public:
             /// @brief ctor
-            /// @param symbol_name: name of the symbol for which multiple results exist
             AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidates);
 
             /// @brief get description
@@ -61,6 +60,21 @@ namespace jluna
             /// @brief ctor
             /// @param symbol_name: name of the symbol for which multiple results exist
             ImmutableVariableException(jl_value_t* variable);
+
+            /// @brief get description
+            /// @returns c-string
+            virtual const char* what() const noexcept override final;
+
+        private:
+            std::string message;
+    };
+
+    /// @brief exception raised if trying to declare a proxy holding a variable that does not have a name associated with it mutating
+    class UnnamedVariableException : public std::exception
+    {
+        public:
+            /// @brief ctor
+            UnnamedVariableException(jl_value_t* value);
 
             /// @brief get description
             /// @returns c-string

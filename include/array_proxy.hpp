@@ -34,11 +34,11 @@ namespace jluna
 
             /// @brief ctor
             /// @param julia-side value, asserted to inherit from AbstractArray
-            Array(jl_value_t*);
+            Array(jl_value_t* value, jl_value_t* owner, jl_sym_t*);
 
             /// @brief ctor
             /// @param julia-side array value
-            Array(jl_array_t*);
+            Array(jl_array_t* value, jl_value_t* owner, jl_sym_t*);
 
             /// @brief decay to julia C-API pointer
             operator jl_array_t*();

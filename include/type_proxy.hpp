@@ -17,7 +17,7 @@ namespace jluna
     {
         public:
             /// @brief ctor from already existing type
-            Type(jl_value_t*);
+            Type(jl_value_t* value, jl_value_t* owner, jl_sym_t*);
 
             /// @brief ctor by lookup in state
             Type(const std::string& type_name);

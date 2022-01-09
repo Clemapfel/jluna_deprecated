@@ -19,7 +19,7 @@ namespace jluna
                 operator jl_function_t*() noexcept;
 
             protected:
-                FunctionProxy(jl_function_t*);
+                FunctionProxy(jl_function_t*, jl_value_t* owner, jl_sym_t*);
                 using Proxy<State>::_value;
         };
     }
@@ -30,7 +30,7 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
-            SafeFunction(jl_function_t*);
+            SafeFunction(jl_function_t*, jl_value_t* owner, jl_sym_t*);
 
             /// @brief cast to jl_function_t
             /// @returns jl_function_t*
@@ -51,7 +51,7 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
-            Function(jl_function_t*);
+            Function(jl_function_t*, jl_value_t* owner, jl_sym_t*);
 
             /// @brief cast to jl_function_t
             /// @returns jl_function_t*

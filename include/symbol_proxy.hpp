@@ -20,7 +20,7 @@ namespace jluna
 
             /// @brief bind already existing symbol
             /// @param value
-            Symbol(jl_value_t*);
+            Symbol(jl_value_t* value, jl_value_t* owner, jl_sym_t*);
 
             /// @brief convert to string
             /// @returns string

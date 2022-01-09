@@ -28,6 +28,7 @@ int main()
 
     std::cout << ((int) value_456) << std::endl; // 456
 
+    make_mutating(value_456);
     value_456 = 789; // this modifies the variable in main
     State::safe_script("println(Main.julia_value_456)"); // prints: 789
 
@@ -40,7 +41,5 @@ int main()
 
         struct_type_instance = StructType();
     )");
-
-    auto struct_type_field = Main[""]
 
 }

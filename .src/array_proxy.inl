@@ -25,16 +25,16 @@ namespace jluna
     }
 
     template<Boxable T, size_t R>
-    Array<T, R>::Array(jl_value_t* value)
-        : Proxy<State>(reinterpret_cast<jl_value_t*>(value))
+    Array<T, R>::Array(jl_value_t* value, jl_value_t* owner, jl_sym_t* symbol)
+        : Proxy<State>(value, owner, symbol)
     {
         THROW_IF_UNINITIALIZED;
         assert(jl_isa(value, (jl_value_t*) jl_array_type) && "value being bound is not an array");
     }
 
     template<Boxable T, size_t R>
-    Array<T, R>::Array(jl_array_t* value)
-        : Array((jl_value_t*) value)
+    Array<T, R>::Array(jl_array_t* value, jl_value_t* owner, jl_sym_t* symbol)
+        : Array((jl_value_t*) value, owner, symbol)
     {}
 
     template<Boxable T, size_t R>

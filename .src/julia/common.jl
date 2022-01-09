@@ -36,26 +36,40 @@ begin # not part of jluna
     end
 
     """
-    wrap the dot operator to work on structs and modules
+    dot
     """
-    function dot(x::T, field_name::Symbol) ::Any where T
+    function dot(x::Array, field_name::Symbol) ::Any
 
-        if (isstructtype(T))
-            return getfield(x, field_name)
-        else
-            return Base.eval(Main, :($x.$field_name))
-        end
+        index_maybe = parse(Int, string(symbol));
+        @assert index_maybe isa Integer
+        return x[index_maybe];
     end
     export dot;
 
     dot(x::Module, field_name::Symbol) = return x.eval(field_name);
+    dot(x::Any, field_name::Symbol) = return eval(:($x.$field_name))
 
     """
-    assign value in module
+    assign
     """
-    function assign(m::Module, name::Symbol, new_value::Any) ::Nothing
-        Base.eval(m, :($name = $new_value))
-        return nothing
+    function assign(owner::Array, field_name::Symbol, new_value::Any) ::Any
+
+        index_maybe = parse(Int, string(symbol));
+        @assert index_maybe isa Integer
+        owner[index_maybe] = new_value;
+        return owner[index_maybe];
+    end
+
+    function assign(owner::Module, field_name::Symbol, new_value::Any)
+
+        Base.eval(owner, :($field_name = $new_value))
+        return Base.eval(owner, field_name)
+    end
+
+    function assign(owner::Any, field_name::Symbol, new_value::Any)
+
+        eval(:($owner.$field_name = $new_value))
+        return eval(:($owner.$field_name));
     end
 
     """

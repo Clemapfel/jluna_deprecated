@@ -4,6 +4,7 @@
 //
 
 #include <exceptions.hpp>
+#include <global_utilities.hpp>
 #include <julia.h>
 
 namespace jluna
@@ -75,6 +76,19 @@ namespace jluna
     }
 
     const char * ImmutableVariableException::what() const noexcept
+    {
+        return message.c_str();
+    }
+
+    UnnamedVariableException::UnnamedVariableException(jl_value_t* value)
+    {
+        std::stringstream str;
+
+        str << "trying to declare a proxy with value of type " << jl_typeof_str(value) << " \"mutating\", even though its value has no julia-side name attached to it. Use jluna::make_mutable(Proxy<State>&, Symbol) to attach a new name" << std::endl;
+        message = str.str();
+    }
+
+    const char * UnnamedVariableException::what() const noexcept
     {
         return message.c_str();
     }

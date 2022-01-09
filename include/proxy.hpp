@@ -36,13 +36,7 @@ namespace jluna
             /// @brief ctor deleted
             Proxy() = delete;
 
-            /// @brief construct, adds a reference that holds ownership of the value to protect it from the garbage collection
-            Proxy(jl_value_t* value);
-
-            /// @brief construct as proxy of a field of an owner
-            Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i);
-
-            /// @brief construct as proxy of variable in a module
+            /// @brief construct as proxy
             Proxy(jl_value_t* value, jl_value_t* owner, jl_sym_t* symbol);
 
             /// @brief dtor, frees the reference so it can be garbage collected if appropriate
@@ -51,6 +45,21 @@ namespace jluna
             /// @brief copy ctor, both resulting objects have ownership and the value will only be deallocated, if the number of owners is exactly 0
             /// @param other
             Proxy(const Proxy&);
+
+            /// @brief check whether assigning to this proxy will modify values julia-side
+            /// @returns true if set as mutating and neither an immutable type, singleton or const variable
+            bool is_mutating() const;
+
+            /// @brief set mutating behavior, if true, proxy will mutation julia-side variables if possible
+            /// @param bool
+            void set_mutating(bool);
+
+            /// @brief check whether a call to set_mutating(true) would result in an exception
+            /// @returns bool
+            bool can_mutate() const;
+
+            /// @brief assign variable a new name, if no name exist, also creates julia-side variable. If name already exists, renames the variable
+            void assign_name(const std::string&);
 
             /// @brief copy ctor, both resulting objects have ownership and the value will only be deallocated, if the number of owners is exactly 0
             /// @param other
@@ -91,17 +100,13 @@ namespace jluna
             /// @returns reference to self
             auto& operator=(jl_value_t*);
 
-            /// @brief check if mutable
-            /// @returns if the proxy holds a variable, true if the variable is not const. If the proxy holds a type, true if it is a mutable type, false otherwise
-            bool is_mutable() const;
-
             /// @brief check if value is a struct or mutable struct
             /// @returns true if julias Base.isstructtype would return true, false otherwise
             bool is_struct() const;
 
             /// @brief get fieldnames
             /// @returns dictionary where each key is the fields name, the keys value is the fields index
-            const std::unordered_map<std::string, size_t>& get_fieldnames() const;
+            const std::set<std::string>& get_fieldnames() const;
 
              /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
@@ -139,21 +144,51 @@ namespace jluna
             T get_field(const std::string& field_name) const;
 
             jl_value_t* _value;
+            bool _is_mutating = false;
 
         private:
-            // non-module, non-struct: owner = nullptr, field_i = -1
-            // struct field: owner != nullptr, field_i >= 0
-            // mutable member: owner != nullptr, field_i = -1;
+            jl_value_t* _owner = (jl_value_t*) jl_main_module;
+            jl_sym_t* _symbol = jl_symbol("");
 
-            jl_value_t* _owner = nullptr;
-            long int _field_i = -1;
-            jl_sym_t* _symbol;
-
-            bool _free_on_destruction = false;
-
-            void setup_field_to_index();
-            std::unordered_map<std::string, size_t> _field_to_index;
+            void setup_fields();
+            std::set<std::string> _fields;
     };
+
+    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
+    /// @param proxy
+    /// @returns proxy after mutation
+    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
+    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    inline Proxy_t& make_mutating(Proxy_t& proxy)
+    {
+        proxy.set_mutating(true);
+        return proxy;
+    }
+
+    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
+    /// @param proxy
+    /// @returns proxy after mutation
+    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
+    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    inline Proxy_t& make_mutating(Proxy_t& proxy, const std::string& name)
+    {
+        proxy.assign_name(name);
+        proxy.set_mutating(true);
+        return proxy;
+    }
+
+    /// @brief forward proxy after setting to mutating, if this is not possible, simply forward the proxy with no operation
+    /// @param proxy
+    /// @returns proxy
+    /// @exceptions no exceptions are thrown
+    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    inline Proxy_t& try_make_mutating(Proxy_t& proxy) noexcept
+    {
+        if (proxy.can_mutate())
+            proxy.set_mutating(true);
+
+        return proxy;
+    }
 }
 
 #include ".src/proxy.inl"
