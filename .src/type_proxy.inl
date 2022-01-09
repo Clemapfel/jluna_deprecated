@@ -20,7 +20,7 @@ namespace jluna
     }
 
     Type::Type(const std::string& type_name)
-        : Proxy<State>(State::safe_script("return " + type_name))
+        : Proxy<State>(jl_eval_string(("return " + type_name).c_str()))
     {
         assert(jl_isa(_value, (jl_value_t*) jl_type_type) && "value is not a type or datatype");
     }
