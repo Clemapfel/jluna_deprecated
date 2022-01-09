@@ -68,6 +68,8 @@ begin # not part of jluna
 
     function assign(owner::Any, field_name::Symbol, new_value::Any)
 
+        println("[JULIA] " * string(owner) * " " * string(field_name) * " " * string(new_value))
+
         eval(:($owner.$field_name = $new_value))
         return eval(:($owner.$field_name));
     end

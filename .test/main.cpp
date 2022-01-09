@@ -25,9 +25,7 @@ int main()
     // accessing variables by reference: use operator[]
     State::safe_script("julia_value_456 = 456");
     auto value_456 = Main["julia_value_456"];
-
     std::cout << ((int) value_456) << std::endl; // 456
-
     make_mutating(value_456);
     value_456 = 789; // this modifies the variable in main
     State::safe_script("println(Main.julia_value_456)"); // prints: 789
@@ -36,10 +34,16 @@ int main()
         mutable struct StructType
             _field
 
-            StructType() = new("")
+            StructType() = new(undef)
         end
 
         struct_type_instance = StructType();
     )");
 
+    auto instance = Main["struct_type_instance"]["_field"];
+    make_mutating(instance);
+    std::cout << "instance: " << instance.get_name() << std::endl;
+    instance = 101112;
+    forward_last_exception();
+    State::safe_script("println(Main.struct_type_instance._field)"); // prints: 101112
 }

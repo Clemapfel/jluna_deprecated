@@ -84,7 +84,7 @@ namespace jluna
     {
         std::stringstream str;
 
-        str << "trying to declare a proxy with value of type " << jl_typeof_str(value) << " \"mutating\", even though its value has no julia-side name attached to it. Use jluna::make_mutable(Proxy<State>&, Symbol) to attach a new name" << std::endl;
+        str << "trying to declare a proxy with value of type " << jl_typeof_str(value) << " mutating, even though its value has no julia-side name attached to it. Use jluna::make_mutable(Proxy<State>&, std::string) to attach a new name" << std::endl;
         message = str.str();
     }
 

@@ -130,6 +130,8 @@ namespace jluna
             /// @returns false if julia-side (===) would return true
             bool operator!=(const Proxy<State_t>& other) const;
 
+            std::string get_name() const;
+
         protected:
             /// @brief access field
             /// @param field_name: exact name of field, as defined julia-side
@@ -147,6 +149,8 @@ namespace jluna
             bool _is_mutating = false;
 
         private:
+            std::string& assemble_name(std::string&);
+
             jl_value_t* _owner = (jl_value_t*) jl_main_module;
             jl_sym_t* _symbol = jl_symbol("");
 
@@ -162,7 +166,7 @@ namespace jluna
     inline Proxy_t& make_mutating(Proxy_t& proxy)
     {
         proxy.set_mutating(true);
-        return proxy;
+        return std::forward<Proxy_t&>(proxy);
     }
 
     /// @brief forward proxy after setting to mutating, useful for inline-forwarding
@@ -174,7 +178,30 @@ namespace jluna
     {
         proxy.assign_name(name);
         proxy.set_mutating(true);
-        return proxy;
+        return std::forward<Proxy_t&>(proxy);
+    }
+
+    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
+    /// @param proxy
+    /// @returns proxy after mutation
+    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
+    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    inline Proxy_t make_mutating(Proxy_t&& proxy)
+    {
+        proxy.set_mutating(true);
+        return std::forward<Proxy_t>(proxy);
+    }
+
+    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
+    /// @param proxy
+    /// @returns proxy after mutation
+    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
+    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    inline Proxy_t make_mutating(Proxy_t&& proxy, const std::string& name)
+    {
+        proxy.assign_name(name);
+        proxy.set_mutating(true);
+        return std::forward<Proxy_t>(proxy);
     }
 
     /// @brief forward proxy after setting to mutating, if this is not possible, simply forward the proxy with no operation
@@ -182,12 +209,12 @@ namespace jluna
     /// @returns proxy
     /// @exceptions no exceptions are thrown
     template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
-    inline Proxy_t& try_make_mutating(Proxy_t& proxy) noexcept
+    inline decltype(auto) try_make_mutating(Proxy_t& proxy) noexcept
     {
         if (proxy.can_mutate())
             proxy.set_mutating(true);
 
-        return proxy;
+        return std::forward<Proxy_t>(proxy);
     }
 }
 

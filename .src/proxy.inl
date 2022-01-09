@@ -50,6 +50,16 @@ namespace jluna
     }
 
     template<typename State_t>
+    std::string& Proxy<State_t>::assemble_name(std::string& so_far)
+    {
+        auto my_name = std::string(jl_symbol_name(_symbol));
+        my_name.push_back('.');
+        so_far.insert(so_far.begin(),  my_name.begin(), my_name.end());
+
+        _
+    }
+
+    template<typename State_t>
     Proxy<State_t>::operator jl_value_t*()
     {
         return _value;
@@ -150,9 +160,9 @@ namespace jluna
         {
             if (jl_is_const((jl_module_t*) _owner, _symbol))
                 throw ImmutableVariableException(_value);
-            goto skip;
+            goto skip; //because modules are structtypes, skip next else if on success
         }
-        else if (jl_is_structtype(jl_typeof(_owner)) and jl_is_mutable_datatype(jl_typeof(_owner)))
+        else if (jl_is_structtype(jl_typeof(_owner)) and not jl_is_mutable_datatype(jl_typeof(_owner)))
             throw ImmutableVariableException(_owner);
 
         skip:
@@ -260,6 +270,13 @@ namespace jluna
     bool Proxy<State_t>::operator!=(const Proxy<State_t>& other) const
     {
         return this->_value != other._value;
+    }
+
+    template<typename State_t>
+    std::string Proxy<State_t>::get_name() const
+    {
+        static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
+        return std::string(jl_string_data(jl_call1(to_string, (jl_value_t*) _symbol)));
     }
 
     template<typename State_t>
