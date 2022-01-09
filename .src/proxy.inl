@@ -38,10 +38,10 @@ namespace jluna
     Proxy<State_t>::Proxy(jl_value_t* value)
         : _value(value), _field_to_index(), _owner(nullptr), _field_i(-1), _symbol(nullptr)
     {
-        THROW_IF_UNINITIALIZED;
-
         if (_value == nullptr)
             return;
+
+        THROW_IF_UNINITIALIZED;
 
         State_t::create_reference(_owner);
         State_t::create_reference(_value);
@@ -54,10 +54,10 @@ namespace jluna
     Proxy<State_t>::Proxy(jl_value_t* value, jl_value_t* owner, size_t field_i)
         : _value(value), _field_to_index(), _owner(owner), _field_i(field_i), _symbol(nullptr)
     {
-        THROW_IF_UNINITIALIZED;
-
         if (_value == nullptr)
             return;
+
+        THROW_IF_UNINITIALIZED;
 
         State_t::create_reference(_owner);
         State_t::create_reference(_value);
