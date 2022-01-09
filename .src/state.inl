@@ -9,6 +9,7 @@
 #include <exceptions.hpp>
 #include <box_any.hpp>
 #include <symbol_proxy.hpp>
+#include <global_utilities.hpp>
 
 namespace jluna
 {
@@ -49,6 +50,10 @@ namespace jluna
         _force_free =  jl_get_function(module, "force_free");
         _get_value =  jl_get_function(module, "get_reference");
         _get_reference =  jl_get_function(module, "get_value");
+
+        jluna::Main = Proxy<State>(jl_eval_string("return Main"));
+        jluna::Base = Proxy<State>(jl_eval_string("return Base"));
+        jluna::Core = Proxy<State>(jl_eval_string("return Core"));
     }
 
     void State::shutdown()
@@ -229,7 +234,7 @@ namespace jluna
         jl_gc_enable(before);
     }
 
-    jl_function_t* State::get_function(const std::string& function_name, const std::string& module_name)
+    auto State::get_function(const std::string& function_name, const std::string& module_name)
     {
         THROW_IF_UNINITIALIZED;
 
@@ -237,7 +242,18 @@ namespace jluna
         assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
 
         static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
-        return safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v);
+        return Function(safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v));
+    }
+
+    auto State::get_safe_function(const std::string& function_name, const std::string& module_name)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        jl_value_t* module_v = safe_script("return " + module_name);
+        assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
+
+        static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
+        return SafeFunction(safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v));
     }
 
     jl_function_t* State::find_function(const std::string& function_name)

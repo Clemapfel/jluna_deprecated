@@ -90,7 +90,8 @@ namespace jluna
             /// @brief access a function in a specific module
             /// @param function_name: exact function name, e.g. "push!"
             /// @param module_name: name of module including submodule, e.g. "Base.InteractiveUtils"
-            static jl_function_t* get_function(const std::string& function_name, const std::string& module_name);
+            static auto get_function(const std::string& function_name, const std::string& module_name);
+            static auto get_safe_function(const std::string& function_name, const std::string& module_name);
 
             /// @brief access a function just by name, searches for it in any module currently loaded
             /// @param function_name: exact function name, e.g. "push!"
