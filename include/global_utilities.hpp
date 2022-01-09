@@ -14,6 +14,15 @@
 
 namespace jluna
 {
+    /// @brief singleton proxy of main module
+    static inline Proxy<State> Main = Proxy<State>(nullptr);
+
+    /// @brief singleton proxy of base module
+    static inline Proxy<State> Base = Proxy<State>(nullptr);
+
+    /// @brief singleton proxy of base module
+    static inline Proxy<State> Core = Proxy<State>(nullptr);
+
     /// @brief get type of proxy
     /// @param proxy
     /// @returns type as Type Proxy
