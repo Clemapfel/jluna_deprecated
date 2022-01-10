@@ -37,7 +37,7 @@ namespace jluna
             Proxy() = delete;
 
             /// @brief construct as proxy
-            Proxy(jl_value_t* value, jl_value_t* owner, jl_sym_t* symbol);
+            Proxy(jl_value_t* value, Proxy<State_t>* owner = nullptr, jl_sym_t* symbol = nullptr);
 
             /// @brief dtor, frees the reference so it can be garbage collected if appropriate
             ~Proxy();
@@ -149,10 +149,10 @@ namespace jluna
             bool _is_mutating = false;
 
         private:
-            std::string& assemble_name(std::string&);
+            std::deque<jl_sym_t*> assemble_name();
 
-            jl_value_t* _owner = (jl_value_t*) jl_main_module;
-            jl_sym_t* _symbol = jl_symbol("");
+            Proxy<State_t>* _owner = nullptr;
+            jl_sym_t* _symbol = nullptr;
 
             void setup_fields();
             std::set<std::string> _fields;

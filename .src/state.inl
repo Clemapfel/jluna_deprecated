@@ -51,9 +51,9 @@ namespace jluna
         _get_value =  jl_get_function(module, "get_reference");
         _get_reference =  jl_get_function(module, "get_value");
 
-        jluna::Main = Proxy<State>(jl_eval_string("return Main"), nullptr, jl_symbol("Main"));
-        jluna::Base = Proxy<State>(jl_eval_string("return Base"), (jl_value_t*) jl_main_module, jl_symbol("Base"));
-        jluna::Core = Proxy<State>(jl_eval_string("return Core"), (jl_value_t*) jl_main_module, jl_symbol("Core"));
+        jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr, jl_symbol("Main"));
+        jluna::Base = Proxy<State>((jl_value_t*) jl_base_module, &Main, jl_symbol("Base"));
+        jluna::Core = Proxy<State>((jl_value_t*) jl_core_module, &Main, jl_symbol("Core"));
     }
 
     void State::shutdown()
@@ -76,7 +76,7 @@ namespace jluna
 
         std::stringstream str;
         str << "jluna.exception_handler.unsafe_call(quote " << command << " end)" << std::endl;
-        return Proxy<State>(jl_eval_string(str.str().c_str()), (jl_value_t*) jl_main_module, jl_symbol(""));
+        return Proxy<State>(jl_eval_string(str.str().c_str()), nullptr, nullptr);
     }
 
     auto State::script(const std::string& command, const std::string& module) noexcept
@@ -85,7 +85,7 @@ namespace jluna
 
         std::stringstream str;
         str << "jluna.exception_handler.unsafe_call(quote " << command << " end, " << module << ")" << std::endl;
-        return Proxy<State>(jl_eval_string(str.str().c_str()), (jl_value_t*) jl_main_module, jl_symbol(""));
+        return Proxy<State>(jl_eval_string(str.str().c_str()), nullptr, nullptr);
     }
 
     auto State::safe_script(const std::string& command)
@@ -100,7 +100,7 @@ namespace jluna
             std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << command << "\"\n" << std::endl;
             forward_last_exception();
         }
-        return Proxy<State>(result, (jl_value_t*) jl_main_module, jl_symbol(""));
+        return Proxy<State>(result, nullptr, nullptr);
     }
 
     auto State::safe_script(const std::string& command, const std::string& module)
@@ -115,7 +115,7 @@ namespace jluna
             std::cerr << "exception in jluna::State::safe_script for expression:\n\"" << command << "\"\n" << std::endl;
             forward_last_exception();
         }
-        return Proxy<State>(result, (jl_value_t*) jl_main_module, jl_symbol(""));
+        return Proxy<State>(result, nullptr, nullptr);
     }
 
     template<typename... Args_t>
@@ -244,7 +244,7 @@ namespace jluna
         static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
         return Function(
                 safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v),
-                module_v,
+                nullptr,
                 jl_symbol(function_name.c_str()));
     }
 
@@ -258,7 +258,7 @@ namespace jluna
         static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
         return SafeFunction(
                 safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v),
-                module_v,
+                nullptr,
                 jl_symbol(function_name.c_str()));
     }
 

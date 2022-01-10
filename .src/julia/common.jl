@@ -75,6 +75,23 @@ begin # not part of jluna
     end
 
     """
+    """
+    function assemble_assign(new_value::Any, names::Symbol...)
+
+        assembled = ""
+
+        for (i, s) in enumerate(names)
+
+            assembled *= string(s)
+            if i != length(names)
+                assembled *= string(Symbol("."))
+            end
+        end
+
+        eval(Expr(:(=), Meta.parse(assembled), new_value))
+    end
+
+    """
     transform a quote block to an identical :() expression by removing the first quote node
     """
     macro unquote(expr::Expr)
@@ -100,5 +117,7 @@ begin # not part of jluna
         aux!(expr.args)
         return Expr(expr.head, :($(expr.args...)))
     end
+
+
 end
 

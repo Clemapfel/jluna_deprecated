@@ -7,6 +7,10 @@ include("../.src/julia/visibility_macros.jl")
 
 module jluna
 
+    function println(xs...)
+       Base.println("[JULIA] ", xs...)
+    end
+
     include("../.src/julia/common.jl")
     include("../.src/julia/exception_handler.jl")
     include("../.src/julia/memory_handler.jl")

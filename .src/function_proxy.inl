@@ -14,7 +14,7 @@ namespace jluna
             return _value;
         }
 
-        FunctionProxy::FunctionProxy(jl_function_t* value, jl_value_t* owner, jl_sym_t* symbol)
+        FunctionProxy::FunctionProxy(jl_function_t* value, Proxy<State>* owner, jl_sym_t* symbol)
             : Proxy<State>((jl_value_t*) value, owner, symbol)
         {}
     }
@@ -51,7 +51,7 @@ namespace jluna
         return Function(value);
     }
 
-    SafeFunction::SafeFunction(jl_function_t* value, jl_value_t* owner, jl_sym_t* symbol)
+    SafeFunction::SafeFunction(jl_function_t* value, Proxy<State>* owner, jl_sym_t* symbol)
         : detail::FunctionProxy(value, owner, symbol)
     {
         THROW_IF_UNINITIALIZED;
@@ -65,7 +65,7 @@ namespace jluna
         return Proxy<State>(State::safe_call((jl_function_t*) _value, std::forward<Args_t>(args)...));
     }
 
-    Function::Function(jl_function_t* value, jl_value_t* owner, jl_sym_t* symbol)
+    Function::Function(jl_function_t* value, Proxy<State>* owner, jl_sym_t* symbol)
         : detail::FunctionProxy(value, owner, symbol)
     {
         THROW_IF_UNINITIALIZED;
