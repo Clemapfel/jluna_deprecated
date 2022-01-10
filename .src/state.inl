@@ -51,7 +51,7 @@ namespace jluna
         _get_value =  jl_get_function(module, "get_reference");
         _get_reference =  jl_get_function(module, "get_value");
 
-        jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr, jl_symbol("Main"));
+        jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr, nullptr);
         jluna::Base = Proxy<State>((jl_value_t*) jl_base_module, &Main, jl_symbol("Base"));
         jluna::Core = Proxy<State>((jl_value_t*) jl_core_module, &Main, jl_symbol("Core"));
     }

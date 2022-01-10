@@ -13,7 +13,6 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    /*
     // running code:
     State::safe_script("println(\"hello jluna\")"); // hello jluna
 
@@ -30,7 +29,6 @@ int main()
     make_mutating(value_456);
     value_456 = 789; // this modifies the variable in main
     State::safe_script("println(Main.julia_value_456)"); // prints: 789
-*/
 
     State::safe_script(R"(
         mutable struct StructType
@@ -42,14 +40,10 @@ int main()
         struct_type_instance = StructType();
     )");
 
-    auto instance = Main["struct_type_instance"]["_field"];
-    return 0;
-
-    /*
-    make_mutating(instance);
-    std::cout << "instance: " << instance.get_name() << std::endl;
+    auto field = Main["struct_type_instance"]["_field"];
+    make_mutating(field);
     field = 101112;
     forward_last_exception();
-    State::safe_script("println(Main.struct_type_instance._field)"); // prints: 101112
-    */
+    State::safe_script("println(struct_type_instance._field)"); // prints: 101112
+
 }

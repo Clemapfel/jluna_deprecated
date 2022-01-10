@@ -91,8 +91,6 @@ namespace jluna
 
         if (_symbol != nullptr)
             State_t::free_reference((jl_value_t*) _symbol);
-
-        _value = nullptr;
     }
 
     template<typename State_t>
@@ -184,7 +182,7 @@ namespace jluna
                 throw ImmutableVariableException(_value);
             goto skip; //because modules are structtypes, skip next else if on success
         }
-        else if (jl_is_structtype(jl_typeof(_owner->_value)) and not jl_is_mutable_datatype(jl_typeof(_owner)))
+        else if (jl_is_structtype(jl_typeof(_owner->_value)) and not jl_is_mutable_datatype(jl_typeof(_owner->_value)))
             throw ImmutableVariableException(_owner->_value);
 
         skip:

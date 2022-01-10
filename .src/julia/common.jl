@@ -50,33 +50,8 @@ begin # not part of jluna
     dot(x::Any, field_name::Symbol) = return eval(:($x.$field_name))
 
     """
-    assign
     """
-    function assign(owner::Array, field_name::Symbol, new_value::Any) ::Any
-
-        index_maybe = parse(Int, string(symbol));
-        @assert index_maybe isa Integer
-        owner[index_maybe] = new_value;
-        return owner[index_maybe];
-    end
-
-    function assign(owner::Module, field_name::Symbol, new_value::Any)
-
-        Base.eval(owner, :($field_name = $new_value))
-        return Base.eval(owner, field_name)
-    end
-
-    function assign(owner::Any, field_name::Symbol, new_value::Any)
-
-        println("[JULIA] " * string(owner) * " " * string(field_name) * " " * string(new_value))
-
-        eval(:($owner.$field_name = $new_value))
-        return eval(:($owner.$field_name));
-    end
-
-    """
-    """
-    function assemble_assign(new_value::Any, names::Symbol...)
+    function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
 
         assembled = ""
 
@@ -88,7 +63,8 @@ begin # not part of jluna
             end
         end
 
-        eval(Expr(:(=), Meta.parse(assembled), new_value))
+        Main.eval(Expr(:(=), Meta.parse(assembled), new_value));
+        return nothing
     end
 
     """
