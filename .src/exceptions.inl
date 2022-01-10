@@ -42,7 +42,7 @@ namespace jluna
     }
 
     JuliaException::JuliaException(jl_value_t* exception, std::string stacktrace)
-                : _value(exception), _message("[JULIA][EXCEPTION] " + stacktrace)
+                : _value(exception), _message(stacktrace)
             {}
 
     const char* JuliaException::what() const noexcept

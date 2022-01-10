@@ -13,22 +13,26 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    State::safe_script(R"(
-        mutable struct MutableType
-            _field
-            MutableType() = new(undef)
-        end
+    State::get_function("println", "Base")("test");
 
-        instance = MutableType()
+    State::safe_script(R"(
+        module MyModule
+            mutable struct MutableType
+                _field
+                MutableType() = new(undef)
+            end
+
+            instance = MutableType()
+        end
     )");
 
-    State::safe_script("println(\"before: \", instance._field)");
+    State::safe_script("println(\"before: \", MyModule.instance._field)");
 
-    auto field = Main["instance"]["_field"];
+    auto field = Main["MyModule"]["instance"]["_field"];
     make_mutating(field);
     field = 123;
 
-    State::safe_script("println(\"after: \", instance._field)");
+    State::safe_script("println(\"after: \", MyModule.instance._field)");
 
 
 

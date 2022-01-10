@@ -1,31 +1,31 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Heavily inspired in design and syntax by [**sol3**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official julia C-API in usage for C++ projects.
+Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is less beautiful and much less... documented. Heavily inspired in design and syntax by [**sol3**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
 
 Some advantages `jluna` has over the C-API:
 + automatically detects and links julia during make
 + expressive, generic syntax
-+ mutating C++-side proxies also assigns the corresponding variable julia-side
-+ exceptions, including exception forwarding from julia
-+ wraps many C++ std objects, offers extension to user types
++ mutating C++-side proxies also assigns the corresponding variable julia-side if desired
++ expressive exceptions, including exception forwarding from julia
++ wraps many C++ std objects and types
 + any value in use C++-side is safe from the garbage collector
-+ safety can be sacrificed to achieve identical performance
-+ mixing the C-API and `jluna` is no problem
++ mixing the C-API and `jluna` is no problem, for example for optimal performance
++ `jluna` is fully documented, including inline documentation for IDEs and tutorials
 
-## Examples:
+## Features:
 
 ### Calling Julia Functions
 ```cpp
 jluna::Function println = jluna::Base["println"];
 println(std::string("this is a string "), "\n", 
         println, "\n",
-        int(3), "\n",
+        int(42), "\n",
         State::script("return [1, 2, 3]"));
 ```
 ```
 this is a string 
 println
-3
+42
 [1, 2, 3]
 ```
 
@@ -35,25 +35,43 @@ println
 using namespace jluna;
 
 State::safe_script(R"(
-    mutable struct MutableType
-        _field
-        MutableType() = new(undef)
-    end
+    module MyModule
+        mutable struct MutableType
+            _field
+            MutableType() = new(undef)
+        end
 
-    instance = MutableType()
+        instance = MutableType()
+    end
 )");
 
-State::safe_script("println(\"before: \", instance._field)");
+State::safe_script(R"(println("before: ", MyModule.instance._field))");
 
-auto field = jluna::Main["instance"]["_field"];
+auto field = Main["MyModule"]["instance"]["_field"];
 make_mutating(field);
 field = 123;
 
-State::safe_script("println(\"after: \", instance._field)");
+State::safe_script(R"(println("after: ", MyModule.instance._field))");
 ```
 ```
 before: UndefInitializer()
 after: 123
+```
+
+### Mulit-Dimensional Arrays
+```cpp
+jluna::Array<size_t, 3> array = State::script("Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3)");
+        
+auto value = array.at(0, 1, 2); // 0-based indexing
+std::cout << value << std::endl; 
+
+jluna::make_mutating(value);
+value = 9999;
+jluna::Base["println"].as<Function>()(array);
+```
+```
+22
+[1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 ```
 
 ### Exception Forwarding
@@ -65,7 +83,7 @@ exception in jluna::State::safe_script for expression:
 "return this_value_is_undefined"
 
 terminate called after throwing an instance of 'jluna::JuliaException'
-  what():  [JULIA][EXCEPTION] UndefVarError: this_value_is_undefined not defined
+  what(): UndefVarError: this_value_is_undefined not defined
 Stacktrace:
  [1] top-level scope
    @ none:1
@@ -97,6 +115,31 @@ Allocations: 1624652 (Pool: 1623704; Big: 948); GC: 2
 
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 ```
+### And more!
+
+### Planned (but not yet implemented):
+In order of priority, highest first:
++ creating new modules and types completely C++-Side
++ expression proxy, access to meta features via C++
++ julia-side wrapper for C++ Functions, similar to `@ccall`
++ save-states, restoring a previous julia state
++ clang support
++ julia-side macro expansion during C++ compile time 
+
+---
+
+# Dependencies
+
+`jluna` aims to be as modern as practical. It thus uses mostly modern C++20 features and aims to support the newest Julia version rather than focusing on backwards compatibility.
+
+You'll need:
++ **Julia 1.7.0** (or higher)
+  - no 2nd or 3rd party modules are needed
++ **g++10** (or higher)
++ unix-based operating system
++ **cmake 3.19** (or higher)
+
+Currently only g++10 is supported as many of the C++20 features are not yet implemented on other compilers.
 
 
 
