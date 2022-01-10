@@ -86,7 +86,6 @@ namespace jluna
 
     /// @brief throws an exception if State::initialize was not called yet
     #define THROW_IF_UNINITIALIZED assert(jl_is_initialized() && "initiate the state via jluna::State::initialize() before trying to interact with julia or jluna")
-
 }
 
 #include ".src/exceptions.inl"

@@ -13,6 +13,28 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+    State::safe_script(R"(
+        mutable struct MutableType
+            _field
+            MutableType() = new(undef)
+        end
+
+        instance = MutableType()
+    )");
+
+    State::safe_script("println(\"before: \", instance._field)");
+
+    auto field = Main["instance"]["_field"];
+    make_mutating(field);
+    field = 123;
+
+    State::safe_script("println(\"after: \", instance._field)");
+
+
+
+
+    /*
+
     // running code:
     State::safe_script("println(\"hello jluna\")"); // hello jluna
 
@@ -45,5 +67,6 @@ int main()
     field = 101112;
     forward_last_exception();
     State::safe_script("println(struct_type_instance._field)"); // prints: 101112
+     */
 
 }

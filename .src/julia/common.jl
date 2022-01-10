@@ -36,7 +36,7 @@ begin # not part of jluna
     end
 
     """
-    dot
+    wrap dot operator for both modules, structs and arrays
     """
     function dot(x::Array, field_name::Symbol) ::Any
 
@@ -50,6 +50,7 @@ begin # not part of jluna
     dot(x::Any, field_name::Symbol) = return eval(:($x.$field_name))
 
     """
+    used by jluna::Proxy to reassemble the full variable name and then assign it
     """
     function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
 

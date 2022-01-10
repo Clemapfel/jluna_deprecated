@@ -35,11 +35,6 @@ namespace jluna
         return SafeFunction(value);
     }
 
-    inline jl_value_t* box(Function& value)
-    {
-        return value.operator jl_value_t *();
-    }
-
     inline jl_value_t* box(Function value)
     {
         return value.operator jl_value_t *();

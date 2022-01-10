@@ -17,12 +17,6 @@ namespace jluna
     }
 
     template<typename State_t>
-    jl_value_t* box(Proxy<State_t>& value)
-    {
-        return value.operator _jl_value_t *();
-    }
-
-    template<typename State_t>
     void Proxy<State_t>::setup_fields()
     {
         auto* type = (jl_datatype_t*) jl_typeof(_value);
@@ -139,7 +133,7 @@ namespace jluna
     template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool>>
     Proxy<State_t>::operator T()
     {
-        return T(this->_value);
+        return T(_value, _owner, _symbol);
     }
 
     template<typename State_t>
@@ -314,6 +308,12 @@ namespace jluna
     template<typename State_t>
     auto Proxy<State_t>::operator[](const std::string& field_name)
     {
+        if (field_name.find('.') != std::string::npos)
+        {
+            std::cerr << "[C++][WARNING] in operator[](\"" << field_name << "\"):\n\tdot syntax outside julia code literals is discouraged; ";
+            std::cerr << R"(use Main["my_object"]["my_field"] instead of Main["my_object.my_field"])" << "\n" << std::endl;
+        }
+
         return get_field(field_name);
     }
 
@@ -321,6 +321,12 @@ namespace jluna
     template<typename T>
     T Proxy<State_t>::operator[](const std::string& field_name) const
     {
+        if (field_name.find('.') != std::string::npos)
+        {
+            std::cerr << "[C++][WARNING] in operator[](\"" << field_name << "\"):\n\tdot syntax outside julia code literals is discouraged; ";
+            std::cerr << R"(use Main["my_object"]["my_field"] instead of Main["my_object.my_field"])" << "\n" << std::endl;
+        }
+
         return get_field<T>(field_name);
     }
 }

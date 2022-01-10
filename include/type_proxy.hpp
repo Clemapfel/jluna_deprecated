@@ -19,9 +19,6 @@ namespace jluna
             /// @brief ctor from already existing type
             Type(jl_value_t* value, Proxy<State>* owner, jl_sym_t*);
 
-            /// @brief ctor by lookup in state
-            Type(const std::string& type_name);
-
             /// @brief implicitly decay to julia c-type
             operator jl_datatype_t*();
 
