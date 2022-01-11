@@ -72,6 +72,11 @@ namespace jluna
             template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool> = true>
             operator T();
 
+            /// @brief equivalent alternative to explicit operator T
+            /// @returns value as T
+            template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool> = true>
+            T as();
+
             /// @brief get variable name, if any
             std::string get_name() const;
 

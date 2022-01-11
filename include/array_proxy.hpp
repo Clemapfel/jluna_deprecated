@@ -1,29 +1,20 @@
 // 
-// Copyright 2021 Clemens Cords
-// Created on 20.12.21 by clem (mail@clemens-cords.com)
+// Copyright 2022 Clemens Cords
+// Created on 11.01.22 by clem (mail@clemens-cords.com)
 //
 
 #pragma once
 
-#include <julia.h>
-#include <vector>
 #include <proxy.hpp>
 #include <state.hpp>
 
 namespace jluna
 {
-    /// @brief wrapper for julia arrays of arbitrary value type
     template<Boxable T, size_t Rank>
     class Array : public Proxy<State>
     {
-        /// @brief iterator super class, detail only
+        template<bool>
         class Iterator;
-
-        /// @brief iterator with no julia-side assignment operator
-        struct ConstIterator;
-
-        /// @brief iterator with julia-side assignment operator
-        struct NonConstIterator;
 
         public:
             /// @brief value type
@@ -33,117 +24,105 @@ namespace jluna
             static constexpr size_t rank = Rank;
 
             /// @brief ctor
-            /// @param julia-side value, asserted to inherit from AbstractArray
-            Array(jl_value_t* value, jl_value_t* owner, jl_sym_t*);
+            Array(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
-            /// @brief ctor
-            /// @param julia-side array value
-            Array(jl_array_t* value, jl_value_t* owner, jl_sym_t*);
-
-            /// @brief decay to julia C-API pointer
-            operator jl_array_t*();
-
-            /// @brief const-access linear indexing, no bounds checking
-            /// @param i: index, 0-based
-            /// @returns non-assignable iterator to element
-            const auto operator[](size_t) const;
-
-            /// @brief non-const access linear indexing, no bounds checking
-            /// @param i: index, 0-based
-            /// @returns assignable iterator to element
+            /// @brief linear indexing, no bounds checking
             auto operator[](size_t);
 
+            /// @brief linear indexing, no bounds checking
+            template<Unboxable T>
+            T operator[](size_t) const;
+
             /// @brief multi-dimensional indexing
-            /// @tparam exactly Rank-many indices of integral type, each index is 0-based and asserted to be smaller than the corresponding length along that dimensions
-            /// @returns assignable iterator to element
             template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
             auto at(Args... in);
 
             /// @brief multi-dimensional indexing
-            /// @tparam: excatly Rank-many indices of integral type, each index is 0-based and asserted to be smaller than the corresponding length along that dimensions
-            /// @returns assignable iterator to element
-            template<typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
-            const auto at(Args... in) const;
+            template<Unboxable T, typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
+            T at(Args... in) const;
 
-            /// @brief get total number of elements
-            /// @returns size_t
-            size_t size();
-
-            /// @brief get length along dimensions
-            /// @param dimension_index: index, range [0, Rank-1]
-            /// @returns size_t
-            size_t size(size_t dimension_index);
-
-            /// @brief iterable begin
-            /// @returns assignable iterator to element at index 0
             auto begin();
-
-            /// @brief iterable begin
-            /// @returns non-assignable iterator to element at index 0
             auto begin() const;
 
-            /// @brief iterable begin
-            /// @returns assignable iterator to past-the-end element
             auto end();
-
-            /// @brief iterable begin
-            /// @returns non-assignable iterator to past-the-end element
             auto end() const;
 
-        protected:
-            using Proxy<State>::_content;
+            auto front();
+            T front() const;
 
-        private:
-            void throw_if_index_out_of_range(int index, size_t dimension);
-            size_t get_dimension(size_t);
-    };
+            auto back();
+            T back() const;
 
-    /// @brief 1-dimensional array specialization
-    template<Boxable T>
-    class Vector : public Array<T, 1>
-    {
-        public:
-            /// @brief default ctor
-            Vector();
+            /// VECTOR UTILS
 
-            /// @brief is empty
-            /// @returns bool
-            bool empty() const;
-
-            /// @brief insert element at index, increasing length by 1
-            /// @param pos: index
-            /// @param value: element
+            template<std::enable_if_t<Rank == 1, bool> = true>
             void insert(size_t pos, T value);
 
-            /// @brief erase element at index, decreasing length by 1
-            /// @param pos: index
-            void erase(size_t pos);
+            template<std::enable_if_t<Rank == 1, bool> = true>
+            void erase(size_t pos, T value);
 
-            /// @brief set element at index, not altering length
-            /// @param pos: index
-            /// @param value: new value
-            void replace(size_t pos, T value);
+            template<std::enable_if_t<Rank == 1, bool> = true>
+            void insert(size_t pos, T value);
 
-            /// @brief append to front, increasing length by 1
-            /// @param T: value
-            void push_back(T);
+            template<std::enable_if_t<Rank == 1, bool> = true>
+            void insert(size_t pos, T value);
 
-            /// @brief append to back, increasing length by 1
-            /// @param T: value
-            void push_front(T);
+            template<std::enable_if_t<Rank == 1, bool> = true>
+            void push_front(T value);
+
+            template<std::enable_if_t<Rank == 1, bool> = true>
+            void push_back(T value);
 
         protected:
-            using Array<T, 1>::_content;
+            void throw_if_index_out_of_range(int index, size_t dimension);
+            using Proxy<State>::_content;
 
-        private:
-            static inline jl_function_t* _push_front = nullptr;
-            static inline jl_function_t* _push_back = nullptr;
-            static inline jl_function_t* _insert = nullptr;
-            static inline jl_function_t* _erase = nullptr;
-            static inline jl_function_t* _replace = nullptr;
+            template<bool IsConst>
+            class Iterator : public Proxy<State>
+            {
+                public:
+                    /// @brief increment
+                    void operator++();
+
+                    /// @brief post-fix increment
+                    void operator++(int);
+
+                    /// @brief post-fix decrement
+                    void operator--();
+
+                    /// @brief post-fix decrement
+                    void operator--(int);
+
+                    /// @brief equality operator
+                    /// @param other
+                    /// @returns bool
+                    bool operator==(const Iterator&) const;
+
+                    /// @brief inequality operator
+                    /// @param other
+                    /// @returns bool
+                    bool operator!=(const Iterator&) const;
+
+                    /// @brief decays into value_type
+                    T operator*() const;
+
+                    /// @brief decay into proxy
+                    Proxy<State> operator*();
+
+                private:
+                    using Proxy<State>::_content;
+                    size_t _index;
+            };
     };
-}
 
-#include ".src/array_proxy.inl"
-#include ".src/array_proxy_iterator.inl"
-#include ".src/array_vector.inl"
+    /// @brief vector typedef
+    template<Boxable T>
+    using Vector = Array<T, 1>;
+
+    // TODO
+    template<Boxable T, size_t Rank>
+    std::array<size_t, Rank> size(const Array<T, Rank>&);
+
+    template<Boxable T, size_t Rank>
+    std::array<size_t, Rank> size(const Array<T, Rank>&);
+}

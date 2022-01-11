@@ -10,7 +10,7 @@
 #include <state.hpp>
 #include <type_proxy.hpp>
 #include <symbol_proxy.hpp>
-#include <array_proxy.hpp>
+#include <~array_proxy.hpp>
 
 namespace jluna
 {

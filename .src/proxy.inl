@@ -127,6 +127,13 @@ namespace jluna
     }
 
     template<typename State_t>
+    template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool>>
+    T Proxy<State_t>::as()
+    {
+        return this->operator T();
+    }
+
+    template<typename State_t>
     std::deque<jl_sym_t*> Proxy<State_t>::assemble_name() const
     {
         const ProxyValue* ptr = _content.get();

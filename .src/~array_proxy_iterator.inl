@@ -3,7 +3,7 @@
 // Created on 20.12.21 by clem (mail@clemens-cords.com)
 //
 
-#include <array_proxy.hpp>
+#include <~array_proxy.hpp>
 #include <box_any.hpp>
 
 // NON CONST
@@ -11,7 +11,7 @@ namespace jluna
 {
     /// @brief iterator superclass, handles assignment, only children ConstIterator and NonConstIterator are actually returned by Array
     template<Boxable T, size_t R>
-    class Array<T, R>::Iterator
+    class Array<T, R>::Iterator : public Proxy<State>
     {
         friend class Array<T, R>;
 

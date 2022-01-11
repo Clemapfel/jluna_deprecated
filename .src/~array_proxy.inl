@@ -5,7 +5,7 @@
 
 #include <sstream>
 
-#include <array_proxy.hpp>
+#include <~array_proxy.hpp>
 #include <exceptions.hpp>
 #include <proxy.hpp>
 #include <state.hpp>
