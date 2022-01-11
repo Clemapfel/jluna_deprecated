@@ -30,6 +30,9 @@ namespace jluna
         template<typename>
         friend class Proxy;
 
+        template<typename>
+        friend class Proxy;
+
         public:
             /// @brief ctor deleted, singleton static-only object
             State() = delete;

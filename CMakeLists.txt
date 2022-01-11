@@ -46,7 +46,8 @@ add_library(jluna STATIC
     .src/type_proxy.inl
 
     include/global_utilities.hpp
-    .src/global_utilities.inl .src/main_module.hpp)
+    .src/global_utilities.inl
+)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)

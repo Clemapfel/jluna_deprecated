@@ -19,8 +19,9 @@ namespace jluna
                 operator jl_function_t*() noexcept;
 
             protected:
-                FunctionProxy(jl_function_t*, Proxy<State>* owner, jl_sym_t*);
-                using Proxy<State>::_value;
+                FunctionProxy(jl_function_t*, jl_sym_t*);
+                FunctionProxy(jl_function_t*, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
+                using Proxy<State>::_content;
         };
     }
 
@@ -30,7 +31,8 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
-            SafeFunction(jl_function_t*, Proxy<State>* owner, jl_sym_t*);
+            SafeFunction(jl_function_t*, jl_sym_t*);
+            SafeFunction(jl_function_t*, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
             /// @brief cast to jl_function_t
             /// @returns jl_function_t*
@@ -42,7 +44,7 @@ namespace jluna
             auto operator()(Args_t&&...);
 
         private:
-            using detail::FunctionProxy::_value;
+            using detail::FunctionProxy::_content;
     };
 
     /// @brief callable function without exception handling
@@ -51,7 +53,8 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
-            Function(jl_function_t*, Proxy<State>* owner, jl_sym_t*);
+            Function(jl_function_t*, jl_sym_t*);
+            Function(jl_function_t*, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
             /// @brief cast to jl_function_t
             /// @returns jl_function_t*
@@ -63,7 +66,7 @@ namespace jluna
             auto operator()(Args_t&&...);
 
         private:
-            using detail::FunctionProxy::_value;
+            using detail::FunctionProxy::_content;
     };
 }
 

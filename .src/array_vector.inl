@@ -64,21 +64,21 @@ namespace jluna
     template<Boxable T>
     bool Vector<T>::empty() const
     {
-        return Array<T, 1>::_value->length == 0;
+        return Array<T, 1>::_content->length == 0;
     }
 
     template<Boxable T>
     void Vector<T>::push_back(T to_push)
     {
         auto* v = (jl_value_t*) to_push;
-        jl_call2(_push_back, box<T>(_value), v);
+        jl_call2(_push_back, box<T>(_content->_value), v);
     }
 
     template<Boxable T>
     void Vector<T>::push_front(T to_push)
     {
         auto* v = (jl_value_t*) to_push;
-        jl_call2(_push_front, box<T>(_value), v);
+        jl_call2(_push_front, box<T>(_content->_value), v);
     }
 
     template<Boxable T>
@@ -86,14 +86,14 @@ namespace jluna
     {
         auto* v = (jl_value_t*) value;
         auto* i = jl_box_uint64(pos);
-        jl_call3(_insert, box<T>(_value), i, v);
+        jl_call3(_insert, box<T>(_content->_value), i, v);
     }
 
     template<Boxable T>
     void Vector<T>::erase(size_t pos)
     {
         auto* i = jl_box_uint64(pos);
-        jl_call2(_erase, box<T>(_value), i);
+        jl_call2(_erase, box<T>(_content->_value), i);
     }
 
     template<Boxable T>
@@ -101,6 +101,6 @@ namespace jluna
     {
         auto* v = (jl_value_t*) value;
         auto* i = jl_box_uint64(pos);
-        jl_call3(_replace, box<T>(_value), v, i);
+        jl_call3(_replace, box<T>(_content->_value), v, i);
     }
 }

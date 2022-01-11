@@ -40,43 +40,43 @@ namespace jluna
     template<Boxable T, size_t R>
     Array<T, R>::operator jl_array_t*()
     {
-        return (jl_array_t*) _value;
+        return (jl_array_t*) _content;
     }
 
     template<Boxable T, size_t R>
     auto Array<T, R>::operator[](size_t i)
     {
-        return NonConstIterator((jl_array_t*) _value, i);
+        return NonConstIterator((jl_array_t*) _content, i);
     }
 
     template<Boxable T, size_t R>
     const auto Array<T, R>::operator[](size_t i) const
     {
-        return ConstIterator((jl_array_t*) _value, i);
+        return ConstIterator((jl_array_t*) _content, i);
     }
 
     template<Boxable T, size_t R>
     auto Array<T, R>::begin()
     {
-        return NonConstIterator((jl_array_t*) _value, 0);
+        return NonConstIterator((jl_array_t*) _content, 0);
     }
 
     template<Boxable T, size_t R>
     auto Array<T, R>::begin() const
     {
-        return ConstIterator((jl_array_t*) _value, 0);
+        return ConstIterator((jl_array_t*) _content, 0);
     }
 
     template<Boxable T, size_t R>
     auto Array<T, R>::end()
     {
-        return NonConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
+        return NonConstIterator((jl_array_t*) _content, reinterpret_cast<jl_array_t*>(_content)->length);
     }
 
     template<Boxable T, size_t R>
     auto Array<T, R>::end() const
     {
-        return ConstIterator((jl_array_t*) _value, reinterpret_cast<jl_array_t*>(_value)->length);
+        return ConstIterator((jl_array_t*) _content, reinterpret_cast<jl_array_t*>(_content)->length);
     }
 
     template<Boxable T, size_t Rank>
@@ -84,7 +84,7 @@ namespace jluna
     {
         THROW_IF_UNINITIALIZED;
         static auto* size_at = jl_get_function(jl_base_module, "size");
-        return jl_unbox_int64(jl_call2(size_at, (jl_value_t*) _value, jl_box_int64(dimension + 1)));
+        return jl_unbox_int64(jl_call2(size_at, (jl_value_t*) _content, jl_box_int64(dimension + 1)));
     }
 
     template<Boxable T, size_t Rank>

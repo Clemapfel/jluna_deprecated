@@ -6,6 +6,8 @@
 #include <iostream>
 #include <jluna.hpp>
 #include <functional>
+#include <proxy.hpp>
+#include <global_utilities.hpp>
 
 using namespace jluna;
 
@@ -19,39 +21,26 @@ int main()
             mutable struct MutableType
                 _field
                 MutableType() = new(undef)
+                MutableType(x::Any) = new(x)
+
             end
 
-            instance = MutableType()
+            instance = MutableType(123)
         end
     )");
 
-    Proxy<State> field = Main;
+    auto main = Proxy<State>(jl_eval_string("return Main"), nullptr);
 
-    struct Deleter
+    Proxy<State> field = main;
     {
-        void operator()(Proxy<State>* ptr)
-        {};
-    };
-
-    std::vector<std::reference_wrapper<Proxy<State>>> owners;
-    {
-        auto mymodule = Main["MyModule"];
-        auto& mod_ref = mymodule;
-        owners.push_back(std::ref(mod_ref));
-
-        auto instance = *(new Proxy<State>(mymodule["instance"]));
-        auto& in_ref = instance;
-        owners.push_back(std::ref(in_ref));
-
+        auto module = main["MyModule"];
+        auto instance = module["instance"];
         field = instance["_field"];
     }
 
-    std::cout << "outside" << std::endl;
     make_mutating(field);
-    field = 123;
-
-
-
+    field = 456;
+    jl_eval_string("println(MyModule.instance._field)");
 
     /*
 

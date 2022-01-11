@@ -21,11 +21,18 @@ namespace jluna
     template<typename T, std::enable_if_t<std::is_same_v<T, jluna::Symbol>, bool> = true>
     T unbox(jl_value_t* value)
     {
-        return Symbol(value, nullptr, nullptr);
+        return Symbol(value, nullptr);
     }
 
-    Symbol::Symbol(jl_value_t* value, Proxy<State>* owner, jl_sym_t* symbol)
+    Symbol::Symbol(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>& owner, jl_sym_t* symbol)
         : Proxy<State>(value, owner, symbol)
+    {
+        THROW_IF_UNINITIALIZED;
+        assert(jl_isa(value, (jl_value_t*) jl_symbol_type) && "value being bound is not a symbol");
+    }
+
+    Symbol::Symbol(jl_value_t* value, jl_sym_t* symbol)
+        : Proxy<State>(value, symbol)
     {
         THROW_IF_UNINITIALIZED;
         assert(jl_isa(value, (jl_value_t*) jl_symbol_type) && "value being bound is not a symbol");
@@ -33,6 +40,6 @@ namespace jluna
 
     Symbol::operator std::string() const
     {
-        return std::string(jl_symbol_name((jl_sym_t*) _value));
+        return std::string(jl_symbol_name((jl_sym_t*) _content->_value));
     }
 }

@@ -17,7 +17,7 @@ namespace jluna
     {
         public:
             /// @brief ctor from already existing type
-            Type(jl_value_t* value, Proxy<State>* owner, jl_sym_t*);
+            Type(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
             /// @brief implicitly decay to julia c-type
             operator jl_datatype_t*();
@@ -40,7 +40,7 @@ namespace jluna
             bool is_mutable_type() const;
 
         private:
-            using Proxy<State>::_value;
+            using Proxy<State>::_content;
     };
 
     /// @brief get type of proxy as jluna::Type

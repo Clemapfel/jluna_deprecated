@@ -91,7 +91,7 @@ namespace jluna
             auto end() const;
 
         protected:
-            using Proxy<State>::_value;
+            using Proxy<State>::_content;
 
         private:
             void throw_if_index_out_of_range(int index, size_t dimension);
@@ -133,7 +133,7 @@ namespace jluna
             void push_front(T);
 
         protected:
-            using Array<T, 1>::_value;
+            using Array<T, 1>::_content;
 
         private:
             static inline jl_function_t* _push_front = nullptr;

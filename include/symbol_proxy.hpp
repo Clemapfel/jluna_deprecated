@@ -16,14 +16,15 @@ namespace jluna
         public:
             /// @brief bind already existing symbol
             /// @param value
-            Symbol(jl_value_t* value, Proxy<State>* owner, jl_sym_t*);
+            Symbol(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>& owner, jl_sym_t*);
+            Symbol(jl_value_t* value, jl_sym_t*);
 
             /// @brief convert to string
             /// @returns string
             explicit operator std::string() const override;
 
         private:
-            using Proxy<State>::_value;
+            using Proxy<State>::_content;
     };
 }
 
