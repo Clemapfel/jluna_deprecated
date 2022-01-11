@@ -116,7 +116,7 @@ namespace jluna
     template<Unboxable T>
     Proxy<State_t>::operator T() const
     {
-        return unbox<T>(value());
+        return unbox<T>(_content->_value);
     }
 
     template<typename State_t>

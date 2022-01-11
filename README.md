@@ -14,6 +14,24 @@ Some advantages `jluna` has over the C-API:
 
 ## Features:
 
+### Accessing Julia-Side Variables
+```cpp
+State::safe_script(R"(
+    module MyModule
+        mutable struct MutableType
+            _field
+        end
+
+        instance = MutableType(123)
+    end
+)");
+
+std::cout << (int) jluna::Main["MyModule"]["instance"]["_field"] << std::endl;
+```
+```
+123
+```
+
 ### Calling Julia Functions
 ```cpp
 jluna::Function println = jluna::Base["println"];
@@ -38,10 +56,9 @@ State::safe_script(R"(
     module MyModule
         mutable struct MutableType
             _field
-            MutableType() = new(undef)
         end
 
-        instance = MutableType()
+        instance = MutableType(undef)
     end
 )");
 
@@ -60,7 +77,7 @@ after: 123
 
 ### Mulit-Dimensional Arrays
 ```cpp
-jluna::Array<size_t, 3> array = State::script("Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3)");
+jluna::Array<size_t, 3> array = State::script("Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
         
 auto value = array.at(0, 1, 2); // 0-based indexing
 std::cout << value << std::endl; 

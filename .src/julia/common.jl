@@ -16,6 +16,19 @@ begin # not part of jluna
     end
 
     """
+    """
+    function is_number_only(x::String) ::Bool
+
+        for s in x
+            if s != '0' || s != '1' || s != '2' || s != '3' || s != '4' || s != '5' || s != '6' || s != '7' || s != '8' || s != '9'
+                return false
+            end
+        end
+
+        return true;
+    end
+
+    """
     check if method of given function is available for a specific variable
 
     @param f: function
@@ -58,15 +71,38 @@ begin # not part of jluna
 
         for (i, s) in enumerate(names)
 
-            assembled *= string(s)
-            if i != length(names)
+            as_string = string(s)
+            add_dot = as_string[1] != '['
+            assembled *= as_string
+
+            if add_dot && i != length(names)
                 assembled *= string(Symbol("."))
             end
         end
 
-        println(assembled);
         Main.eval(Expr(:(=), Meta.parse(assembled), new_value));
         return nothing
+    end
+
+    """
+    used by jluna::Proxy to access member
+    """
+    function assemble_dot(new_value::Any, names::Symbol...) ::Any
+
+       assembled = ""
+
+        for (i, s) in enumerate(names)
+
+            as_string = string(s)
+            add_dot = as_string[1] != '['
+            assembled *= as_string
+
+            if add_dot && i != length(names)
+                assembled *= string(Symbol("."))
+            end
+        end
+
+        return Main.eval(Meta.parse(assembled));
     end
 
     """

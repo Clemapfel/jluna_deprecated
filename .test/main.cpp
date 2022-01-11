@@ -29,6 +29,9 @@ int main()
         end
     )");
 
+    std::cout << (int) Main["MyModule"]["instance"]["_field"] << std::endl;
+    return 0;
+
     auto main = Proxy<State>(jl_eval_string("return Main"), nullptr);
 
     Proxy<State> field = main;
