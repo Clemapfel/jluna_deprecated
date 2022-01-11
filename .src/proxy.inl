@@ -30,20 +30,102 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::Proxy(jl_value_t* value, Proxy<State_t>* owner, jl_sym_t* symbol)
-        : _value(value), _fields(), _owner(owner), _symbol(symbol)
+        : _value(value), _fields(), _owner(), _symbol(symbol)
     {
         if (_value == nullptr)
             return;
 
         THROW_IF_UNINITIALIZED;
 
-        if (_owner != nullptr)
+        if (owner != nullptr)
+        {
+            _owner.release();
+            _owner.reset(owner);
             State_t::create_reference(_owner->_value);
+        }
 
         State_t::create_reference(_value);
         State_t::create_reference((jl_value_t*) _symbol);
 
         setup_fields();
+    }
+
+    template<typename State_t>
+    Proxy<State_t>::Proxy(Proxy&& other) noexcept
+        : _value(other._value), _symbol(other._symbol)
+    {
+        _owner.release();
+        _owner.reset(other._owner.get());
+        other._owner.release();
+        other._value = nullptr;
+        other._symbol = nullptr;
+    }
+
+    template<typename State_t>
+    Proxy<State_t>::Proxy(const Proxy& other)
+        : _value(other._value), _symbol(other._symbol)
+    {
+        State_t::create_reference(_value);
+        _owner.release();
+        _owner.reset(other._owner.get());
+
+        if (_owner != nullptr)
+            State_t::create_reference(_owner->_value);
+
+        if (_symbol != nullptr)
+            State_t::create_reference((jl_value_t*) _symbol);
+    }
+
+    template<typename State_t>
+    Proxy<State_t>::~Proxy()
+    {
+        std::cout << "destroying " << get_name() << std::endl;
+
+        if (_owner.get() != nullptr)
+        {
+            State_t::free_reference(_owner->_value);
+            _owner.release();
+        }
+
+        if (_value != nullptr)
+            State_t::free_reference(_value);
+
+        if (_symbol != nullptr)
+            State_t::free_reference((jl_value_t*) _symbol);
+    }
+
+    template<typename State_t>
+    Proxy<State_t>& Proxy<State_t>::operator=(Proxy&& other) noexcept
+    {
+        _value = other._value;
+        _owner.release();
+        _owner.reset(other._owner.get());
+        _symbol = other._symbol;
+
+        other._value = nullptr;
+        other._owner.release();
+        other._symbol = nullptr;
+
+        return *this;
+    }
+
+    template<typename State_t>
+    Proxy<State_t>& Proxy<State_t>::operator=(const Proxy& other)
+    {
+        _value = other._value;
+        _owner.release();
+        _owner.reset(other._owner.get());
+        _symbol = other._symbol;
+
+        State_t::create_reference(_value);
+
+        if (_owner != nullptr)
+            State_t::create_reference(_owner->_value);
+
+        if (_symbol != nullptr)
+            State_t::create_reference((jl_value_t*) _symbol);
+
+        return *this;
     }
 
     template<typename State_t>
@@ -72,24 +154,6 @@ namespace jluna
     {
         static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
         return std::string(jl_string_data(jl_call1(to_string, _value)));
-    }
-
-    template<typename State_t>
-    Proxy<State_t>::~Proxy()
-    {
-        std::cout << "destroying " << get_name() << std::endl;
-
-        if (_owner != nullptr)
-        {
-            State_t::free_reference(_owner->_value);
-            _owner.release();
-        }
-
-        if (_value != nullptr)
-            State_t::free_reference(_value);
-
-        if (_symbol != nullptr)
-            State_t::free_reference((jl_value_t*) _symbol);
     }
 
     template<typename State_t>
@@ -142,28 +206,6 @@ namespace jluna
     }
 
     template<typename State_t>
-    Proxy<State_t>::Proxy(Proxy&& other) noexcept
-        : _value(other._value), _symbol(other._symbol)
-    {
-        _owner.swap(other._owner);
-        other._value = nullptr;
-        other._symbol = nullptr;
-    }
-
-    template<typename State_t>
-    Proxy<State_t>::Proxy(const Proxy& other)
-        : _value(other._value), _owner(other._owner.get()), _symbol(other._symbol)
-    {
-        State_t::create_reference(_value);
-
-        if (_owner != nullptr)
-            State_t::create_reference(_owner->_value);
-
-        if (_symbol != nullptr)
-            State_t::create_reference((jl_value_t*) _symbol);
-    }
-
-    template<typename State_t>
     bool Proxy<State_t>::is_mutating() const
     {
         return _is_mutating;
@@ -203,38 +245,6 @@ namespace jluna
     void Proxy<State_t>::assign_name(const std::string& name)
     {
         _symbol = jl_symbol(name.c_str());
-    }
-
-    template<typename State_t>
-    Proxy<State_t>& Proxy<State_t>::operator=(Proxy&& other) noexcept
-    {
-        _value = other._value;
-        _owner.swap(other._owner);
-        _symbol = other._symbol;
-
-        other._value = nullptr;
-        other._owner = nullptr;
-        other._symbol = nullptr;
-
-        return *this;
-    }
-
-    template<typename State_t>
-    Proxy<State_t>& Proxy<State_t>::operator=(const Proxy& other)
-    {
-        _value = other._value;
-        _owner = other._owner;
-        _symbol = other._symbol;
-
-        State_t::create_reference(_value);
-
-        if (_owner != nullptr)
-            State_t::create_reference(_owner->_value);
-
-        if (_symbol != nullptr)
-            State_t::create_reference((jl_value_t*) _symbol);
-
-        return *this;
     }
 
     template<typename State_t>

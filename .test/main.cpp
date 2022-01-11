@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <jluna.hpp>
+#include <functional>
 
 using namespace jluna;
 
@@ -26,12 +27,26 @@ int main()
 
     Proxy<State> field = Main;
 
+    struct Deleter
+    {
+        void operator()(Proxy<State>* ptr)
+        {};
+    };
+
+    std::vector<std::reference_wrapper<Proxy<State>>> owners;
     {
         auto mymodule = Main["MyModule"];
-        auto instance = mymodule["instance"];
+        auto& mod_ref = mymodule;
+        owners.push_back(std::ref(mod_ref));
+
+        auto instance = *(new Proxy<State>(mymodule["instance"]));
+        auto& in_ref = instance;
+        owners.push_back(std::ref(in_ref));
+
         field = instance["_field"];
     }
 
+    std::cout << "outside" << std::endl;
     make_mutating(field);
     field = 123;
 

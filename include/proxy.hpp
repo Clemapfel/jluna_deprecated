@@ -154,7 +154,12 @@ namespace jluna
         private:
             std::deque<jl_sym_t*> assemble_name() const;
 
-            std::unique_ptr<Proxy<State_t>> _owner = nullptr;
+            struct NoopDeleter
+            {
+                void operator()(Proxy<State>* ptr)
+                {};
+            };
+            std::unique_ptr<Proxy<State_t>, NoopDeleter> _owner = nullptr;
             jl_sym_t* _symbol = nullptr;
 
             void setup_fields();
