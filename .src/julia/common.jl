@@ -64,6 +64,7 @@ begin # not part of jluna
             end
         end
 
+        println(assembled);
         Main.eval(Expr(:(=), Meta.parse(assembled), new_value));
         return nothing
     end

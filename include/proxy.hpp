@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <box_any.hpp>
 #include <unbox_any.hpp>
+#include <memory>
 
 namespace jluna
 {
@@ -130,6 +131,8 @@ namespace jluna
             /// @returns false if julia-side (===) would return true
             bool operator!=(const Proxy<State_t>& other) const;
 
+            /// @brief get the name of the variable that would be modified, if the proxy was mutating
+            /// @returns string, empty string if temporary value
             std::string get_name() const;
 
         protected:
@@ -149,9 +152,9 @@ namespace jluna
             bool _is_mutating = false;
 
         private:
-            std::deque<jl_sym_t*> assemble_name();
+            std::deque<jl_sym_t*> assemble_name() const;
 
-            Proxy<State_t>* _owner = nullptr;
+            std::unique_ptr<Proxy<State_t>> _owner = nullptr;
             jl_sym_t* _symbol = nullptr;
 
             void setup_fields();
