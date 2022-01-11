@@ -74,6 +74,14 @@ namespace jluna
     }
 
     template<typename State_t>
+    template<Unboxable T>
+    T Proxy<State_t>::operator[](const std::string& field)
+    {
+        jl_sym_t* symbol = jl_symbol(field.c_str());
+        return unbox<T>(_content.get()->get_field(symbol));
+    }
+
+    template<typename State_t>
     jl_value_t * Proxy<State_t>::value()
     {
         return _content->_value;

@@ -47,8 +47,14 @@ namespace jluna
             /// @param symbol
             Proxy(jl_value_t* value, std::shared_ptr<ProxyValue>& owner, jl_sym_t* symbol);
 
+            ~Proxy() = default;
+
             /// @brief access proxy field
             Proxy<State_t> operator[](const std::string& field);
+
+            /// @brief access proxy field
+            template<Unboxable T>
+            T operator[](const std::string& field);
 
             /// @brief cast to jl_value_t
             operator jl_value_t*();

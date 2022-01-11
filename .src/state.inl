@@ -187,7 +187,7 @@ namespace jluna
         if (in == nullptr)
             return nullptr;
 
-        std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+        //std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
@@ -216,7 +216,7 @@ namespace jluna
         if (in == nullptr)
             return;
 
-        std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
+        //std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);

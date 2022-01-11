@@ -36,7 +36,11 @@ int main()
         auto module = main["MyModule"];
         auto instance = module["instance"];
         field = instance["_field"];
+        auto a1 = main;
+        auto& a2 = main;
     }
+
+    main = main;
 
     make_mutating(field);
     field = 456;

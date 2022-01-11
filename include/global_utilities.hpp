@@ -38,5 +38,8 @@ namespace jluna
     /// @param value
     /// @returns string
     extern std::string to_string(jl_value_t*);
+
+    /// @brief
+    extern bool is_structtype(Proxy<State>&);
 }
 
