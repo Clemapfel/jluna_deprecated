@@ -8,6 +8,7 @@
 #include <functional>
 #include <proxy.hpp>
 #include <global_utilities.hpp>
+#include <array_proxy.hpp>
 
 using namespace jluna;
 

@@ -3,7 +3,6 @@
 // Created on 20.12.21 by clem (mail@clemens-cords.com)
 //
 
-#include <~array_proxy.hpp>
 
 namespace jluna
 {

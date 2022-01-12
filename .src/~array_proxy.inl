@@ -5,11 +5,11 @@
 
 #include <sstream>
 
-#include <~array_proxy.hpp>
 #include <exceptions.hpp>
 #include <proxy.hpp>
 #include <state.hpp>
 
+/*
 namespace jluna
 {
     template<typename T, size_t R>
@@ -166,3 +166,4 @@ namespace jluna
         return operator[](index);
     }
 }
+ */

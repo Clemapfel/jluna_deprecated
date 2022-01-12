@@ -3,8 +3,9 @@
 // Created on 20.12.21 by clem (mail@clemens-cords.com)
 //
 
-#include <~array_proxy.hpp>
 #include <box_any.hpp>
+
+/*
 
 // NON CONST
 namespace jluna
@@ -225,3 +226,5 @@ namespace jluna
         THROW_IF_UNINITIALIZED;
     }
 }
+
+ */

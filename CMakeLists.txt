@@ -25,11 +25,6 @@ add_library(jluna STATIC
 
     .src/julia_extension.h
 
-    #include/~array_proxy.hpp
-    #.src/~array_proxy.inl
-    #.src/~array_proxy_iterator.inl
-    #.src/~array_vector.inl
-
     include/unbox_any.hpp
     include/box_any.hpp
 
@@ -47,7 +42,9 @@ add_library(jluna STATIC
 
     include/global_utilities.hpp
     .src/global_utilities.inl
-        include/array_proxy.hpp)
+
+    include/array_proxy.hpp
+    .src/array_proxy.inl)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)

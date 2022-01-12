@@ -10,6 +10,8 @@
 #include <proxy.hpp>
 #include <state.hpp>
 
+/*
+
 namespace jluna
 {
     /// @brief wrapper for julia arrays of arbitrary value type
@@ -122,3 +124,5 @@ namespace jluna
 #include ".src/~array_proxy.inl"
 #include ".src/~array_proxy_iterator.inl"
 #include ".src/~array_vector.inl"
+
+ */

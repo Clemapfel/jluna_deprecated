@@ -6,11 +6,10 @@
 #pragma once
 
 #include <proxy.hpp>
-#include <state.hpp>
 
 namespace jluna
 {
-    template<Boxable T, size_t Rank>
+    template<Boxable Value_t, size_t Rank>
     class Array : public Proxy<State>
     {
         template<bool>
@@ -18,9 +17,9 @@ namespace jluna
 
         public:
             /// @brief value type
-            using value_type = T;
+            using value_type = Value_t;
 
-            /// @brief dimensionality, equivalent to julia-side Array{T, Rank}
+            /// @brief dimensionality, equivalent to julia-side Array{Value_t, Rank}
             static constexpr size_t rank = Rank;
 
             /// @brief ctor
@@ -48,32 +47,26 @@ namespace jluna
             auto end() const;
 
             auto front();
-            T front() const;
+            Value_t front() const;
 
             auto back();
-            T back() const;
+            Value_t back() const;
 
-            /// VECTOR UTILS
-
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void insert(size_t pos, T value);
+            /// VECValue_tOR UValue_tILS
 
             template<std::enable_if_t<Rank == 1, bool> = true>
-            void erase(size_t pos, T value);
+            void insert(size_t pos, Value_t value);
 
             template<std::enable_if_t<Rank == 1, bool> = true>
-            void insert(size_t pos, T value);
+            void erase(size_t pos, Value_t value);
 
             template<std::enable_if_t<Rank == 1, bool> = true>
-            void insert(size_t pos, T value);
+            void push_front(Value_t value);
 
             template<std::enable_if_t<Rank == 1, bool> = true>
-            void push_front(T value);
+            void push_back(Value_t value);
 
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void push_back(T value);
-
-        protected:
+        private:
             void throw_if_index_out_of_range(int index, size_t dimension);
             using Proxy<State>::_content;
 
@@ -104,7 +97,7 @@ namespace jluna
                     bool operator!=(const Iterator&) const;
 
                     /// @brief decays into value_type
-                    T operator*() const;
+                    Value_t operator*() const;
 
                     /// @brief decay into proxy
                     Proxy<State> operator*();
@@ -116,13 +109,14 @@ namespace jluna
     };
 
     /// @brief vector typedef
-    template<Boxable T>
-    using Vector = Array<T, 1>;
+    template<Boxable Value_t>
+    using Vector = Array<Value_t, 1>;
 
-    // TODO
-    template<Boxable T, size_t Rank>
-    std::array<size_t, Rank> size(const Array<T, Rank>&);
+    template<Boxable Value_t, size_t Rank>
+    std::array<size_t, Rank> size(const Array<Value_t, Rank>&);
 
-    template<Boxable T, size_t Rank>
-    std::array<size_t, Rank> size(const Array<T, Rank>&);
+    template<Boxable Value_t, size_t Rank>
+    std::array<size_t, Rank> size(const Array<Value_t, Rank>&);
 }
+
+#include ".src/array_proxy.inl"
