@@ -47,12 +47,17 @@ namespace jluna
             /// @param symbol
             Proxy(jl_value_t* value, std::shared_ptr<ProxyValue>& owner, jl_sym_t* symbol);
 
+            /// @brief dtor
             ~Proxy() = default;
 
-            /// @brief access proxy field
+            /// @brief access field
+            /// @param field_name
+            /// @returns field as proxy
             Proxy<State_t> operator[](const std::string& field);
 
-            /// @brief access proxy field
+            /// @brief access field
+            /// @param field_name
+            /// @returns unboxed value
             template<Unboxable T>
             T operator[](const std::string& field);
 
@@ -132,7 +137,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t> //, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>
     inline Proxy_t& make_mutating(Proxy_t& proxy)
     {
         proxy.set_mutating(true);
@@ -143,7 +148,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t>//, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>
     inline Proxy_t& make_mutating(Proxy_t& proxy, const std::string& name)
     {
         proxy.assign_name(name);
@@ -155,7 +160,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t>//, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>
     inline Proxy_t make_mutating(Proxy_t&& proxy)
     {
         proxy.set_mutating(true);
@@ -166,7 +171,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t> //, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>
     inline Proxy_t make_mutating(Proxy_t&& proxy, const std::string& name)
     {
         proxy.assign_name(name);
@@ -178,7 +183,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy
     /// @exceptions no exceptions are thrown
-    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>
     inline decltype(auto) try_make_mutating(Proxy_t& proxy) noexcept
     {
         if (proxy.can_mutate())

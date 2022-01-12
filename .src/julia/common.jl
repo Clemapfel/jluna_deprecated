@@ -16,6 +16,10 @@ begin # not part of jluna
     end
 
     """
+    check wether a string can be transformed into a base 10 number
+
+    @param x: string
+    @returns bool
     """
     function is_number_only(x::String) ::Bool
 
@@ -42,6 +46,10 @@ begin # not part of jluna
 
     """
     check if element exists in array
+
+    @param array
+    @param v: element
+    @returns bool
     """
     function exists(array::T, v::Any) ::Bool where T <: AbstractArray
 
@@ -50,6 +58,10 @@ begin # not part of jluna
 
     """
     wrap dot operator for both modules, structs and arrays
+
+    @param x: Array
+    @param field_name
+    @returns field
     """
     function dot(x::Array, field_name::Symbol) ::Any
 
@@ -124,7 +136,5 @@ begin # not part of jluna
         aux!(expr.args)
         return Expr(expr.head, :($(expr.args...)))
     end
-
-
 end
 

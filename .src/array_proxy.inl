@@ -214,7 +214,8 @@ namespace jluna
     }
 
     template<Boxable V>
-    void Vector<V>::push_front(V value)
+    template<Boxable T>
+    void Vector<V>::push_front(T value)
     {
         static jl_value_t* pushfirst = jl_get_function(jl_base_module, "pushfirst!");
         jl_call2(pushfirst, Array<V, 1>::value(), box(value));
@@ -222,11 +223,11 @@ namespace jluna
     }
 
     template<Boxable V>
-    void Vector<V>::push_back(V value)
+    template<Boxable T>
+    void Vector<V>::push_back(T value)
     {
         static jl_value_t* push = jl_get_function(jl_base_module, "push!");
         jl_call2(push, Array<V, 1>::value(), box(value));
         forward_last_exception();
     }
-
 }

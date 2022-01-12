@@ -17,6 +17,7 @@ namespace jluna
         return value;
     }
 
+    // cast first
     template<Decayable T>
     jl_value_t* box(T&& value)
     {

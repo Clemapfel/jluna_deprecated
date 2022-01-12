@@ -16,7 +16,13 @@ namespace jluna
         public:
             /// @brief bind already existing symbol
             /// @param value
+            /// @param owner
+            /// @param symbol of the variable
             Symbol(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>& owner, jl_sym_t*);
+
+            /// @brief bind already existing symbol
+            /// @param value
+            /// @param symbol of the variable
             Symbol(jl_value_t* value, jl_sym_t*);
 
             /// @brief convert to string

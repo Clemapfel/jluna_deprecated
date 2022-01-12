@@ -16,6 +16,7 @@ namespace jluna
         class FunctionProxy : public Proxy<State>
         {
             public:
+                /// @brief cast to function
                 operator jl_function_t*() noexcept;
 
             protected:
@@ -31,7 +32,13 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
+            /// @param symbol
             SafeFunction(jl_function_t*, jl_sym_t*);
+
+            /// @brief attach already existing value
+            /// @param julia-function
+            /// @param owner
+            /// @param symbol
             SafeFunction(jl_function_t*, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
             /// @brief cast to jl_function_t
@@ -53,7 +60,13 @@ namespace jluna
         public:
             /// @brief attach already existing value
             /// @param julia-function
+            /// @param symbol
             Function(jl_function_t*, jl_sym_t*);
+
+            /// @brief attach already existing value
+            /// @param julia-function
+            /// @param owner
+            /// @param symbol
             Function(jl_function_t*, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
             /// @brief cast to jl_function_t
