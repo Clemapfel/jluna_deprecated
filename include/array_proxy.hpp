@@ -29,7 +29,7 @@ namespace jluna
             auto operator[](size_t);
 
             /// @brief linear indexing, no bounds checking
-            template<Unboxable T>
+            template<Unboxable T = Value_t>
             T operator[](size_t) const;
 
             /// @brief multi-dimensional indexing
@@ -37,8 +37,10 @@ namespace jluna
             auto at(Args... in);
 
             /// @brief multi-dimensional indexing
-            template<Unboxable T, typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
+            template<Unboxable T = Value_t, typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
             T at(Args... in) const;
+
+            size_t get_n_elements() const;
 
             auto begin();
             auto begin() const;
@@ -47,18 +49,20 @@ namespace jluna
             auto end() const;
 
             auto front();
-            Value_t front() const;
+
+            template<Unboxable T = Value_t>
+            T front() const;
 
             auto back();
-            Value_t back() const;
 
-            /// VECValue_tOR UValue_tILS
+            template<Unboxable T = Value_t>
+            T back() const;
 
             template<std::enable_if_t<Rank == 1, bool> = true>
             void insert(size_t pos, Value_t value);
 
             template<std::enable_if_t<Rank == 1, bool> = true>
-            void erase(size_t pos, Value_t value);
+            void erase(size_t pos);
 
             template<std::enable_if_t<Rank == 1, bool> = true>
             void push_front(Value_t value);
@@ -71,9 +75,15 @@ namespace jluna
             using Proxy<State>::_content;
 
             template<bool IsConst>
-            class Iterator : public Proxy<State>
+            class Iterator
             {
                 public:
+                    /// @brief ctor
+                    Iterator(size_t i, Array<Value_t, Rank>*);
+
+                    template<Boxable T = Value_t, std::enable_if_t<not IsConst, bool> = true>
+                    auto& operator=(T value);
+
                     /// @brief increment
                     void operator++();
 
@@ -97,13 +107,14 @@ namespace jluna
                     bool operator!=(const Iterator&) const;
 
                     /// @brief decays into value_type
-                    Value_t operator*() const;
+                    template<Unboxable T = Value_t>
+                    T operator*() const;
 
                     /// @brief decay into proxy
                     Proxy<State> operator*();
 
                 private:
-                    using Proxy<State>::_content;
+                    Array<Value_t, Rank>* _owner;
                     size_t _index;
             };
     };
