@@ -18,37 +18,19 @@ int main()
     State::initialize();
 
     State::safe_script(R"(
-        module MyModule
-            mutable struct MutableType
-                _field
-                MutableType() = new(undef)
-                MutableType(x::Any) = new(x)
-
-            end
-
-            instance = MutableType(123)
-        end
+        arr = Array{UInt64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+        vec = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     )");
 
-    std::cout << (int) Main["MyModule"]["instance"]["_field"] << std::endl;
-    return 0;
+    jluna::Vector<size_t> vec = Main["vec"];
 
-    auto main = Proxy<State>(jl_eval_string("return Main"), nullptr);
+    vec.push_front(99);
+    vec.push_back(88);
+    vec.insert(5, 123);
+    vec.erase(2);
 
-    Proxy<State> field = main;
-    {
-        auto module = main["MyModule"];
-        auto instance = module["instance"];
-        field = instance["_field"];
-        auto a1 = main;
-        auto& a2 = main;
-    }
-
-    main = main;
-
-    make_mutating(field);
-    field = 456;
-    jl_eval_string("println(MyModule.instance._field)");
+    for (auto i : vec)
+        std::cout << i.operator int() << std::endl;
 
     /*
 

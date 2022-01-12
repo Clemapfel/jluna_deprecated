@@ -12,7 +12,7 @@ namespace jluna
     template<Boxable Value_t, size_t Rank>
     class Array : public Proxy<State>
     {
-        template<bool>
+        friend class ConstIterator;
         class Iterator;
 
         public:
@@ -40,6 +40,9 @@ namespace jluna
             template<Unboxable T = Value_t, typename... Args, std::enable_if_t<sizeof...(Args) == Rank and (std::is_integral_v<Args> and ...), bool> = true>
             T at(Args... in) const;
 
+            template<Boxable T = Value_t>
+            void set(size_t i, T);
+
             size_t get_n_elements() const;
 
             auto begin();
@@ -58,31 +61,16 @@ namespace jluna
             template<Unboxable T = Value_t>
             T back() const;
 
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void insert(size_t pos, Value_t value);
-
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void erase(size_t pos);
-
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void push_front(Value_t value);
-
-            template<std::enable_if_t<Rank == 1, bool> = true>
-            void push_back(Value_t value);
-
         private:
             void throw_if_index_out_of_range(int index, size_t dimension);
+            size_t get_dimension(int);
             using Proxy<State>::_content;
 
-            template<bool IsConst>
-            class Iterator
+        class ConstIterator
             {
                 public:
                     /// @brief ctor
-                    Iterator(size_t i, Array<Value_t, Rank>*);
-
-                    template<Boxable T = Value_t, std::enable_if_t<not IsConst, bool> = true>
-                    auto& operator=(T value);
+                    ConstIterator(size_t i, Array<Value_t, Rank>*);
 
                     /// @brief increment
                     void operator++();
@@ -99,29 +87,61 @@ namespace jluna
                     /// @brief equality operator
                     /// @param other
                     /// @returns bool
-                    bool operator==(const Iterator&) const;
+                    bool operator==(const ConstIterator&) const;
 
                     /// @brief inequality operator
                     /// @param other
                     /// @returns bool
-                    bool operator!=(const Iterator&) const;
+                    bool operator!=(const ConstIterator&) const;
 
                     /// @brief decays into value_type
                     template<Unboxable T = Value_t>
                     T operator*() const;
 
                     /// @brief decay into proxy
-                    Proxy<State> operator*();
+                    auto operator*();
 
-                private:
+                    template<Unboxable T = Value_t>
+                    operator T() const;
+
+                    explicit operator Proxy<State>();
+
+                protected:
                     Array<Value_t, Rank>* _owner;
                     size_t _index;
+            };
+
+            struct Iterator : public ConstIterator
+            {
+                ///
+                Iterator(size_t i, Array<Value_t, Rank>*);
+
+                using ConstIterator::operator*;
+
+                ///
+                template<Boxable T = Value_t>
+                auto& operator=(T value);
+
+                protected:
+                    using ConstIterator::_owner;
+                    using ConstIterator::_index;
             };
     };
 
     /// @brief vector typedef
     template<Boxable Value_t>
-    using Vector = Array<Value_t, 1>;
+    struct Vector : public Array<Value_t, 1>
+    {
+        Vector(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
+
+        void insert(size_t pos, Value_t value);
+
+        void erase(size_t pos);
+
+        void push_front(Value_t value);
+
+        void push_back(Value_t value);
+    };
 
     template<Boxable Value_t, size_t Rank>
     std::array<size_t, Rank> size(const Array<Value_t, Rank>&);
@@ -131,3 +151,4 @@ namespace jluna
 }
 
 #include ".src/array_proxy.inl"
+#include ".src/array_proxy_iterator.inl"

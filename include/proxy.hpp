@@ -132,7 +132,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t> //, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
     inline Proxy_t& make_mutating(Proxy_t& proxy)
     {
         proxy.set_mutating(true);
@@ -143,7 +143,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>//, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
     inline Proxy_t& make_mutating(Proxy_t& proxy, const std::string& name)
     {
         proxy.assign_name(name);
@@ -155,7 +155,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t>//, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
     inline Proxy_t make_mutating(Proxy_t&& proxy)
     {
         proxy.set_mutating(true);
@@ -166,7 +166,7 @@ namespace jluna
     /// @param proxy
     /// @returns proxy after mutation
     /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
+    template<typename Proxy_t> //, std::enable_if_t<std::is_base_of_v<Proxy_t, Proxy<State>> or std::is_same_v<Proxy_t, Proxy<State>>, bool> = true>
     inline Proxy_t make_mutating(Proxy_t&& proxy, const std::string& name)
     {
         proxy.assign_name(name);
