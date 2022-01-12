@@ -155,7 +155,14 @@ namespace jluna
         std::stringstream str;
 
         for (size_t i = 0; i < name.size(); ++i)
-            str << jl_symbol_name(name.at(i)) << (i < name.size() - 1 ? "." : "");
+        {
+            std::string sname = jl_symbol_name(name.at(i));
+
+            if (i != 0 and sname.at(0) != '[')
+                str << ".";
+
+            str << jl_symbol_name(name.at(i));
+        }
 
         return str.str();
     }

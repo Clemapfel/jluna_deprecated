@@ -63,24 +63,30 @@ begin # not part of jluna
     dot(x::Any, field_name::Symbol) = return eval(:($x.$field_name))
 
     """
-    used by jluna::Proxy to reassemble the full variable name and then assign it
     """
-    function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
+    function assemble_name(names::Symbol...) ::String
 
         assembled = ""
 
         for (i, s) in enumerate(names)
 
             as_string = string(s)
-            add_dot = as_string[1] != '['
-            assembled *= as_string
-
-            if add_dot && i != length(names)
-                assembled *= string(Symbol("."))
+            if i != 1 && as_string[1] != '['
+                assembled *= "."
             end
+
+            assembled *= as_string
         end
 
-        Main.eval(Expr(:(=), Meta.parse(assembled), new_value));
+        return assembled;
+    end
+
+    """
+    used by jluna::Proxy to reassemble the full variable name and then assign it
+    """
+    function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
+
+        Main.eval(Expr(:(=), Meta.parse(assemble_name(names...)), new_value));
         return nothing
     end
 
@@ -89,20 +95,7 @@ begin # not part of jluna
     """
     function assemble_dot(new_value::Any, names::Symbol...) ::Any
 
-       assembled = ""
-
-        for (i, s) in enumerate(names)
-
-            as_string = string(s)
-            add_dot = as_string[1] != '['
-            assembled *= as_string
-
-            if add_dot && i != length(names)
-                assembled *= string(Symbol("."))
-            end
-        end
-
-        return Main.eval(Meta.parse(assembled));
+        return Main.eval(Meta.parse(assemble_name(names...)));
     end
 
     """

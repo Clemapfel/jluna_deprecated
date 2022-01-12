@@ -24,13 +24,14 @@ int main()
 
     jluna::Vector<size_t> vec = Main["vec"];
 
-    vec.push_front(99);
-    vec.push_back(88);
-    vec.insert(5, 123);
-    vec.erase(2);
+    Proxy<State> at = vec.at(5);
+    std::cout << at.get_name() << std::endl;
 
-    for (auto i : vec)
-        std::cout << i.operator int() << std::endl;
+    make_mutating(at);
+    at = 123;
+
+    for (int e : vec)
+        std::cout << e << std::endl;
 
     /*
 

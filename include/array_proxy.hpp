@@ -104,7 +104,7 @@ namespace jluna
                     template<Unboxable T = Value_t>
                     operator T() const;
 
-                    explicit operator Proxy<State>();
+                    operator Proxy<State>();
 
                 protected:
                     Array<Value_t, Rank>* _owner;

@@ -14,7 +14,7 @@ namespace jluna
     size_t Array<T, Rank>::get_dimension(int index)
     {
         static jl_function_t* size = jl_get_function(jl_base_module, "size");
-        return jl_unbox_int64(jl_call2(size, _content->_value, jl_box_int32(index + 1)));
+        return jl_unbox_uint64(jl_call2(size, _content->_value, jl_box_int32(index + 1)));
     }
 
     template<Boxable T, size_t Rank>
@@ -27,7 +27,7 @@ namespace jluna
             throw std::out_of_range(str.str().c_str());
         }
 
-        size_t dim = get_dimension(index);
+        size_t dim = get_dimension(dimension);
 
         std::string dim_id;
 
@@ -45,7 +45,7 @@ namespace jluna
         if (index >= dim)
         {
             std::stringstream str;
-            str << "index " << index << " out of range for array of length " << dim << " along " << dim_id << ". Indices C++ side are 0-based" << std::endl;
+            str << "0-based index " << index << " out of range for array of length " << dim << " along " << dim_id << std::endl;
             throw std::out_of_range(str.str().c_str());
         }
     }
@@ -57,7 +57,7 @@ namespace jluna
         if (i >= get_n_elements())
         {
             std::stringstream str;
-            str << "index " << i << " out of range for array of length " << get_n_elements() << std::endl;
+            str << "0-based index " << i << " out of range for array of length " << get_n_elements() << std::endl;
             throw std::out_of_range(str.str().c_str());
         }
 
@@ -70,7 +70,7 @@ namespace jluna
         if (i >= get_n_elements())
         {
             std::stringstream str;
-            str << "index " << i << " out of range for array of length " << get_n_elements() << std::endl;
+            str << "0-based index " << i << " out of range for array of length " << get_n_elements() << std::endl;
             throw std::out_of_range(str.str().c_str());
         }
 
