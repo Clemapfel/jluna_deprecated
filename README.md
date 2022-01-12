@@ -1,6 +1,6 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is less beautiful and much less... documented. Heavily inspired in design and syntax by [**sol3**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
+Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is well-designed, less beautiful and much less... documented. Heavily inspired in software-design and syntax by [**sol3**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
 
 Some advantages `jluna` has over the C-API:
 + automatically detects and links julia during make
@@ -8,14 +8,26 @@ Some advantages `jluna` has over the C-API:
 + mutating C++-side proxies also assigns the corresponding variable julia-side if desired
 + verbose exceptions, including exception forwarding from julia
 + wraps many C++ std objects and types
-+ as long as a proxy managing julia-side memory is in scope C++-side, it is safe from the julia garbage collector
++ multi-dimensional array interface
++ C++ keeps julia-side values safe from the garbage collector while in use
 + `jluna` is fully documented, including inline documentation for IDEs and tutorials
-+ if you really want to go back, mixing the C-API and `jluna` is no problem
++ mixing the C-API and `jluna` is perfectly fine and `jluna` offers some C-extensions as glue-code
 
 ## Features:
 
+For a "quick & dirty" tour of `jluna`s functionality, see the following examples:
+
+### Initialization
+```cpp
+jluna::State::initialize(); // loads julia and jluna
+```
+```
+[JULIA][LOG] initialization successfull.
+```
+
 ### Accessing Julia-Side Variables
 ```cpp
+// execute arbitrary string
 jluna::State::safe_script(R"(
     module MyModule
         mutable struct MutableType
@@ -26,15 +38,22 @@ jluna::State::safe_script(R"(
     end
 )");
 
+// access variables with [] syntax
 std::cout << (int) jluna::Main["MyModule"]["instance"]["_field"] << std::endl;
+
+// or through script return
+std::cout << (int) jluna::State::script("return MyModule.instance._field") << std::endl;
 ```
 ```
+123
 123
 ```
 
 ### Calling Julia Functions
 ```cpp
 jluna::Function println = jluna::Base["println"];
+
+// all primitive, all jluna:: and most std:: types can be used directly
 println(std::string("this is a string "), "\n", 
         println, "\n",
         int(42), "\n",
@@ -59,13 +78,14 @@ jluna::State::safe_script(R"(
         instance = MutableType(123)
     end
 )");
-
 jluna::State::safe_script(R"(println("before: ", MyModule.instance._field))");
 
 auto field = jluna::Main["MyModule"]["instance"]["_field"];
 
-// by design, julia-side mutation needs to be explicitly turned on
+// to modify both the proxy and the julia-side variable, we need to declare it mutating
 jluna::make_mutating(field);
+
+// after that any assign will affect both C++ and Julia-side memory
 field = 456;
 
 State::safe_script(R"(println("after: ", MyModule.instance._field))");
@@ -77,18 +97,34 @@ after: 456
 
 ### Mulit-Dimensional Arrays
 ```cpp
-jluna::Array<size_t, 3> array = jluna::State::script("Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
-        
-auto value = array.at(0, 1, 2); // 0-based indexing
-std::cout << value << std::endl; 
+using namespace jluna;
+State::safe_script(R"(
+    array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+    vector = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+)");
 
-jluna::make_mutating(value);
-value = 9999;
-jluna::Base["println"].as<Function>()(array);
+// array of arbitary type and rank
+Array<jluna::Int64, 3> array = Main["array"];
+
+// access element
+array[21] = 8888;         // linear indexing
+array.at(0, 1, 2) = 9999; // 0-based multidimensional indexing
+
+// vectors are an Array<T, 1> typedef with some extra functionality
+Vector<int> vector = Main["vector"];
+vector.push_front(0);
+vector.push_back(10);
+
+// both arrays and vectors are iterable
+for (auto it : vector)
+    it = it.operator int() + 10; // also assigns the julia-side array
+
+State::safe_script(R"(println("array: ", array))");
+State::safe_script(R"(println("vector: ", vector))");
 ```
 ```
-22
-[1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
+array: [1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
+vector: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 ```
 
 ### Exception Forwarding
@@ -156,7 +192,7 @@ For `jluna` you'll need:
 + **cmake 3.19** (or higher)
 + unix-based operating system
 
-Currently only g++10 is supported though Clang support is planned in the future.
+Currently, only g++10 is supported though Clang support is planned in the future.
 
 # Installation
 
@@ -183,7 +219,7 @@ target_link_libraries(MY_EXECUTABLE jluna)
 
 ### cmake julia executable cannot find julia
 
-`jluna` detects your julia version and build parameters using the `julia` command in bash, if this command is not available on a system level, you will need to manually supply the path for the julia executable to `jluna`.
+`jluna` detects your julia version and build parameters using the `julia` command in bash, if this command is not available on a system level, you will need to manually supply the path for the julia executable to `jluna`. To do this:
 
 Open `jluna/CMakeLists.txt` in an editor and modify the following statement in line 10:
 

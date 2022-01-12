@@ -18,20 +18,24 @@ int main()
     State::initialize();
 
     State::safe_script(R"(
-        arr = Array{UInt64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
-        vec = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+        vector = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     )");
 
-    jluna::Vector<size_t> vec = Main["vec"];
+    Array<long int, 3> array = Main["array"];
 
-    Proxy<State> at = vec.at(5);
-    std::cout << at.get_name() << std::endl;
+    array[21] = 8888; // linear indexing
+    array.at(0, 1, 2) = 9999; // 0-based multidimensional indexing
 
-    make_mutating(at);
-    at = 123;
+    Vector<int> vector = Main["vector"];
 
-    for (int e : vec)
-        std::cout << e << std::endl;
+    for (auto it : vector)
+        it = it.operator int() + 10;
+
+    State::safe_script(R"(println("array: ", array))");
+    State::safe_script(R"(println("vector: ", vector))");
+    return 0;
+
 
     /*
 
