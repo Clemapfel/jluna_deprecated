@@ -8,6 +8,7 @@
 #include <julia.h>
 
 #include <memory>
+#include <deque>
 
 #include <box_any.hpp>
 #include <unbox_any.hpp>

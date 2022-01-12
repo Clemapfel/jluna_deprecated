@@ -4,6 +4,7 @@
 //
 
 #include <proxy.hpp>
+#include <sstream>
 #include <deque>
 
 namespace jluna
@@ -229,10 +230,10 @@ namespace jluna
             for (auto* n : name)
                 args.push_back((jl_value_t*) n);
 
-            State::free_reference(value());
+            State_t::free_reference(value());
             _content->_value = jl_call(safe_call, args.data(), args.size());
             forward_last_exception();
-            State::create_reference(value());
+            State_t::create_reference(value());
         }
 
         jl_gc_enable(before);

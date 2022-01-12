@@ -147,7 +147,7 @@ namespace jluna
                     operator T() const;
 
                     /// @brief decay into proxy
-                    operator Proxy<State>();
+                    explicit operator Proxy<State>();
 
                 protected:
                     Array<Value_t, Rank>* _owner;
