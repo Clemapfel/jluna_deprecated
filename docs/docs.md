@@ -1,5 +1,113 @@
 # jluna: Documentation
 
+
+# jluna::Proxy
+
+## Introduction: Glossary
+
+`Proxy<State>` is the most central class of `jluna` and most of it's C++-side functionality runs through this proxy class. Before we can discuss it, though, we need to get some nomenclature out of the way. As julia and C++ sometimes use different terms for different things (for example in C++ an "error" is always fatal while in julia an "error" such as `UndefVarError` can be catchable) it's best to get a baseline established as to not confuse some people:
+
++ A *value* is a chunk of memory holding arbitrary data, this memory of course has an *adress* (what would be a pointer in C/C++) which uniquely identifies the location of the memory, not it's content
++ A *name* is a julia-side value of type `Symbol`
++ A *variable*, then, is an association a name and a value. Associating an unnamed value with a name we'll call a *binding*. Unlike C++, in julia a variable name is not associated with an address but the value itself, two variables with different names but the same value usually point to the same address in memory. Consider the following example:
+
+Consider the following example:
+
+```cpp
+jl_value_t* value_ptr = jl_eval_string("return 123");
+```
+
+Here, using the julia C-API, we created a chunk of memory holding the value `123`. If we want to access this value, we need to do so via the `value_ptr` which is best thought of as address of the value. If we now reassign `value_ptr`:
+
+```cpp
+value_ptr = // something else
+```
+
+There is still a chunk of memory holding the value `123`, we just have no way of remembering where exactly it is and in time (but not necessarily right after reassinging) the garbage collector will collect it. 
+
+If we instead create a *variable* julia side:
+
+```cpp
+jl_value_t* value_ptr = jl_eval_string("return 123");
+
+jl_eval_string("variable = 123");
+jl_value_t* variable_value_ptr = jl_eval_string("return variable");
+
+assert(value_ptr == variable_value_ptr); // does *not* raise an assertion
+```
+
+We still get a pointer and that pointer will still point to the original 123. This is important to realize, julias values are completely separate from julia variable names, two variable with different names can hold the same address of memory and an unbound address of memory can have valid data, be in scope, but have no julia-side name assigned to it.
+
+Of course usually this doesn't matter, if there is valid memory that lingers around it will be caught by the garbage collector and deallocated, but this is where one of the most important features of `jluna::Proxy` comes in.
+
+## Creating Proxies and memory management
+
+A proxy in `jluna` is an implementation of the concept of a binding. Each proxy has two relevant properties:
+
++ i) it's value, which is a pointer `jl_value_t*` that is the address of julia-side memory
++ ii) it's name, which is a pointer to a julia-side symbol.
+
+Crucially, while a proxies value always points to valid memory, the name is completely optional and is by converting kepts as a `nullptr` to signify that no name is assigned. Let's go back to our example from the section before, but this time we're using `jluna` rather than the C-API to access julias state:
+
+```
+auto no_name_proxy = State::script("return 123");
+
+State::script("variable = 123");
+auto named_proxy = Main["variable"];
+std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
+
+```
+
+Here we generated two proxies (for end-users, this is usually the only way to create proxies as calling the CTORs manually can be quite cumbersome). Examining their properties we deduce from what we learned just now:
+
++ `no_name_proxy` has an address pointing to a julia-side `123` in memory and no name
++ `named_proxy` has an address pointing to a julia-side `123` and a julia-side name `:variable`
+
+Becuase of how julia works, we can see if both proxies have the same primitive value by checking if they both point to the same memory:
+
+```cpp
+std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
+```
+``` 
+1
+```
+Here we are explicitly casting both proxies to the address of their value, the comparing the c-pointers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 This tutorial will give a brief overview of most of `jluna`s functionalities
 
 ## 1. Initialization

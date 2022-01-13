@@ -29,6 +29,7 @@ namespace jluna
         {box(t)};
     };
 
+    /// @brief holds ownership of julia-side value, if attached to a symbol, can be made mutable so it also modifies a julia-side variable
     template<typename State_t>
     class Proxy
     {

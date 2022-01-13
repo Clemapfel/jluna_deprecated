@@ -17,12 +17,19 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+    auto no_name_proxy = State::script("return 123");
+
+    State::script("variable = 123");
+    auto named_proxy = Main["variable"];
+    std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
+    return 0;
+
     State::safe_script(R"(
         array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
         vector = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     )");
 
-    Array<long int, 3> array = Main["array"];
+    Array<Int64, 3> array = Main["array"];
 
     array[21] = 8888; // linear indexing
     array.at(0, 1, 2) = 9999; // 0-based multidimensional indexing

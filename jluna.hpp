@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <include/typedefs.hpp>
 #include <include/state.hpp>
 #include <include/proxy.hpp>
 
@@ -15,4 +16,4 @@
 
 #include <include/exceptions.hpp>
 
-// order matters!
+// order matters
