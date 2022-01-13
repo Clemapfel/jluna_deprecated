@@ -17,6 +17,10 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+    SafeFunction f = State::script("f(x) = sqrt(x^x^x)");
+std::cout << (int) f(-1) << std::endl;
+return 0;
+
     auto no_name_proxy = State::script("return 123");
 
     State::script("variable = 123");

@@ -1,6 +1,3 @@
-# jluna: Documentation
-
-
 # jluna::Proxy
 
 ## Introduction: Glossary
@@ -40,14 +37,14 @@ We still get a pointer and that pointer will still point to the original 123. Th
 
 Of course usually this doesn't matter, if there is valid memory that lingers around it will be caught by the garbage collector and deallocated, but this is where one of the most important features of `jluna::Proxy` comes in.
 
-## Creating Proxies and memory management
+## Memory Management
 
 A proxy in `jluna` is an implementation of the concept of a binding. Each proxy has two relevant properties:
 
 + i) it's value, which is a pointer `jl_value_t*` that is the address of julia-side memory
 + ii) it's name, which is a pointer to a julia-side symbol.
 
-Crucially, while a proxies value always points to valid memory, the name is completely optional and is by converting kepts as a `nullptr` to signify that no name is assigned. Let's go back to our example from the section before, but this time we're using `jluna` rather than the C-API to access julias state:
+Crucially, while a proxies value always points to valid memory, the name is *completely optional* and is by convention kept as a `nullptr` to signify that no name is assigned. Let's go back to our example from the section before, but this time we're using `jluna` rather than the C-API to access julias state:
 
 ```
 auto no_name_proxy = State::script("return 123");
@@ -55,7 +52,6 @@ auto no_name_proxy = State::script("return 123");
 State::script("variable = 123");
 auto named_proxy = Main["variable"];
 std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
-
 ```
 
 Here we generated two proxies (for end-users, this is usually the only way to create proxies as calling the CTORs manually can be quite cumbersome). Examining their properties we deduce from what we learned just now:
@@ -63,7 +59,7 @@ Here we generated two proxies (for end-users, this is usually the only way to cr
 + `no_name_proxy` has an address pointing to a julia-side `123` in memory and no name
 + `named_proxy` has an address pointing to a julia-side `123` and a julia-side name `:variable`
 
-Becuase of how julia works, we can see if both proxies have the same primitive value by checking if they both point to the same memory:
+Because of how julia works and because `123` is a primitive, we can see if both proxies have the same value by checking if they both point to the same memory:
 
 ```cpp
 std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
@@ -71,7 +67,162 @@ std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_va
 ``` 
 1
 ```
-Here we are explicitly casting both proxies to the address of their value, the comparing the c-pointers.
+Here we are explicitly casting both proxies to the address of their value, then comparing the c-pointers and we see that, indeed, both proxies point to the same value.
+
+Now for why this is important, **as long as there is any proxy in scope C++-side that points to a specific memory, that memory is kept safe from the garbage collector** and it will only be freed, once the last proxy that has ownership of it calls its destructor. 
+
+This makes proxies great because we can handle julia-side values without every having to create a julia-side variable or if we're using a julia-side variable we don't have to micro-manage scoping or potentially controlling the garbage collector, all of this is done 100% safely by `jluna`. This includes deallocation and shutdown, one `exit(0)`, `jluna` will deallocate all proxies and make all values associated with them available to the garbage collector. This doesn't mean the julia-side values get destructed immediately, rather there is no longer a safeguard to prevent julia from doing so.
+
+## Mutating Values
+
+We went in detail about the inner workings of how the proxy handles things because modifying the proxies values can be quite confusing without context, however in context it is consistent and clear. Consider the following:
+
+```cpp
+State::script("variable = 123");
+auto proxy = Main["variable"];
+State::script("variable = 456");
+
+std::cout << (int) proxy << std::endl;
+```
+Here we're creating a julia-variable directly in julia and assign it the value `123`. We then create a name proxy with the same value. After reassinging a new value to the variable `julia` side, what will the proxies value be?
+
+```
+456
+```
+Predictably, we see that the proxies value also changed
+
+TODO
+
+## Accessing Fields and the (.) operator
+
+As a proxy can hold any value, it may also hold a value which is a `structtype`, which may or may not have *fields*:
+
+```cpp
+State::safe_script(R"(
+
+mutable struct Inner
+    _inner_field
+end
+
+struct Outer
+    _outer_field::Inner
+end
+
+instance = Outer(Inner(123))
+")");
+
+auto instance = Main["instance"];
+```
+
+Here we create two structs, `Outer` which is immutable has only one field which is of type `Inner`, also a structtype however this one is mutable and has again one field of arbitrary type. 
+
+We can then access the value in instances field like so:
+
+```cpp
+auto outer_field = instance["_outer_field"];
+auto inner_field = outer_field["_inner_field"];
+// or chaining is also fine
+auto inner_field = instance["_outer_field"]["_inner_field"];
+```
+
+`operator[](const std::string&)` itself returns a proxy which may itself be a structtype. Because of this chaining multiple `[]` after each other is valid syntax and we've been using it all throughout this tutorial already. You may have also already noticed that we also use `[]` on `Main` which is of course Module. Why is that?
+
+To approximate julias syntax, `jluna`s `operator[]` was decided to be basically equivalent to the dot operator in julia:
+
+```cpp
+// julia:
+auto res = State::script("Main.instance._outer_field._inner_field");
+
+// cpp:
+auto res = Main["instance"]["_outer_field"]["_inner_field"];
+```
+This means any class where the dot operator would be well-defined, `operator[]` also works on which includes modules. This, combined with arrays, makes long chains of proxies of different type (module, struct, array) possible (if discourage for legibility). Indeed, the proxy will remember it's entire name as we can verify with `get_name`.
+
+```cpp
+auto res = Main["instance"]["_outer_field"]["_inner_field"];
+std::cout << res.get_name() << std::endl;
+```
+```
+instance._outer_field._inner_field
+```
+
+Where the starting `Main.` is implicit and thus not displayed manually.
+
+## Specialized Proxy: Functions
+
+`jluna::Proxy` has quite a lot of features but one it doesn't sport out-of-the-box is being callable:
+
+```cpp
+Function f = State::script("f(x) = sqrt(x^x^x)");
+f(2);
+```
+```
+/home/Workspace/jluna/.test/main.cpp: In function ‘int main()’:
+/home/Workspace/jluna/.test/main.cpp:21:4: error: no match for call to ‘(jluna::Proxy<jluna::State>) (int)’
+   21 | f(2);
+      |    ^
+```
+
+To wrap a function in a way where we can call it from C++, we need to instead assign it to an object of type `jluna::Function` or `jluna::SafeFunction`:
+
+```cpp
+Function f = State::script("f(x) = sqrt(x^x^x)");
+std::cout << (int) f(2) << std::endl;
+```
+```
+4
+```
+Any `Boxable` argument can be used directly as arguments for `jluna::Function`, this includes other proxies including proxy functions. If a type does not fulfill the constraints of boxable you will need to manually convert it into a `jl_value_t*` using the C-API or defined your own `box(T)` functino. 
+
+Other than the callability, function proxies are still proxies of course so all the functionality detailed so far is also available to them. 
+
+Similar to `State::safe_script`, `SafeFunction` wraps the function call in a marginally slower but much safer, exception-forwarding call:
+
+```cpp
+Function f = State::script("f(x) = sqrt(x^x^x)");
+std::cout << (int) f(-1) << std::endl;
+```
+```
+terminate called after throwing an instance of 'jluna::JuliaException'
+  what():  DomainError with -1.0:
+sqrt will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).
+Stacktrace:
+ [1] throw_complex_domainerror(f::Symbol, x::Float64)
+   @ Base.Math ./math.jl:33
+ [2] sqrt
+   @ ./math.jl:567 [inlined]
+ [3] sqrt
+   @ ./math.jl:1221 [inlined]
+ [4] f(x::Int32)
+   @ Main ./none:1
+ [5] safe_call(f::Function, args::Int32)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:75
+
+signal (6): Aborted
+in expression starting at none:0
+gsignal at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
+abort at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
+unknown function (ip: 0x7f9a5afe8a30)
+unknown function (ip: 0x7f9a5aff44fb)
+_ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
+__cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
+forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:39
+safe_call<int> at /home/clem/Workspace/jluna/./.src/state.inl:157
+operator()<int> at /home/clem/Workspace/jluna/./.src/function_proxy.inl:72
+main at /home/clem/Workspace/jluna/.test/main.cpp:21
+__libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
+_start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
+Allocations: 1613608 (Pool: 1612710; Big: 898); GC: 2
+```
+
+It should thus be preferred to `Function` in any situation that isn't bleeding edge performance critical. 
+
+
+        
+        
+
+
+
 
 
 

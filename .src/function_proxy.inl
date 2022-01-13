@@ -91,7 +91,7 @@ namespace jluna
     template<Boxable... Args_t>
     auto Function::operator()(Args_t&&... args)
     {
-        return Proxy<State>(State::call((jl_function_t*) value(), std::forward<Args_t>(args)...));
+        return Proxy<State>(State::call((jl_function_t*) value(), std::forward<Args_t>(args)...), nullptr);
     }
 
 }
