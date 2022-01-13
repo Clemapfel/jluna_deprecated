@@ -148,7 +148,7 @@ instance._outer_field._inner_field
 
 Where the starting `Main.` is implicit and thus not displayed manually.
 
-## Specialized Proxy: Functions
+## Functions
 
 `jluna::Proxy` has quite a lot of features but one it doesn't sport out-of-the-box is being callable:
 
@@ -216,6 +216,107 @@ Allocations: 1613608 (Pool: 1612710; Big: 898); GC: 2
 ```
 
 It should thus be preferred to `Function` in any situation that isn't bleeding edge performance critical. 
+
+## Arrays
+
+Julias arrays are quite powerful and fully featured, it is thus only natural that a julia-binding library should have an intuitive and similarly fully features Array wrapper. In `jluna`, this is done by `jluna::Array<T, R>` where `T` is the value type and `R` is the *rank* (or dimensionality) of the array. This is directly equivalent to how julia declares its array types:
+
+| Julia          | jluna         |
+|----------------|---------------|
+| `Vector{T}`    | `Vector<T>`   |
+| `Matrix{T}`    | `Array<T, 2>` |
+| `Array{T, R}`  | `Array<T, R>` | 
+
+For any R in {1, 2, ...}. Note that `jluna::Array<T, 1>` is not the same as `jluna::Vector<T, 1>`, `Vector` actually inherits from `Array<T, 1>` and while it is functionally equivalent, it has the following additional functions:
+
+```
+void insert(size_t pos, Value_t value);
+// equivalent to insert!(this, pos, value)
+
+void erase(size_t pos);
+// equivalent to deleteat!(this, pos)
+
+template<Boxable T = Value_t>
+void push_front(T value);
+// equivalent to insert(this, 0, value)
+
+template<Boxable T = Value_t>
+void push_back(T value);
+// equivalent to push!(this, value)
+```
+
+### Index Access
+
+There are two way to access an element in any array, *linear indexing* and *multidimensional indexing*:
+
+```cpp
+State::safe_script(R"(
+    vec_1d = [1, 2, 3, 4, 5, 6]
+    arr_3d = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+)");
+
+Vector<Int64> vec = Main["vec_1d"];
+Array<Int64, 3> arr = Main["arr"];
+
+// linear indexing
+std::cout << vec[3] << "\n";
+std::cout << arr[12] << "\n";
+
+// multi-dimensional indexing
+std::cout << vec.at(0) << "\n";
+std::cout << arr.at(0, 1, 2) << std::endl;
+```
+```
+vector: [1, 2, 3, 4, 5, 6]
+array : [1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 22 25; 20 23 26; 21 24 27]
+4
+13
+1
+22
+```
+
+We see that C++-side, indexing is 0-based. This is in keeping with the Julia C-library and should be kept in mind, for example to get the 22ths element of `arr` in C++, we use `arr.at(0, 1, 2)` but in Julia we would use `getindex(arr, [1, 2, 3])`.
+
+### Iteration
+
+`jluna`s array and it's daughters are iterable, just like most std::containers. We can do so using the C++ for-in loop:
+
+```cpp
+int sum = 0;
+for (int i : vec)
+    sum += i;
+
+std::cout << sum << std::endl;
+```
+```
+21
+```
+
+However `jluna` also offers a special iterator class that can be accessed by declaring the iterating variable as `auto` (*not* `auto&`). This iterator can then be assigned to which will change the corresponding value julia-side as it is always mutating. If we do not want to mutate the julia-side variable for some reason, we can instead cast the iterator to `Proxy<State>` which will only mutate it's corresponding julia value after `make_mutating`:
+
+```cpp
+for (auto it : vec)
+{
+    it = 6;
+    std::cout << it.operator Proxy<State>().get_name() << std::endl;
+}
+
+std::cout << (std::string) vector << std::endl;
+```
+```
+vec_1d[1]
+vec_1d[2]
+vec_1d[3]
+vec_1d[4]
+vec_1d[5]
+vec_1d[6]
+[6, 6, 6, 6, 6, 6]
+```
+
+Because the iterator can become a proxy, the arrays value type is truly aribtrary and each element offers the same functionality as any other proxy:
+```
+
+
 
 
         

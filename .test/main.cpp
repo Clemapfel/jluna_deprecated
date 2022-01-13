@@ -17,6 +17,54 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+    State::safe_script(R"(
+    vec_1d = [1, 2, 3, 4, 5, 6]
+    arr_3d = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+)");
+
+    State::safe_script(R"(
+
+        module MyModule
+
+            struct MyType
+                _field::Vector{Module}
+            end
+
+            instance = MyType([Main, Base, Core]);
+        end
+    )");
+
+    std::cout << (std::string) Main["MyModule"]["instance"]["_field"][0]["MyModule"]["instance"]["_field"][1] << std::endl;
+    return 0;
+
+Vector<Int64> vec = Main["vec_1d"];
+Array<Int64, 3> arr = Main["arr_3d"];
+
+int sum = 0;
+for (int i : vec)
+    sum += i;
+
+for (auto it : vec)
+{
+    it = 6;
+    std::cout << it.operator Proxy<State>().get_name() << std::endl;
+}
+
+
+std::cout << sum << std::endl;
+
+std::cout << "vector: " << (std::string) vec << "\n";
+std::cout << "array : " << (std::string) arr << "\n";
+
+// linear indexing
+std::cout << (int) vec[3] << "\n";
+std::cout << (int) arr[12] << "\n";
+
+// multi-dimensional indexing
+std::cout << (int) vec.at(0) << "\n";
+std::cout << (int) arr.at(0, 1, 2) << std::endl;
+return 0;
+
     SafeFunction f = State::script("f(x) = sqrt(x^x^x)");
 std::cout << (int) f(-1) << std::endl;
 return 0;
