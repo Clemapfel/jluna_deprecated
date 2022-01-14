@@ -17,6 +17,9 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+        Main(12);
+
+
     State::safe_script(R"(
     vec_1d = [1, 2, 3, 4, 5, 6]
     arr_3d = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))

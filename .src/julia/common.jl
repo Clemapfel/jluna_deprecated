@@ -57,6 +57,13 @@ begin # not part of jluna
     end
 
     """
+    wrap function call for non-function objects
+    """
+    function invoke(x::Any, args...) ::Any
+        return x(args...)
+    end
+
+    """
     wrap dot operator for both modules, structs and arrays
 
     @param x: Array

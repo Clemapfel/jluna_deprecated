@@ -112,7 +112,8 @@ namespace jluna
             template<Boxable... Args_t>
             auto safe_call(Args_t&&...);
 
-            /// call with arguments, if proxy is a callable function
+            /// call with arguments and exception forwarding, if proxy is a callable function
+            /// @tparams Args_t: types of arguments, need to be boxable
             template<Boxable... Args_t>
             auto operator()(Args_t&&...);
 

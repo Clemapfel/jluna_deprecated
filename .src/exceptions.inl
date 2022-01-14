@@ -30,7 +30,6 @@ namespace jluna
             throw JuliaException(jl_exception_occurred(), str.str());
             return;
         }
-
         else if (jl_unbox_bool(jl_eval_string("return jluna.exception_handler.has_exception_occurred()")))
         {
             throw JuliaException(
