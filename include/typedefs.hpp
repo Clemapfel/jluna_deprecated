@@ -9,7 +9,7 @@
 
 namespace jluna
 {
-    /// typedefs for prettier code
+    // typedefs for prettier code
 
     using Bool = bool;
     using Char = uint8_t;

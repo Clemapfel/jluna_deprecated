@@ -17,13 +17,39 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-        Main(12);
+    using namespace jluna;
 
+    State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
+
+// array of arbitary type and rank
+    Array<jluna::Int64, 3> array = Main["array"];
+
+// access element
+    array[3] = 8888;         // 0-based linear indexing
+    array.at(0, 1, 2) = 9999; // 0-based multi-dimensional indexing
+
+    State::safe_script("vector = [1, 2, 3, 4, 5, 6, 7, 8, 9]");
+
+// vectors are an Array<T, 1> typedef with some extra functionality
+    Vector<int> vector = Main["vector"];
+    vector.push_front(0);
+    vector.push_back(10);
+
+// both arrays and vectors are iterable
+    for (auto it : vector)
+        it = it.operator int() + 10; // also assigns the Julia-side array
+
+    State::safe_script(R"(println("array: ", array))");
+    State::safe_script(R"(println("vector: ", vector))");
+
+    return 0;
+}
+    /*
 
     State::safe_script(R"(
-    vec_1d = [1, 2, 3, 4, 5, 6]
-    arr_3d = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
-)");
+        vec_1d = [1, 2, 3, 4, 5, 6]
+        arr_3d = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))
+    )");
 
     State::safe_script(R"(
 
@@ -72,10 +98,6 @@ std::cout << (int) arr[12] << "\n";
 // multi-dimensional indexing
 std::cout << (int) vec.at(0) << "\n";
 std::cout << (int) arr.at(0, 1, 2) << std::endl;
-return 0;
-
-    SafeFunction f = State::script("f(x) = sqrt(x^x^x)");
-std::cout << (int) f(-1) << std::endl;
 return 0;
 
     auto no_name_proxy = State::script("return 123");
@@ -140,5 +162,3 @@ return 0;
     forward_last_exception();
     State::safe_script("println(struct_type_instance._field)"); // prints: 101112
      */
-
-}

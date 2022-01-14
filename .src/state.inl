@@ -7,7 +7,6 @@
 #include <state.hpp>
 #include <sstream>
 #include <exceptions.hpp>
-#include <function_proxy.hpp>
 #include <box_any.hpp>
 #include <symbol_proxy.hpp>
 #include <global_utilities.hpp>
@@ -235,6 +234,7 @@ namespace jluna
         jl_gc_enable(before);
     }
 
+    /*
     auto State::get_function(const std::string& function_name, const std::string& module_name)
     {
         THROW_IF_UNINITIALIZED;
@@ -260,6 +260,7 @@ namespace jluna
                 safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v),
                 jl_symbol(function_name.c_str()));
     }
+    */
 
     jl_function_t* State::find_function(const std::string& function_name)
     {

@@ -31,9 +31,6 @@ add_library(jluna STATIC
     include/exceptions.hpp
     .src/exceptions.inl
 
-    include/function_proxy.hpp
-    .src/function_proxy.inl
-
     include/symbol_proxy.hpp
     .src/symbol_proxy.inl
 
@@ -44,7 +41,11 @@ add_library(jluna STATIC
     .src/global_utilities.inl
 
     include/array_proxy.hpp
-    .src/array_proxy.inl .src/array_proxy_iterator.inl include/typedefs.hpp .src/typedefs.hpp)
+    .src/array_proxy.inl
+    .src/array_proxy_iterator.inl
+
+    include/typedefs.hpp
+)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)

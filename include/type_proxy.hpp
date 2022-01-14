@@ -39,6 +39,15 @@ namespace jluna
             /// @returns true if Base.ismutable would return true
             bool is_mutable_type() const;
 
+            /// @brief is structtype
+            /// @returns true if Base.issstructype woudl return true
+            bool is_structtype() const;
+
+            /// @brief <: operator
+            /// @param type
+            /// @returns true if type <: this
+            bool is_subtype(const Type& type) const;
+
         private:
             using Proxy<State>::_content;
     };
