@@ -17,9 +17,9 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    auto* complex = box(std::complex<jluna::Int64>(12, 1));
-    std::cout << unbox<std::complex<double>>(complex) << std::endl;
-    Main["println"](complex);
+    auto* pair = jl_eval_string("return 123 => \"abc\"");
+    auto std_pair = unbox<std::pair<int, std::string>>(pair);
+    std::cout << std_pair.first << " " << std_pair.second << std::endl;
 
     State::safe_script(R"(
         mutable struct MyStruct

@@ -189,4 +189,17 @@ namespace jluna
 
         return std::complex<S>(unbox<S>(re), unbox<S>(im));
     }
+
+    /// @brief unbox to pair
+    template<typename T,
+        typename T1 = typename T::first_type,
+        typename T2 = typename T::second_type,
+        std::enable_if_t<std::is_same_v<T, std::pair<T1, T2>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        auto* first = jl_get_nth_field(value, 0);
+        auto* second = jl_get_nth_field(value, 1);
+
+        return std::pair<T1, T2>(unbox<T1>(first), unbox<T2>(second));
+    }
 }
