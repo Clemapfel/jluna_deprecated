@@ -14,12 +14,21 @@ using namespace jluna;
 
 int main()
 {
+    std::cout << array_size<std::array<int, 10>>::value << std::endl;
+
     // initialize state, always needs to be called first
     State::initialize();
 
-    auto* pair = jl_eval_string("return 123 => \"abc\"");
-    auto std_pair = unbox<std::pair<int, std::string>>(pair);
-    std::cout << std_pair.first << " " << std_pair.second << std::endl;
+    auto tuple = std::make_tuple(123, 0,-1.f);
+    auto* boxed = box(tuple);
+
+    std::tuple<size_t, std::string, float> unboxed = unbox_tuple<size_t, std::string, float>(boxed);
+
+    std::cout << std::get<0>(unboxed) << " " << std::get<1>(unboxed) << " " << std::get<2>(unboxed) << " " << std::endl;
+
+    Main["println"](boxed);
+    return 0;
+
 
     State::safe_script(R"(
         mutable struct MyStruct

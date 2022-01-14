@@ -8,7 +8,10 @@
 #include <julia.h>
 #include <.src/julia_extension.h>
 #include <string>
+#include <vector>
 #include <type_traits>
+#include <utility>
+#include <.src/common.hpp>
 
 namespace jluna
 {
@@ -184,6 +187,8 @@ namespace jluna
     template<typename T, typename S = typename T::value_type, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool> = true>
     T unbox(jl_value_t* value)
     {
+        assert(jl_isa(value, jl_eval_string("return Complex")));
+
         auto* re = jl_get_nth_field(value, 0);
         auto* im = jl_get_nth_field(value, 1);
 
@@ -197,9 +202,71 @@ namespace jluna
         std::enable_if_t<std::is_same_v<T, std::pair<T1, T2>>, bool> = true>
     T unbox(jl_value_t* value)
     {
+        assert(jl_isa(value, (jl_value_t*) jl_pair_type));
+
         auto* first = jl_get_nth_field(value, 0);
         auto* second = jl_get_nth_field(value, 1);
 
         return std::pair<T1, T2>(unbox<T1>(first), unbox<T2>(second));
     }
+
+    /// @brief unbox to vector
+    template<typename T,
+        typename U = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::vector<U>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        assert(jl_isa(value, (jl_value_t*) jl_array_type));
+
+        std::vector<U> out;
+        out.reserve(jl_array_len(value));
+
+        for (size_t i = 0; i < jl_array_len(value); ++i)
+            out.push_back(unbox<U>(jl_arrayref((jl_array_t*) value, i)));
+
+        return out;
+    }
+
+    /// @brief unbox to array
+    template<typename T,
+        size_t N = array_size<T>::value,
+        typename U = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::array<U, N>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        assert(jl_isa(value, (jl_value_t*) jl_array_type));
+        assert(N == jl_unbox_int64((jl_value_t*) jl_array_len(value)));
+
+        std::array<U, N> out;
+
+        for (size_t i = 0; i < jl_array_len(value); ++i)
+            out.at(i) = (unbox<U>(jl_arrayref((jl_array_t*) value, i)));
+
+        return out;
+    }
+
+    template<typename Tuple_t, typename Value_t, size_t i>
+    void unbox_tuple_aux_aux(Tuple_t& tuple, jl_value_t* value)
+    {
+        static jl_function_t* tuple_at = (jl_function_t*) jl_eval_string("jluna.tuple_at");
+        auto* v = jl_call2(tuple_at, value, jl_box_uint64(i+1));
+        std::get<i>(tuple) = unbox<std::tuple_element_t<i, Tuple_t>>(v);
+    }
+
+    template<typename Tuple_t, typename Value_t, std::size_t... is>
+    void unbox_tuple_aux(Tuple_t& tuple, jl_value_t* value, std::index_sequence<is...> _)
+    {
+        (unbox_tuple_aux_aux<Tuple_t, Value_t, is>(tuple, value), ...);
+    }
+
+    /// @brief unbox tuple
+    template<typename... Ts>
+    std::tuple<Ts...> unbox_tuple(jl_value_t* value)
+    {
+        std::tuple<Ts...> out;
+        (unbox_tuple_aux<std::tuple<Ts...>, Ts>(out, value, std::index_sequence_for<Ts...>{}), ...);
+
+        return out;
+    }
+
 }

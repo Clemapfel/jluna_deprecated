@@ -8,6 +8,7 @@
 #include <julia.h>
 #include <type_traits>
 #include <string>
+#include <.src/common.hpp>
 
 namespace jluna
 {
@@ -126,13 +127,38 @@ namespace jluna
         return jl_call2(pair, box(value.first), box(value.second));
     }
 
-    /// @brief box to explicit return type
-    template<typename From, typename To>
-    concept CastableTo = requires(From t)
+    /// @brief box range to vector
+    template<Iterable Range_t>
+    jl_value_t* box(Range_t value)
     {
-        {static_cast<To>(t)};
-    };
+        static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("jluna");
+        static jl_function_t* vector = jl_get_function(jluna_module, "make_vector");
 
+        std::vector<jl_value_t*> args;
+        args.reserve(value.size());
+        for (auto& v : value)
+            args.push_back(box(v));
+
+        return jl_call(vector, args.data(), args.size());
+    }
+
+    /// @brief box tuple
+    template<typename... Ts>
+    jl_value_t* box(std::tuple<Ts...> value)
+    {
+        static jl_function_t* tuple = jl_get_function(jl_core_module, "tuple");
+
+        std::vector<jl_value_t*> args;
+        args.reserve(sizeof...(Ts));
+
+        std::apply([&](auto&&... elements) {
+            (args.push_back(box(elements)), ...);
+        }, value);
+
+        return jl_call(tuple, args.data(), args.size());
+    }
+
+    /// @brief box to explicit return type
     template<typename Return_t, CastableTo<Return_t> Arg_t>
     jl_value_t* box(Arg_t t)
     {

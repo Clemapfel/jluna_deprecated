@@ -57,6 +57,21 @@ begin
     end
 
     """
+    """
+    function tuple_at(x::Tuple, i::Integer)
+        return x[i]
+    end
+
+    """
+    wrap vector ctor in varargs argument, used by box/unbox
+    """
+    function make_vector(args::T...) ::Vector{T} where T
+
+        println("making " * string(args)...)
+        return [args...]
+    end
+
+    """
     wrap function call for non-function objects
     """
     function invoke(x::Any, args...) ::Any

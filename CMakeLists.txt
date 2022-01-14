@@ -45,7 +45,7 @@ add_library(jluna STATIC
     .src/array_proxy_iterator.inl
 
     include/typedefs.hpp
-)
+        .src/common.hpp)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
