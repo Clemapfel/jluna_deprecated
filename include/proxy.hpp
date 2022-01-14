@@ -156,7 +156,7 @@ namespace jluna
 
             std::shared_ptr<ProxyValue> _content;
 
-            bool _is_mutating = false;
+            bool _is_mutating = true;
             std::deque<jl_sym_t*> assemble_name() const;
 
             // for nicer syntax internally:

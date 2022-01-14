@@ -1,6 +1,6 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented. Heavily inspired in design and syntax by the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
+Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented. Heavily inspired in design and syntax by the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
 
 Some advantages `jluna` has over the C-API:
 + automatically detects and links Julia during make
@@ -12,6 +12,8 @@ Some advantages `jluna` has over the C-API:
 + multi-dimensional array interface with Julia-Style indexing 
 + `jluna` is fully documented, including tutorials and inline documentation for IDEs
 + mixing the C-API and `jluna` works no problem
+
+(*`jluna` is in no way affiliated with the sol2 team and no code is shared between libraries)
 
 ### Table of Contents
 
@@ -82,7 +84,7 @@ println(std::string("this is a string "), "\n",
         State::script("return [1, 2, 3]"), "\n");
 
 // alternatively you can do it as a one-liner...
-jluna::Main["Base"]["println"]("like this");
+jluna::Main["Base"]["println"]("...like this");
 ```
 ```
 this is a string 
@@ -90,7 +92,7 @@ println
 first => 42
 [1, 2, 3]
 
-like this
+...like this
 ```
 
 ### Modifying Julia-Side Variables
@@ -107,20 +109,26 @@ jluna::State::safe_script(R"(
 )");
 jluna::State::safe_script(R"(println("before: ", MyModule.instance._field))");
 
-// field proxy
-auto field = jluna::Main["MyModule"]["instance"]["_field"];
+// proxy of value only: use "return"
+auto by_value = jluna::State::script("return MyModule.instance._field");
+by_value = 456; // only modifies proxy value, not MyModule.instance._field
 
-// to modify both the proxy and the Julia-side variable, we need to declare it mutating
-jluna::make_mutating(field);
+jluna::State::safe_script(R"(println("now: ", MyModule.instance._field))");
 
-// after that any assign will affect both C++ and Julia-side memory
-field = 456;
+// proxy of variable: use operator[]
+auto by_reference = jluna::Main["MyModule"]["instance"]["_field"];
+by_reference = 789; // does modify Julia-side variable by name
 
 State::safe_script(R"(println("after: ", MyModule.instance._field))");
+
+// it is possible to transform a variable proxy to a value proxy by using:
+by_reference.set_mutating(false);
+// now operator= does *not* mutate julia-side variable MyModule.instance._field
 ```
 ```
 before: 123
-after: 456
+now: 123
+after: 789
 ```
 
 ### Mulit-Dimensional Arrays
@@ -129,11 +137,11 @@ using namespace jluna;
 
 State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
 
-// array of arbitary type and rank
+// array of arbitrary type and rank
 Array<jluna::Int64, 3> array = Main["array"];
 
 // access element
-array[3] = 8888;         // 0-based linear indexing
+array[3] = 8888;          // 0-based linear indexing
 array.at(0, 1, 2) = 9999; // 0-based multi-dimensional indexing
 
 State::safe_script("vector = [1, 2, 3, 4, 5, 6, 7, 8, 9]");
@@ -200,9 +208,9 @@ Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 
 ### Planned (but not yet implemented):
 In order of priority, highest first:
-+ creating new modules and datatypes completely C++-Side
 + expression proxy, access to meta features via C++
 + Julia-side wrapper for C++ Functions, similar to `@ccall`
++ creating new modules and datatypes completely C++-Side
 + save-states, restoring a previous Julia state
 + clang support
 + Julia-side macro expansion during C++ compile time 
