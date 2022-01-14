@@ -83,6 +83,25 @@ namespace jluna
     }
 
     template<typename State_t>
+    auto Proxy<State_t>::operator[](size_t i)
+    {
+        static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
+        return Proxy<State_t>(
+                State_t::safe_call(getindex, _content.get()->_value, i + 1),
+                _content,
+                jl_symbol(("[" + std::to_string(i) + "]").c_str())
+        );
+    }
+
+    template<typename State_t>
+    template<Unboxable T>
+    T Proxy<State_t>::operator[](size_t i)
+    {
+        static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
+        return unbox<T>(State_t::safe_call(getindex, _content.get()->_value(), i + 1));
+    }
+
+    template<typename State_t>
     jl_value_t * Proxy<State_t>::value()
     {
         return _content->_value;
@@ -166,6 +185,38 @@ namespace jluna
         }
 
         return str.str();
+    }
+
+    template<typename State_t>
+    std::vector<std::string> Proxy<State_t>::get_field_names() const
+    {
+        auto* svec = jl_field_names((jl_datatype_t*) jl_typeof(_content->_value));
+        std::vector<std::string> out;
+        for (size_t i = 0; i < jl_svec_len(svec); ++i)
+            out.push_back(std::string(jl_symbol_name((jl_sym_t*) jl_svecref(svec, i))));
+
+        return out;
+    }
+
+    template<typename State_t>
+    template<Boxable... Args_t>
+    auto Proxy<State_t>::call(Args_t&&... args)
+    {
+        return Proxy<State>(State_t::call((jl_function_t*) value(), std::forward<Args_t>(args)...), nullptr);
+    }
+
+    template<typename State_t>
+    template<Boxable... Args_t>
+    auto Proxy<State_t>::safe_call(Args_t&&... args)
+    {
+        return Proxy<State>(State_t::safe_call((jl_function_t*) value(), std::forward<Args_t>(args)...), nullptr);
+    }
+
+    template<typename State_t>
+    template<Boxable... Args_t>
+    auto Proxy<State_t>::operator()(Args_t&&... args)
+    {
+        return Proxy<State>(State_t::safe_call(args...));
     }
 
     template<typename State_t>

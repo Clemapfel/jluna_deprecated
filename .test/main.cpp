@@ -34,6 +34,12 @@ int main()
         end
     )");
 
+    for (auto& e : Main["MyModule"]["instance"].get_field_names())
+        std::cout << e << std::endl;
+
+    return 0;
+
+
     std::cout << (std::string) Main["MyModule"]["instance"]["_field"][0]["MyModule"]["instance"]["_field"][1] << std::endl;
     return 0;
 

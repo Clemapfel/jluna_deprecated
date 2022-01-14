@@ -55,13 +55,24 @@ namespace jluna
             /// @brief access field
             /// @param field_name
             /// @returns field as proxy
-            Proxy<State_t> operator[](const std::string& field);
+            virtual Proxy<State_t> operator[](const std::string& field);
 
             /// @brief access field
             /// @param field_name
             /// @returns unboxed value
             template<Unboxable T>
             T operator[](const std::string& field);
+
+            /// @brief access via linear index, if array type returns getindex! result
+            /// @param index
+            /// @returns field as proxy
+            auto operator[](size_t);
+
+            /// @brief access via linear index, if array type returns getindex! result
+            /// @param index
+            /// @returns field as proxy
+            template<Unboxable T>
+            T operator[](size_t);
 
             /// @brief cast to jl_value_t
             operator jl_value_t*();
@@ -86,6 +97,24 @@ namespace jluna
 
             /// @brief get variable name, if any
             std::string get_name() const;
+
+            /// @brief get field names
+            /// @returns vector of strings
+            std::vector<std::string> get_field_names() const;
+
+            /// @brief call with any arguments
+            /// @tparams Args_t: types of arguments, need to be boxable
+            template<Boxable... Args_t>
+            auto call(Args_t&&...);
+
+            /// @brief call with any arguments
+            /// @tparams Args_t: types of arguments, need to be boxable
+            template<Boxable... Args_t>
+            auto safe_call(Args_t&&...);
+
+            /// call with arguments, if proxy is a callable function
+            template<Boxable... Args_t>
+            auto operator()(Args_t&&...);
 
             /// @brief check whether assigning to this proxy will modify values julia-side
             /// @returns true if set as mutating and neither an immutable type, singleton or const variable
