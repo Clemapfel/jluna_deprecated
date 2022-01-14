@@ -22,7 +22,7 @@ int main()
     auto tuple = std::make_tuple(123, 0,-1.f);
     auto* boxed = box(tuple);
 
-    std::tuple<size_t, std::string, float> unboxed = unbox_tuple<size_t, std::string, float>(boxed);
+    auto unboxed = unbox<std::tuple<int, std::string, float>>(boxed);
 
     std::cout << std::get<0>(unboxed) << " " << std::get<1>(unboxed) << " " << std::get<2>(unboxed) << " " << std::endl;
 

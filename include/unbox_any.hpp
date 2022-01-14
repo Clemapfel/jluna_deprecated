@@ -269,4 +269,22 @@ namespace jluna
         return out;
     }
 
+    template<typename T>
+    concept IsTuple = requires (T t)
+    {
+        {std::tuple_size<T>::value};
+    };
+
+    template<typename... Ts>
+    std::tuple<Ts...> unbox_tuple_pre(jl_value_t* v, std::tuple<Ts...>)
+    {
+        return unbox_tuple<Ts...>(v);
+    }
+
+    template<IsTuple T>
+    T unbox(jl_value_t* value)
+    {
+        return unbox_tuple_pre(value, T());
+    }
+
 }
