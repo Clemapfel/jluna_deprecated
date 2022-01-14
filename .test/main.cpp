@@ -17,6 +17,10 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
+    auto* complex = box(std::complex<jluna::Int64>(12, 1));
+    std::cout << unbox<std::complex<double>>(complex) << std::endl;
+    Main["println"](complex);
+
     State::safe_script(R"(
         mutable struct MyStruct
             variable

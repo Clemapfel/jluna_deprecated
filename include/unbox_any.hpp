@@ -179,4 +179,14 @@ namespace jluna
 
         return std::string(jl_string_data(jl_call1(to_string, value)));
     }
+
+    /// @brief unbox to complex
+    template<typename T, typename S = typename T::value_type, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool> = true>
+    T unbox(jl_value_t* value)
+    {
+        auto* re = jl_get_nth_field(value, 0);
+        auto* im = jl_get_nth_field(value, 1);
+
+        return std::complex<S>(unbox<S>(re), unbox<S>(im));
+    }
 }

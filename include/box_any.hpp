@@ -110,6 +110,16 @@ namespace jluna
         return jl_box_float64(value);
     }
 
+    // complex
+    template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
+    jl_value_t* box(std::complex<T> value)
+    {
+        static jl_function_t* complex = jl_get_function(jl_base_module, "complex");
+        return jl_call2(complex, box(value.real()), box(value.imag()));
+    }
+
+
+
     // explicit return type
     template<typename From, typename To>
     concept CastableTo = requires(From t)
