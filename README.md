@@ -23,7 +23,8 @@ Some advantages `jluna` has over the C-API:
   1.2 [Accessing Julia-Side Variables](#accessing-julia-side-variables)<br>
   1.3 [Modifying Julia-Side Variables](#modifying-julia-side-variables)<br>
   1.4 [Multi-Dimensional Arrays](#mulit-dimensional-arrays)<br>
-  1.5 [Exception Forwarding](#exception-forwarding)<br>
+  1.5 [std & User Type Support](#std--user-type-support)
+  1.6 [Exception Forwarding](#exception-forwarding)<br>
 2. [Planned Features](#and-more)<br>
 3. [Dependencies](#dependencies)<br>
    3.1 [Julia 1.7.0+](#dependencies)<br>
@@ -162,32 +163,32 @@ State::safe_script(R"(println("vector: ", vector))");
 array: [1 8888 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 vector: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 ```
-### std:: Support
+### std & User Type Support
 ```cpp
-State::safe_script("print_types(xs...) = for x in xs println(typeof(x)) end");
+jluna::State::safe_script("print_types(xs...) = for x in xs println(typeof(x)) end");
 
 // the following types are compatible out of the box:
-Main["print_types"](
+ Main["print_types"](
     std::string("string"),
     std::complex<double>(0, 1),
     std::pair<size_t, std::string>{1, "string"},
     std::tuple<float, size_t, std::string>{1.f, 2, "string"},
-    std::vector<size_t>{1, 2, 3},
-    std::map<size_t, size_t>{{1, 1}},
-    std::set<size_t>{1}
+    std::vector<long>{1, 2, 3},
+    std::map<float, size_t>{{1, 1}},
+    std::set<char>{1}
 );
 
 // but the system is generic and arbitrarily scalable
-Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
+jluna::Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
 ```
 ```
 String
 ComplexF64
 Pair{UInt64, String}
 Tuple{Float32, UInt64, String}
-Vector{UInt64}
-IdDict{UInt64, UInt64}
-Set{UInt64}
+Vector{Int64}
+IdDict{Float32, UInt64}
+Set{Char}
 
 Set{IdDict{UInt64, Pair{UInt64, Vector{Int32}}}}
 ```
@@ -235,6 +236,7 @@ Allocations: 1624652 (Pool: 1623704; Big: 948); GC: 2
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
 ```
 ### And more!
+
 
 ### Planned (but not yet implemented):
 In order of priority, highest first:
@@ -295,7 +297,11 @@ target_link_libraries(MY_EXECUTABLE jluna)
 Open `jluna/CMakeLists.txt` in an editor and modify the following statement in line 10:
 
 ```cmake
-10: set(JULIA_EXECUTABLE /path/to/your/.../Julia/bin/Julia) # add the path to Julia here 
+set(JULIA_EXECUTABLE julia)
+```
+to:
+```cmake
+set(JULIA_EXECUTABLE /path/to/your/.../julia/bin/julia) # replace with the path to julia/bin/julia here
 ```
 
 During `make` jluna should now be able to determine all the information to build jluna and link Julia properly
@@ -312,18 +318,9 @@ Make sure that the image is uncompressed as `.zip` or `.tar` files cannot be use
 
 ## Documentation
 
-A full manual that introduces all major features in `jluna` step-by-step is available [here](/docs/docs.md). If you feel like you don't have the time or you're just here remind yourself of specific syntax, feel free to consult this example `main.cpp`:
+(the manual is not yet complete, consider checking the headers for inline documentation instead)
 
-```cpp
-#include <jluna.hpp>
-
-using namespace jluna;
-int main()
-{
-  // always initialize first
-  jluna::State::initialize();
-}
-```
+A full manual that introduces all major features in `jluna` step-by-step is available [here](/docs/docs.md). If you feel like you don't have the time or you're just here remind yourself of specific syntax, feel free to consult the [examples above](#features).
 
 
 
