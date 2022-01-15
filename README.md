@@ -162,6 +162,36 @@ State::safe_script(R"(println("vector: ", vector))");
 array: [1 8888 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 vector: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 ```
+### std:: Support
+```cpp
+State::safe_script("print_types(xs...) = for x in xs println(typeof(x)) end");
+
+// the following types are compatible out of the box:
+Main["print_types"](
+    std::string("string"),
+    std::complex<double>(0, 1),
+    std::pair<size_t, std::string>{1, "string"},
+    std::tuple<float, size_t, std::string>{1.f, 2, "string"},
+    std::vector<size_t>{1, 2, 3},
+    std::map<size_t, size_t>{{1, 1}},
+    std::set<size_t>{1}
+);
+
+// but the system is generic and arbitrarily scalable
+Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
+```
+```
+String
+ComplexF64
+Pair{UInt64, String}
+Tuple{Float32, UInt64, String}
+Vector{UInt64}
+IdDict{UInt64, UInt64}
+Set{UInt64}
+
+Set{IdDict{UInt64, Pair{UInt64, Vector{Int32}}}}
+```
+
 
 ### Exception Forwarding
 ```cpp

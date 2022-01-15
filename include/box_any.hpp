@@ -27,7 +27,7 @@ namespace jluna
     }
 
     /// @brief box to string
-    jl_value_t* box(const std::string& value)
+    jl_value_t* box(std::string& value)
     {
         std::string command = "return \"" + value + "\"";
         return jl_eval_string(command.c_str());
@@ -120,14 +120,6 @@ namespace jluna
         return jl_call2(complex, box(value.real()), box(value.imag()));
     }
 
-    /// @brief box to pair
-    template<typename T1, typename T2>
-    jl_value_t* box(std::pair<T1, T2> value)
-    {
-        static jl_function_t* pair = jl_get_function(jl_core_module, "Pair");
-        return jl_call2(pair, box(value.first), box(value.second));
-    }
-
     /// @brief box to vector
     template<typename T>
     jl_value_t* box(std::vector<T> value)
@@ -141,6 +133,14 @@ namespace jluna
             args.push_back(box(v));
 
         return jl_call(vector, args.data(), args.size());
+    }
+
+    /// @brief box to pair
+    template<typename T1, typename T2>
+    jl_value_t* box(std::pair<T1, T2> value)
+    {
+        static jl_function_t* pair = jl_get_function(jl_core_module, "Pair");
+        return jl_call2(pair, box(value.first), box(value.second));
     }
 
     /// @brief box tuple

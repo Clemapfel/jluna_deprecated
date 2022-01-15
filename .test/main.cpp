@@ -14,10 +14,24 @@ using namespace jluna;
 
 int main()
 {
-    std::cout << array_size<std::array<int, 10>>::value << std::endl;
-
     // initialize state, always needs to be called first
     State::initialize();
+
+    State::safe_script("print_types(xs...) = for x in xs println(typeof(x)) end");
+    Main["print_types"](
+        std::string("string"),
+        std::complex<double>(0, 1),
+        std::pair<size_t, std::string>{1, "string"},
+        std::tuple<float, size_t, std::string>{1.f, 2, "string"},
+        std::vector<size_t>{1, 2, 3},
+        std::map<size_t, size_t>{{1, 1}},
+        std::set<size_t>{1}
+    );
+
+    Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
+
+}
+    /*
 
     std::set<std::pair<size_t, std::string>> set = {
             {12, "absa"},
