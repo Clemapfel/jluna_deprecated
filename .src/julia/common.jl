@@ -57,6 +57,11 @@ begin
     end
 
     """
+    get nth element of tuple
+
+    @param x: tuple
+    @param i: index
+    @returns element
     """
     function tuple_at(x::Tuple, i::Integer)
         return x[i]
@@ -67,7 +72,6 @@ begin
     """
     function make_vector(args::T...) ::Vector{T} where T
 
-        println("making " * string(args)...)
         return [args...]
     end
 
@@ -76,6 +80,28 @@ begin
     """
     function invoke(x::Any, args...) ::Any
         return x(args...)
+    end
+
+    """
+    transform collection into array
+    """
+    function serialize(x::IdDict{Key_t, Value_t}) ::Vector{Pair{Key_t, Value_t}} where {Key_t, Value_t}
+
+        out = Vector{Pair{Key_t, Value_t}}()
+        for e in x
+            push!(out, e)
+        end
+        return out;
+    end
+
+    function serialize(x::Set{T}) ::Vector{T} where T
+
+        out = Vector{T}()
+
+        for e in x
+            push!(out, e)
+        end
+        return out;
     end
 
     """

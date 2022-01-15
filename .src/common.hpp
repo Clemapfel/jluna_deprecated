@@ -30,6 +30,22 @@ namespace jluna
         typename T::value_type;
     };
 
+    // concept: is map
+    template<typename T>
+    concept IsDict = requires(T t)
+    {
+        typename T::key_type;
+        typename T::mapped_type;
+        std::is_same_v<typename T::value_type, std::pair<typename T::key_type, typename T::mapped_type>>;
+    };
+
+    // concept: is tuple but not pair
+    template<typename T>
+    concept IsTuple = requires(T t)
+    {
+        std::tuple_size<T>::value;
+    };
+
     /// get sizeof array
     /// reference: https://brevzin.github.io/c++/2020/02/05/constexpr-array-size/
     template<HasValueType Array_t>

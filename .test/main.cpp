@@ -19,15 +19,24 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    auto tuple = std::make_tuple(123, 0,-1.f);
-    auto* boxed = box(tuple);
+    std::map<size_t, std::string> map = {
+            {12, "absa"},
+            {1231, "auibda"},
+            {1021, "ausbdasu"}
+    };
 
-    auto unboxed = unbox<std::tuple<int, std::string, float>>(boxed);
+    auto* boxed = box(map);
 
-    std::cout << std::get<0>(unboxed) << " " << std::get<1>(unboxed) << " " << std::get<2>(unboxed) << " " << std::endl;
+    Main["Base"]["println"](boxed);
 
-    Main["println"](boxed);
+    auto unboxed = unbox<decltype(map)>(boxed);
+
+    for (auto& p : unboxed)
+        std::cout << p.first << " " << p.second << "\n";
+
+    std::cout << std::endl;
     return 0;
+
 
 
     State::safe_script(R"(

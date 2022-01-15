@@ -58,7 +58,8 @@ namespace jluna
 
     void State::shutdown()
     {
-        THROW_IF_UNINITIALIZED;
+        if (not jl_is_initialized())
+            return;
 
         detail::on_exit();
 

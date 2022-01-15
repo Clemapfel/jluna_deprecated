@@ -245,46 +245,66 @@ namespace jluna
         return out;
     }
 
-    template<typename Tuple_t, typename Value_t, size_t i>
-    void unbox_tuple_aux_aux(Tuple_t& tuple, jl_value_t* value)
+    namespace detail    // helper functions for tuple unboxing
     {
-        static jl_function_t* tuple_at = (jl_function_t*) jl_eval_string("jluna.tuple_at");
-        auto* v = jl_call2(tuple_at, value, jl_box_uint64(i+1));
-        std::get<i>(tuple) = unbox<std::tuple_element_t<i, Tuple_t>>(v);
+        template<typename Tuple_t, typename Value_t, size_t i>
+        void unbox_tuple_aux_aux(Tuple_t& tuple, jl_value_t* value)
+        {
+            static jl_function_t* tuple_at = (jl_function_t*) jl_eval_string("jluna.tuple_at");
+            auto* v = jl_call2(tuple_at, value, jl_box_uint64(i + 1));
+            std::get<i>(tuple) = unbox<std::tuple_element_t<i, Tuple_t>>(v);
+        }
+
+        template<typename Tuple_t, typename Value_t, std::size_t... is>
+        void unbox_tuple_aux(Tuple_t& tuple, jl_value_t* value, std::index_sequence<is...> _)
+        {
+            (unbox_tuple_aux_aux<Tuple_t, Value_t, is>(tuple, value), ...);
+        }
+
+        template<typename... Ts>
+        std::tuple<Ts...> unbox_tuple(jl_value_t* value)
+        {
+            std::tuple<Ts...> out;
+            (unbox_tuple_aux<std::tuple<Ts...>, Ts>(out, value, std::index_sequence_for<Ts...>{}), ...);
+
+            return out;
+        }
+
+        template<typename... Ts>
+        std::tuple<Ts...> unbox_tuple_pre(jl_value_t* v, std::tuple<Ts...>)
+        {
+            return unbox_tuple<Ts...>(v);
+        }
     }
 
-    template<typename Tuple_t, typename Value_t, std::size_t... is>
-    void unbox_tuple_aux(Tuple_t& tuple, jl_value_t* value, std::index_sequence<is...> _)
+    ///@brief unbox tuple (but not pair)
+    template<IsTuple T, std::enable_if_t<std::tuple_size<T>::value != 2, bool> = true>
+    T unbox(jl_value_t* value)
     {
-        (unbox_tuple_aux_aux<Tuple_t, Value_t, is>(tuple, value), ...);
+        return detail::unbox_tuple_pre(value, T());
     }
 
-    /// @brief unbox tuple
-    template<typename... Ts>
-    std::tuple<Ts...> unbox_tuple(jl_value_t* value)
+    /// @brief unbox map
+    /// TODO: optimize
+    template<IsDict T, typename Key_t = typename T::key_type, typename Value_t = typename T::mapped_type>
+    T unbox(jl_value_t* value)
     {
-        std::tuple<Ts...> out;
-        (unbox_tuple_aux<std::tuple<Ts...>, Ts>(out, value, std::index_sequence_for<Ts...>{}), ...);
+        static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
+
+        jl_array_t* as_array = (jl_array_t*) jl_call1(serialize, value);
+
+        T out;
+        for (size_t i = 0; i < jl_array_len(as_array); ++i)
+            out.insert(unbox<std::pair<Key_t, Value_t>>(jl_arrayref(as_array, i)));
 
         return out;
     }
 
-    template<typename T>
-    concept IsTuple = requires (T t)
-    {
-        {std::tuple_size<T>::value};
-    };
 
-    template<typename... Ts>
-    std::tuple<Ts...> unbox_tuple_pre(jl_value_t* v, std::tuple<Ts...>)
-    {
-        return unbox_tuple<Ts...>(v);
-    }
-
-    template<IsTuple T>
+    template<typename T, typename U = typename T::value_type, std::enable_if_t<std::is_same_v<T, std::set<U>>, bool> = true>
     T unbox(jl_value_t* value)
     {
-        return unbox_tuple_pre(value, T());
+
     }
 
 }

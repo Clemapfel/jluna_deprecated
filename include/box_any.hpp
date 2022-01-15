@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <string>
 #include <.src/common.hpp>
+#include <set>
 
 namespace jluna
 {
@@ -127,9 +128,9 @@ namespace jluna
         return jl_call2(pair, box(value.first), box(value.second));
     }
 
-    /// @brief box range to vector
-    template<Iterable Range_t>
-    jl_value_t* box(Range_t value)
+    /// @brief box to vector
+    template<typename T>
+    jl_value_t* box(std::vector<T> value)
     {
         static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("jluna");
         static jl_function_t* vector = jl_get_function(jluna_module, "make_vector");
@@ -156,6 +157,36 @@ namespace jluna
         }, value);
 
         return jl_call(tuple, args.data(), args.size());
+    }
+
+    /// @brief box map, unordered map to IdMap
+    template<IsDict T, typename Key_t = typename T::key_type, typename Value_t = typename T::mapped_type>
+    jl_value_t* box(T value)
+    {
+        static jl_function_t* iddict = jl_get_function(jl_base_module, "IdDict");
+
+        std::vector<jl_value_t*> args;
+        args.reserve(value.size());
+
+        for (const std::pair<Key_t, Value_t>& pair : value)
+            args.push_back(box(pair));
+
+        return jl_call(iddict, args.data(), args.size());
+    }
+
+    /// @brief box set
+    template<typename T>
+    jl_value_t* box(std::set<T> value)
+    {
+        static jl_function_t* set = jl_get_function(jl_base_module, "Set");
+
+        std::vector<jl_value_t*> args;
+        args.reserve(value.size());
+
+        for (const auto& t : value)
+            args.push_back(box(t));
+
+        return jl_call(set, args.data(), args.size());
     }
 
     /// @brief box to explicit return type
