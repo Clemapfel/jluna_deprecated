@@ -10,6 +10,7 @@
 #include <box_any.hpp>
 #include <symbol_proxy.hpp>
 #include <global_utilities.hpp>
+#include <include.jl.hpp>
 
 namespace jluna
 {
@@ -23,10 +24,14 @@ namespace jluna
         }
     }
 
-    void State::initialize()
+    void State::initialize(const std::string& path)
     {
-        jl_init(); //_with_image("/home/clem/Applications/julia/bin", NULL);
-        jl_eval_string("include(\"/home/clem/Workspace/jluna/include/include.jl\")");
+        if (path.empty())
+            jl_init();
+        else
+            jl_init_with_image(path.c_str(), NULL);
+
+        jl_eval_string(detail::include);
         forward_last_exception();
 
         jl_eval_string(R"(
@@ -39,6 +44,7 @@ namespace jluna
                 throw(AssertionError(("[JULIA][ERROR] initialization failed.")))
             end
         )");
+        forward_last_exception();
 
         std::atexit(&detail::on_exit);
 

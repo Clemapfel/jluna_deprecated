@@ -31,9 +31,6 @@ namespace jluna
         template<typename>
         friend class Proxy;
 
-        template<typename>
-        friend class Proxy;
-
         public:
             /// @brief ctor deleted, singleton static-only object
             State() = delete;
@@ -42,7 +39,7 @@ namespace jluna
             ~State() = delete;
 
             /// @brief init environment
-            static void initialize();
+            static void initialize(const std::string& = "");
 
             /// @brief exit julia environment and deallocate all variables
             static void shutdown();
