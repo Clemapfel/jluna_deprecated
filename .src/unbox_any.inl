@@ -15,13 +15,11 @@
 
 namespace jluna
 {
-    /// @brief unbox identity
     jl_value_t* unbox(jl_value_t* value)
     {
         return value;
     }
 
-    /// @brief unbox to bool
     template<typename T, std::enable_if_t<std::is_same_v<T, bool>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -33,7 +31,6 @@ namespace jluna
             return jl_unbox_bool(jl_call2(convert, (jl_value_t*) jl_bool_type, value));
     }
 
-    /// @brief unbox to char
     template<typename T, std::enable_if_t<std::is_same_v<T, char>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -45,7 +42,6 @@ namespace jluna
             return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_char_type, value));
     }
 
-    /// @brief unbox to int8
     template<typename T, std::enable_if_t<std::is_same_v<T, int8_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -57,7 +53,6 @@ namespace jluna
             return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_int8_type, value));
     }
 
-    /// @brief unbox to int16
     template<typename T, std::enable_if_t<std::is_same_v<T, int16_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -69,7 +64,6 @@ namespace jluna
             return jl_unbox_int16(jl_call2(convert, (jl_value_t*) jl_int16_type, value));
     }
 
-    /// @brief unbox to int32
     template<typename T, std::enable_if_t<std::is_same_v<T, int32_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -81,7 +75,6 @@ namespace jluna
             return jl_unbox_int32(jl_call2(convert, (jl_value_t*) jl_int32_type, value));
     }
 
-    /// @brief unbox to int64
     template<typename T, std::enable_if_t<std::is_same_v<T, int64_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -93,7 +86,6 @@ namespace jluna
             return jl_unbox_int64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
     }
 
-    /// @brief unbox to uint8
     template<typename T, std::enable_if_t<std::is_same_v<T, uint8_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -105,7 +97,6 @@ namespace jluna
             return jl_unbox_uint8(jl_call2(convert, (jl_value_t*) jl_uint8_type, value));
     }
 
-    /// @brief unbox to uint16
     template<typename T, std::enable_if_t<std::is_same_v<T, uint16_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -117,7 +108,6 @@ namespace jluna
             return jl_unbox_uint16(jl_call2(convert, (jl_value_t*) jl_uint16_type, value));
     }
 
-    /// @brief unbox to uint32
     template<typename T, std::enable_if_t<std::is_same_v<T, uint32_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -129,7 +119,6 @@ namespace jluna
             return jl_unbox_uint32(jl_call2(convert, (jl_value_t*) jl_uint32_type, value));
     }
 
-    /// @brief unbox to uint64
     template<typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -141,7 +130,6 @@ namespace jluna
             return jl_unbox_uint64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
     }
 
-    /// @brief unbox to float16 & float32
     template<typename T, std::enable_if_t<std::is_same_v<T, float>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -155,7 +143,6 @@ namespace jluna
             return jl_unbox_float32(jl_call2(convert, (jl_value_t*) jl_float32_type, value));
     }
 
-    /// @brief unbox to float64
     template<typename T, std::enable_if_t<std::is_same_v<T, double>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -167,7 +154,6 @@ namespace jluna
             return jl_unbox_float64(jl_call2(convert, (jl_value_t*) jl_float64_type, value));
     }
 
-    /// @brief unbox to string
     template<typename T, std::enable_if_t<std::is_same_v<T, std::string>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -183,7 +169,6 @@ namespace jluna
         return std::string(jl_string_data(jl_call1(to_string, value)));
     }
 
-    /// @brief unbox to complex
     template<typename T, typename S, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -195,7 +180,6 @@ namespace jluna
         return std::complex<S>(unbox<S>(re), unbox<S>(im));
     }
 
-    /// @brief unbox to pair
     template<typename T, typename T1, typename T2, std::enable_if_t<std::is_same_v<T, std::pair<T1, T2>>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -207,7 +191,6 @@ namespace jluna
         return std::pair<T1, T2>(unbox<T1>(first), unbox<T2>(second));
     }
 
-    /// @brief unbox to vector
     template<typename T, typename U, std::enable_if_t<std::is_same_v<T, std::vector<U>>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -222,7 +205,6 @@ namespace jluna
         return out;
     }
 
-    /// @brief unbox to array
     template<typename T, size_t N, typename U, std::enable_if_t<std::is_same_v<T, std::array<U, N>>, bool>>
     T unbox(jl_value_t* value)
     {
@@ -269,14 +251,11 @@ namespace jluna
         }
     }
 
-    ///@brief unbox tuple (but not pair)
     template<IsTuple T, std::enable_if_t<std::tuple_size<T>::value != 2, bool>>
     T unbox(jl_value_t* value)
     {
         return detail::unbox_tuple_pre(value, T());
     }
-
-    /// @brief unbox map
     template<IsDict T, typename Key_t, typename Value_t>
     T unbox(jl_value_t* value)
     {
@@ -291,8 +270,6 @@ namespace jluna
 
         return out;
     }
-
-    /// @brief unbox set
     template<typename T, typename U, std::enable_if_t<std::is_same_v<T, std::set<U>>, bool>>
     T unbox(jl_value_t* value)
     {
