@@ -300,11 +300,18 @@ namespace jluna
         return out;
     }
 
-
+    /// @brief unbox set
     template<typename T, typename U = typename T::value_type, std::enable_if_t<std::is_same_v<T, std::set<U>>, bool> = true>
     T unbox(jl_value_t* value)
     {
+        static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
+        jl_array_t* as_array = (jl_array_t*) jl_call1(serialize, value);
 
+        std::set<U> out;
+        for (size_t i = 0; i < jl_array_len(as_array); ++i)
+            out.insert(unbox<U>(jl_arrayref(as_array, i)));
+
+        return out;
     }
 
 }

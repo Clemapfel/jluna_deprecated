@@ -19,17 +19,15 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    std::map<size_t, std::string> map = {
+    std::set<std::pair<size_t, std::string>> set = {
             {12, "absa"},
             {1231, "auibda"},
             {1021, "ausbdasu"}
     };
 
-    auto* boxed = box(map);
-
+    auto* boxed = box(set);
     Main["Base"]["println"](boxed);
-
-    auto unboxed = unbox<decltype(map)>(boxed);
+    auto unboxed = unbox<decltype(set)>(boxed);
 
     for (auto& p : unboxed)
         std::cout << p.first << " " << p.second << "\n";

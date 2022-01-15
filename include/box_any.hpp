@@ -178,7 +178,7 @@ namespace jluna
     template<typename T>
     jl_value_t* box(std::set<T> value)
     {
-        static jl_function_t* set = jl_get_function(jl_base_module, "Set");
+        static jl_function_t* make_set = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "make_set");
 
         std::vector<jl_value_t*> args;
         args.reserve(value.size());
@@ -186,7 +186,7 @@ namespace jluna
         for (const auto& t : value)
             args.push_back(box(t));
 
-        return jl_call(set, args.data(), args.size());
+        return jl_call(make_set, args.data(), args.size());
     }
 
     /// @brief box to explicit return type

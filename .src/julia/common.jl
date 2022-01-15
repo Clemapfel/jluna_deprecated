@@ -76,6 +76,14 @@ begin
     end
 
     """
+    wrap set ctor in varargs argument, used by box/unbox
+    """
+    function make_set(args::T...) ::Set{T} where T
+
+        return Set([args...]);
+    end
+
+    """
     wrap function call for non-function objects
     """
     function invoke(x::Any, args...) ::Any
