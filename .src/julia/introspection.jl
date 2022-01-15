@@ -6,6 +6,8 @@
 begin
 
     """
+    list_all_modules(::Module = Main; ::Vector{Module}) -> Vector{Module}
+
     recursively list all modules and submodules, excluding those that are a submodule of a module in exclude_roots
     """
     function list_all_modules(top::Module = Main; exclude_roots::Vector{Module} = [Base, Core, Main.InteractiveUtils]) ::Vector{Module}
@@ -32,6 +34,8 @@ begin
     export list_all_modules
 
     """
+    find_function(::Symbol) -> Vector{Function}
+
     searches for function in any module currently loaded, returns vector of all functions with that name
     """
     function find_function(function_name::Symbol) ::Vector{Function}
@@ -58,6 +62,8 @@ begin
     export find_function
 
     """
+    get_all_modules_defining(::Symbol) -> Vector{Module}
+
     get all modules for whom Base.isdefined(m, x) returns true
     """
     function get_all_modules_defining(x::Symbol) ::Vector{Module}

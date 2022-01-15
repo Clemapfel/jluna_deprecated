@@ -19,10 +19,9 @@ begin # included into module jluna
         export Cpointer
 
         """
-        convert pointer to C++ to_string notation
+        string(::Cpointer) -> String
 
-        @param pointer
-        @returns string
+        convert pointer to C++ to_string notation
         """
         function string(ptr::Cpointer) ::String
             return "0x" * Base.string(ptr; base=16)
@@ -33,12 +32,9 @@ begin # included into module jluna
         const _ref_counter = Ref(IdDict{Cpointer, UInt64}())
         
         """
-        reassign variable in global scope
+        assign(::Module, ::Symbol, ::Any) -> Any
 
-        @param [m]: module eval is called from (optional)
-        @param symbol: exact variable name
-        @param v: value of any type but string
-        @returns value of expression evaluation
+        reassign variable in global scope
 
         Examples:
             module MyModule
@@ -62,12 +58,9 @@ begin # included into module jluna
         assign(symbol::Symbol, v::T) where T = assign(Main, symbol, v)
 
         """
-        reassign variable in global scope
+        assign(::Module, ::Symbol, ::String) -> Any
 
-        @param [m]: module eval is invoked in (optional)
-        @param symbol: exact variable name
-        @param v: new value of type string
-        @returns value of expression evaluation
+        reassign variable in global scope
         """
         function assign(m::Module, symbol::Symbol, v::String) ::Any
 
@@ -84,12 +77,11 @@ begin # included into module jluna
         assign(symbol::Symbol, v::String) = assign(Main, symbol, v)
 
         """
-        reassign C++ manage value
+        assign(::Cpointer, ::Any) -> Nothing
 
-        @param pointer: index in _refs
-        @param v, value of any type
+        reassign C++ manage value
         """
-        function assign(pointer::Cpointer, v::T) ::Nothing where T
+        function assign(pointer::Cpointer, v::Any) ::Nothing
 
             @assert haskey(_refs[], pointer)
             _refs[][pointer].x = v
@@ -97,11 +89,9 @@ begin # included into module jluna
         end
 
         """
-        add reference to _refs
+        create_reference(::Cpointer, ::T) -> T
 
-        @param ptr: c-pointer set C++ side
-        @param to_wrap: value to push
-        @returns value of new reference for further use
+        add reference to _refs
         """
         function create_reference(ptr::Cpointer, to_wrap::T) ::T where T
 
@@ -118,9 +108,9 @@ begin # included into module jluna
         end
 
         """
-        free reference from _refs
+        free_reference(::Cpointer) -> Nothing
 
-        @param ptr: c-pointer set C++ side
+        free reference from _refs
         """
         function free_reference(ptr::Cpointer) ::Nothing
 
@@ -138,6 +128,8 @@ begin # included into module jluna
         end
 
         """
+        force_free() -> Nothing
+
         immediately deallocate all C++-managed values
         """
         function force_free() ::Nothing
@@ -153,10 +145,9 @@ begin # included into module jluna
         end
 
         """
-        access value of allocated memory
+        get_value(::Cpointer) -> Any
 
-        @param c-pointer set C++-side
-        @returns value
+        access value of allocated memory
         """
         function get_value(ptr::Cpointer) ::Any
 
@@ -168,10 +159,9 @@ begin # included into module jluna
         end
 
         """
-        access reference in _refs
+        get_reference(::Cpointer) -> RefValue{Any}
 
-        @param c-pointer set C++-side
-        @returns allocated reference
+        access reference in _refs
         """
         function get_reference(ptr::Cpointer) ::Base.RefValue{Any}
 

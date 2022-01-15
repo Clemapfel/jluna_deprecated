@@ -6,6 +6,8 @@
 begin
 
     """
+    make_public(module_name::Symbol) -> Nothing
+
     export all non-temporary, non-imported values (values not having a '#' at the
     start of it's symbol when listed via Base.names) in a module
 
@@ -46,6 +48,8 @@ begin
     end
 
     """
+    make_public_rec(::Symbol) -> Nothing
+
     export all non-temporary, non-imported values (values not having a '#' at the
     start of it's symbol when listed via Base.names) in a module and all
     such values in any submodule, recursively
@@ -97,26 +101,5 @@ begin
         end
 
         return nothing
-    end
-
-    macro serialize(expr::Expr)
-
-        function aux(expr::Expr, indent::Integer)
-
-            pre = repeat("|\t", indent) * '|'
-            println(pre * repeat('_', length(string(expr.head)) + 1))
-            println(pre * string(expr.head))
-            for (i, e) in enumerate(expr.args)
-                println(pre * string(i) * ": " * string(e) * " (" * string(typeof(e)) * ")")
-            end
-
-            for e in expr.args
-                if typeof(e) == Expr
-                    aux(e, indent + 1)
-                end
-            end
-        end
-
-        aux(expr, 0)
     end
 end

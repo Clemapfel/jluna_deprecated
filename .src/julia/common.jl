@@ -5,21 +5,19 @@
 begin
 
     """
-    get value type of array
+    get_value_type_of_array(::Array{T}) -> Type
 
-    @param _: array of any rank
-    @returns value type T
+    forward value type of array
     """
-    function get_value_type_of_array(_::Array{T}) where {T}
+    function get_value_type_of_array(_::Array{T}) ::Type where {T}
 
         return T
     end
 
     """
-    check wether a string can be transformed into a base 10 number
+    is_number_only(::String) -> Bool
 
-    @param x: string
-    @returns bool
+    check whether a string can be transformed into a base 10 number
     """
     function is_number_only(x::String) ::Bool
 
@@ -33,11 +31,9 @@ begin
     end
 
     """
-    check if method of given function is available for a specific variable
+    is_method_available(::Function, ::Any) -> Bool
 
-    @param f: function
-    @param variable
-    @returns true if method is available, false otherwise
+    check if method of given function is available for a specific variable
     """
     function is_method_available(f::Function, variable) ::Bool
 
@@ -45,11 +41,20 @@ begin
     end
 
     """
-    check if element exists in array
+    get_function(::Symbol, ::Module) -> Function
 
-    @param array
-    @param v: element
-    @returns bool
+    exception-safe function access wrapper
+    """
+    function get_function(function_name::Symbol, m::Module) ::Function
+
+        return m.eval(function_name)
+    end
+    export get_function
+
+    """
+    exists(<:AbstractArray, ::Any) -> Bool
+
+    check if element exists in array
     """
     function exists(array::T, v::Any) ::Bool where T <: AbstractArray
 
@@ -57,17 +62,17 @@ begin
     end
 
     """
-    get nth element of tuple
+    tuple_at(::Tuple, ::Integer) -> Any
 
-    @param x: tuple
-    @param i: index
-    @returns element
+    get nth element of tuple
     """
     function tuple_at(x::Tuple, i::Integer)
         return x[i]
     end
 
     """
+    make_vector(::T...) -> Vector{T}
+
     wrap vector ctor in varargs argument, used by box/unbox
     """
     function make_vector(args::T...) ::Vector{T} where T
@@ -76,6 +81,8 @@ begin
     end
 
     """
+    make_set(::T...) -> Set{T}
+
     wrap set ctor in varargs argument, used by box/unbox
     """
     function make_set(args::T...) ::Set{T} where T
@@ -84,6 +91,8 @@ begin
     end
 
     """
+    invoke(function::Any, arguments::Any...) -> Any
+
     wrap function call for non-function objects
     """
     function invoke(x::Any, args...) ::Any
@@ -91,7 +100,9 @@ begin
     end
 
     """
-    transform collection into array
+    serialize(::IdDict{T, U}) -> Vector{Pair{T, U}}
+
+    transform dict into array
     """
     function serialize(x::IdDict{Key_t, Value_t}) ::Vector{Pair{Key_t, Value_t}} where {Key_t, Value_t}
 
@@ -102,6 +113,11 @@ begin
         return out;
     end
 
+    """
+    serialize(::Set{T}) -> Vector{T}
+
+    transform dict into array
+    """
     function serialize(x::Set{T}) ::Vector{T} where T
 
         out = Vector{T}()
@@ -113,11 +129,9 @@ begin
     end
 
     """
-    wrap dot operator for both modules, structs and arrays
+    dot(::Array, field::Symbol) -> Any
 
-    @param x: Array
-    @param field_name
-    @returns field
+    wrapped dot operator
     """
     function dot(x::Array, field_name::Symbol) ::Any
 
@@ -127,10 +141,24 @@ begin
     end
     export dot;
 
+    """
+    dot(::Module, field::Symbol) -> Any
+
+    wrapped dot operator
+    """
     dot(x::Module, field_name::Symbol) = return x.eval(field_name);
+
+    """
+    dot(x::Any, field::Symbol) -> Any
+
+    wrapped dot operator, x.field
+    """
     dot(x::Any, field_name::Symbol) = return eval(:($x.$field_name))
 
     """
+    assemble_name(::Symbol...) -> String
+
+    used by jluna::Proxy C++-side to generate it's own variable name
     """
     function assemble_name(names::Symbol...) ::String
 
@@ -150,7 +178,9 @@ begin
     end
 
     """
-    used by jluna::Proxy to reassemble the full variable name and then assign it
+    assemble_name(::Any, ::Symbol...) -> Nothing
+
+    used by jluna::Proxy C++-side to mutate it's corresponding variable
     """
     function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
 
@@ -159,15 +189,9 @@ begin
     end
 
     """
-    used by jluna::Proxy to access member
-    """
-    function assemble_dot(new_value::Any, names::Symbol...) ::Any
+    unquote(::Expr) -> Expr
 
-        return Main.eval(Meta.parse(assemble_name(names...)));
-    end
-
-    """
-    transform a quote block to an identical :() expression by removing the first quote node
+    remove all line number notes and the outer most :quote block from an expression
     """
     macro unquote(expr::Expr)
 

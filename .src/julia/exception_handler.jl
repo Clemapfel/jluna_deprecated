@@ -11,9 +11,18 @@ begin # included into module jluna
     """
     module exception_handler
 
+        """
+        exception Placeholder that signals that no exception occurred
+        """
         struct NoException <: Exception end
         export NoException
 
+        """
+        current state of the exception handler
+
+        _last_exception <:Exception
+        _last_message ::String
+        """
         mutable struct State
             _last_exception
             _last_message::String
@@ -23,10 +32,9 @@ begin # included into module jluna
         _meta_exception_message = ""
 
         """
-        call any line of code, update the handler then forward the result, if any
+        safe_call(::Expr, ::Module = Main) -> Any
 
-        @param command: julia code as expression
-        @returns result of expression or nothing if an exception was thrown
+        call any line of code, update the handler then forward the result, if any
         """
         function safe_call(expr::Expr, m::Module = Main) ::Any
 
@@ -47,10 +55,9 @@ begin # included into module jluna
         end
 
         """
-        call any line of code without updating the handler
+        unsafe_call(::Expr, ::Module = Main) -> Any
 
-        @param command: julia code as expression
-        @returns result of expression
+        call any line of code without updating the handler
         """
         function unsafe_call(expr::Expr, m::Module = Main) ::Any
 
@@ -62,11 +69,9 @@ begin # included into module jluna
         end
 
         """
-        call any function, update the handler then forward the result, if any
+        safe_call(::Function, ::Any...) -> Any
 
-        @param f: function
-        @param args: function argument
-        @returns result if function didn't throw, nothing otherwise
+        call any function, update the handler then forward the result, if any
         """
         function safe_call(f::Function, args...)
 
@@ -83,8 +88,9 @@ begin # included into module jluna
         end
 
         """
+        update(<:Exception) -> Nothing
+
         update the handler after an exception was thrown
-        @param exception
         """
         function update(exception::Exception) ::Nothing
 
@@ -96,6 +102,8 @@ begin # included into module jluna
         end
 
         """
+        update() -> Nothing
+
         update the handler after *no* exception was thrown
         """
         function update() ::Nothing
@@ -106,19 +114,9 @@ begin # included into module jluna
         end
 
         """
-        safe the current state of the handler
+        has_exception_occurred() -> Bool
 
-        @returns jluna.ExceptionHandler.State
-        """
-        function state() ::State
-
-            return State(_last_exception, _last_message)
-        end
-
-        """
         is last exception type no "jluna.exception_handler.NoException"
-
-        @returns bool
         """
         function has_exception_occurred() ::Bool
 
@@ -126,18 +124,16 @@ begin # included into module jluna
         end
 
         """
-        get last exception stacktrace
+        get_last_message() -> String
 
-        @returns error message as string
+        get last exception stacktrace
         """
         function get_last_message() ::String
             return _state[]._last_message
         end
 
         """
-        get last exception
-
-        @returns exception
+        get_last_exception() -> Exception
         """
         function get_last_exception() ::Exception
             return _state[]._last_exception
