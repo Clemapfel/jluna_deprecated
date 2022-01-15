@@ -4,9 +4,11 @@
 
 `Proxy<State>` is the most central class of `jluna` and most of it's C++-side functionality runs through this proxy class. Before we can discuss it, though, we need to get some nomenclature out of the way. As julia and C++ sometimes use different terms for different things (for example in C++ an "error" is always fatal while in julia an "error" such as `UndefVarError` can be catchable) it's best to get a baseline established as to not confuse some people:
 
-+ A *value* is a chunk of memory holding arbitrary data, this memory of course has an *adress* (what would be a pointer in C/C++) which uniquely identifies the location of the memory, not it's content
++ A *value* is a chunk of memory holding arbitrary data, this memory has an *adress* (what would be a pointer in C/C++) which uniquely identifies the location of the memory, not it's content
 + A *name* is a julia-side value of type `Symbol`
-+ A *variable*, then, is an association a name and a value. Associating an unnamed value with a name we'll call a *binding*. Unlike C++, in julia a variable name is not associated with an address but the value itself, two variables with different names but the same value usually point to the same address in memory. Consider the following example:
++ A *variable*, then, is an association between a name and a value. The act of associating an unnamed value with a name will be called *binding*
+
+In julia, a variables name is not associated with an address, but the value itself. Two variables with different names but the same value usually point to the same address in memory. Consider the following example:
 
 Consider the following example:
 
@@ -14,7 +16,7 @@ Consider the following example:
 jl_value_t* value_ptr = jl_eval_string("return 123");
 ```
 
-Here, using the julia C-API, we created a chunk of memory holding the value `123`. If we want to access this value, we need to do so via the `value_ptr` which is best thought of as address of the value. If we now reassign `value_ptr`:
+Here, using the julia C-API, we created a chunk of memory holding the value `123`. If we want to access this value, we need to do so via the `value_ptr` which is the address of the value. If we now reassign `value_ptr`:
 
 ```cpp
 value_ptr = // something else
@@ -22,76 +24,126 @@ value_ptr = // something else
 
 There is still a chunk of memory holding the value `123`, we just have no way of remembering where exactly it is and in time (but not necessarily right after reassinging) the garbage collector will collect it. 
 
-If we instead create a *variable* julia side:
+If we instead create a *variable* julia-side:
 
 ```cpp
+// unnamed value
 jl_value_t* value_ptr = jl_eval_string("return 123");
 
+// binding :variable to unnamed value 123
 jl_eval_string("variable = 123");
 jl_value_t* variable_value_ptr = jl_eval_string("return variable");
 
 assert(value_ptr == variable_value_ptr); // does *not* raise an assertion
 ```
 
-We still get a pointer and that pointer will still point to the original 123. This is important to realize, julias values are completely separate from julia variable names, two variable with different names can hold the same address of memory and an unbound address of memory can have valid data, be in scope, but have no julia-side name assigned to it.
+the resulting address will point to the same memory and thus to the original 123. This is important to realize, julias values are completely separate from julia variable name.
 
-Of course usually this doesn't matter, if there is valid memory that lingers around it will be caught by the garbage collector and deallocated, but this is where one of the most important features of `jluna::Proxy` comes in.
+In summary:
++ a julia-side value can be unnamed but valid memory
++ two julia-side variables with the same value point to the same location as an unnamed value
+
+When only using Julia, this is not very noticable. However when interacting with julias state through C, this is crucial to realize. If C holds an address of a value but julia doesn't have a variable for it, is that value free to be deallocated? The answer is yes however `jluna` eliminates these technicalities and makes handling julia-side memory safe, always.
 
 ## Memory Management
 
 A proxy in `jluna` is an implementation of the concept of a binding. Each proxy has two relevant properties:
 
-+ i) it's value, which is a pointer `jl_value_t*` that is the address of julia-side memory
-+ ii) it's name, which is a pointer to a julia-side symbol.
+i) it's value, which is a pointer `jl_value_t*` that is the address of julia-side memory<br>
+ii) it's name, which is a pointer to a julia-side symbol.
 
-Crucially, while a proxies value always points to valid memory, the name is *completely optional* and is by convention kept as a `nullptr` to signify that no name is assigned. Let's go back to our example from the section before, but this time we're using `jluna` rather than the C-API to access julias state:
+Crucially, the name can be a nullptr, the proxy is *unnamed*.
 
-```
-auto no_name_proxy = State::script("return 123");
+A **named** proxy with a value is equivalent to a julia-side variable. It's memory is always safe from the garbage collector because julias knows a variable exists.
 
-State::script("variable = 123");
-auto named_proxy = Main["variable"];
-std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
-```
+An **unnamed** proxy with a value is equivalent to a temporary in julia, usually this value would be garbage collected but because `jluna` knows that a proxy pointing to it is still in scope, it is safe.
 
-Here we generated two proxies (for end-users, this is usually the only way to create proxies as calling the CTORs manually can be quite cumbersome). Examining their properties we deduce from what we learned just now:
-
-+ `no_name_proxy` has an address pointing to a julia-side `123` in memory and no name
-+ `named_proxy` has an address pointing to a julia-side `123` and a julia-side name `:variable`
-
-Because of how julia works and because `123` is a primitive, we can see if both proxies have the same value by checking if they both point to the same memory:
-
-```cpp
-std::cout << (no_name_proxy.operator jl_value_t*() == named_proxy.operator jl_value_t*()) << std::endl;
-```
-``` 
-1
-```
-Here we are explicitly casting both proxies to the address of their value, then comparing the c-pointers and we see that, indeed, both proxies point to the same value.
-
-Now for why this is important, **as long as there is any proxy in scope C++-side that points to a specific memory, that memory is kept safe from the garbage collector** and it will only be freed, once the last proxy that has ownership of it calls its destructor. 
-
-This makes proxies great because we can handle julia-side values without every having to create a julia-side variable or if we're using a julia-side variable we don't have to micro-manage scoping or potentially controlling the garbage collector, all of this is done 100% safely by `jluna`. This includes deallocation and shutdown, one `exit(0)`, `jluna` will deallocate all proxies and make all values associated with them available to the garbage collector. This doesn't mean the julia-side values get destructed immediately, rather there is no longer a safeguard to prevent julia from doing so.
+This makes proxies great because we can handle julia-side values without having to think about scoping or keeping a reference, `jluna` does it for us. `jluna` also handles deallocation for us, when the program shuts down `jluna` will safely free all valous and shutdown the julia state.
 
 ## Mutating Values
 
-We went in detail about the inner workings of how the proxy handles things because modifying the proxies values can be quite confusing without context, however in context it is consistent and clear. Consider the following:
+While being protected from the garbage collector is nice, it was important to understand the concept of a named vs unnamed proxies to understand mutating behavior in `jluna`. To mutate a variable means to change it's value, or in other terms: to bind a new value to the variables name.
+
+When modifying a proxy that has a name, it will automatically modify the corresponding variable:
 
 ```cpp
 State::script("variable = 123");
 auto proxy = Main["variable"];
-State::script("variable = 456");
-
+proxy = 456;
 std::cout << (int) proxy << std::endl;
 ```
-Here we're creating a julia-variable directly in julia and assign it the value `123`. We then create a name proxy with the same value. After reassinging a new value to the variable `julia` side, what will the proxies value be?
-
 ```
 456
 ```
-Predictably, we see that the proxies value also changed
 
-TODO
+We can check if a proxy will mutate a variable via `.is_mutating()`. We can also access the full name of a proxy using:
+
+```
+std::cout << proxy.get_name() << std::endl;
+```
+```
+Main.variable
+```
+
+We can surpress this behavior of mutating the julia-side variable by calling ``set_mutating(false)``.
+
+However, what if our proxy is unnamed?
+
+```cpp
+auto unnamed = State::script("return -42");
+std::cout << (int) unnamed << std::endl;
+unnamed = +42;
+std::cout << (int) unnamed << std::endl;
+```
+```
+-42
++42
+```
+
+Here, because there is no name associated with the value of -42, reassigning the proxy simply changes which value it points to which makes sense however this also means that the proxy is no longer pointing to our original `-42` which will now be free for the garbage collector to collect.
+
+So how do we know when a proxy is named and when it is unnamed? We can of course check with `is_mutating`, however, eagle-eyed readers may have noticed it already:
+
++ Any value returned by `State::script` / `State::safe_script` is *unnamed*
++ Any value returned by `operator[]` is *named* 
+
+```cpp
+State::script("variable = 15");
+auto first = State::script("return variable");
+auto second = Main["variable"];
+
+first = 1;
+second = 2;
+
+State::script("println(variable)");
+```
+```
+2
+```
+
+This behavior is similar to how julia handles values, any non-array value is returned *by value*. To reassign an existing variable in another statement, we need to call the `=` operator through an expression:
+
+```julia
+variable = 66;
+new_variable = variable
+
+new_variable = 1
+println(variable);
+
+eval(Expr(:(=), :variable, :2))
+println(variable)
+```
+```
+66
+2
+```
+
+In summary:
+
++ Proxies obtained my `operator[]` are *named* and thus *mutating*
++ Proxies obtained otherwise are *unnamed* and thus *not mutating*
+
+We can make a named proxy unnamed by using `.set_mutating(false)`. We can make an unnamed proxy named by giving it a name via: `make_mutating(proxy, Symbol("new_name"))`. For the latter, if no such name exists yet, a new Julia-side variable in `Main` is created.
 
 ## Accessing Fields and the (.) operator
 
@@ -315,6 +367,8 @@ vec_1d[6]
 
 Because the iterator can become a proxy, the arrays value type is truly aribtrary and each element offers the same functionality as any other proxy:
 ```
+
+# Usertypes
 
 
 

@@ -91,6 +91,14 @@ namespace jluna
             /// @brief trigger the garbage collector
             static void collect_garbage();
 
+            /// @brief make a value protected from the garbage collector
+            /// @param value
+            static void hold(jl_value_t*);
+
+            /// @brief free a value so it can be garbage collected
+            /// @param value
+            static void release(jl_value_t*);
+
         protected:
             /// @brief access a function just by name, searches for it in any module currently loaded
             /// @param function_name: exact function name, e.g. "push!"
