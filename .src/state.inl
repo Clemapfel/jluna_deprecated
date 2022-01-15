@@ -186,6 +186,19 @@ namespace jluna
         return result;
     }
 
+    void State::collect_garbage()
+    {
+        THROW_IF_UNINITIALIZED;
+
+        static jl_function_t* gc = jl_get_function((jl_module_t*) jl_eval_string("return Base.GC"), "gc");
+
+        bool before = jl_gc_is_enabled();
+
+        jl_gc_enable(true);
+        jl_call0(gc);
+        jl_gc_enable(before);
+    }
+
     jl_value_t* State::create_reference(jl_value_t* in)
     {
         THROW_IF_UNINITIALIZED;
@@ -240,34 +253,6 @@ namespace jluna
         }
         jl_gc_enable(before);
     }
-
-    /*
-    auto State::get_function(const std::string& function_name, const std::string& module_name)
-    {
-        THROW_IF_UNINITIALIZED;
-
-        jl_value_t* module_v = safe_script("return " + module_name);
-        assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
-
-        static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
-        return Function(
-                safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v),
-                jl_symbol(function_name.c_str()));
-    }
-
-    auto State::get_safe_function(const std::string& function_name, const std::string& module_name)
-    {
-        THROW_IF_UNINITIALIZED;
-
-        jl_value_t* module_v = safe_script("return " + module_name);
-        assert(jl_isa(module_v, (jl_value_t*) jl_module_type));
-
-        static jl_function_t* get_function = jl_get_function(_jluna_module, "get_function");
-        return SafeFunction(
-                safe_call(get_function, (jl_value_t*) jl_symbol(&function_name[0]), module_v),
-                jl_symbol(function_name.c_str()));
-    }
-    */
 
     jl_function_t* State::find_function(const std::string& function_name)
     {

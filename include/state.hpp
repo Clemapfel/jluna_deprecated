@@ -88,20 +88,14 @@ namespace jluna
             template<Decayable... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
-            /// @brief access a function in a specific module
-            /// @param function_name: exact function name, e.g. "push!"
-            /// @param module_name: name of module including submodule, e.g. "Base.InteractiveUtils"
-            static auto get_function(const std::string& function_name, const std::string& module_name);
-            static auto get_safe_function(const std::string& function_name, const std::string& module_name);
-
-            /// @brief access a function just by name, searches for it in any module currently loaded
-            /// @param function_name: exact function name, e.g. "push!"
-            static jl_function_t* find_function(const std::string& function_name);
-
             /// @brief trigger the garbage collector
             static void collect_garbage();
 
         protected:
+            /// @brief access a function just by name, searches for it in any module currently loaded
+            /// @param function_name: exact function name, e.g. "push!"
+            static jl_function_t* find_function(const std::string& function_name);
+
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
             /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
