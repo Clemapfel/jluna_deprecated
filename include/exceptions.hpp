@@ -33,8 +33,6 @@ namespace jluna
             std::string _message;
     };
 
-    extern bool expression_occurred();
-
     /// @brief if julia exception occurred, forward it to C++
     extern void forward_last_exception();
 

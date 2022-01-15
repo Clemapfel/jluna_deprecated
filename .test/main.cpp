@@ -23,9 +23,9 @@ int main()
         std::complex<double>(0, 1),
         std::pair<size_t, std::string>{1, "string"},
         std::tuple<float, size_t, std::string>{1.f, 2, "string"},
-        std::vector<size_t>{1, 2, 3},
-        std::map<size_t, size_t>{{1, 1}},
-        std::set<size_t>{1}
+        std::vector<long>{1, 2, 3},
+        std::map<float, size_t>{{1, 1}},
+        std::set<char>{1}
     );
 
     Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));

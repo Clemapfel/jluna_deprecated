@@ -1,17 +1,16 @@
 cmake_minimum_required(VERSION 3.19)
+project(jluna)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread -lGL -Wl,--export-dynamic")
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug) # change to release for marginally better performance
 
-project(jluna)
-
-### DEPENDENCIES #######################################################################################
+### DEPENDENCIES ###
 
 set(JULIA_EXECUTABLE /home/clem/Applications/julia/bin/julia) # modify this if necessary
 include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
 
-### jluna #############################################################################################
+### JLUNA ###
 
 add_library(jluna STATIC
 
@@ -24,6 +23,7 @@ add_library(jluna STATIC
     .src/proxy.inl
 
     .src/julia_extension.h
+    .src/common.hpp
 
     include/unbox_any.hpp
     include/box_any.hpp
@@ -45,7 +45,10 @@ add_library(jluna STATIC
     .src/array_proxy_iterator.inl
 
     include/typedefs.hpp
-        .src/common.hpp)
+
+    .src/box_any.inl
+    .src/unbox_any.inl
+)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
@@ -53,7 +56,7 @@ target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
 include_directories("./include")
 include_directories("./")
 
-### EXECUTABLES ########################################################################################
+### EXECUTABLES ###
 
 add_executable(TEST .test/main.cpp)
 target_link_libraries(TEST jluna)
