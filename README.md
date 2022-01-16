@@ -1,6 +1,6 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented. Heavily inspired in design and syntax by the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ easy and hassle-free.
+Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented. <br> Heavily inspired in design and syntax by the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
 
 (*`jluna` is in no way affiliated with the sol2 team and no code is shared between libraries)
 
@@ -9,8 +9,10 @@ Julia is a beautiful language, it is well-designed and well-documented. Julias C
 ```cpp
 using namespace jluna;
 
+// one-line initialization and setup
 State::initialize();
 
+// run arbitrary code with exception forwarding
 State::safe_script(R"(
     mutable struct Holder
         _array_field::Array{Int64, 3}
@@ -22,12 +24,16 @@ State::safe_script(R"(
     instance = Holder();
 )");
 
+// access and mutate variables
 Array<Int64, 3> array = Main["instance"]["_array_field"];
 array.at(0, 1, 2) = 9999;
 
+// std:: object are supported out-of-the-box
 Main["instance"]["_vector_field"] = std::vector<std::string>{"string", "string", "string"};
 
-Base["println"](Main["instance"]);
+// call julia-side functions with C++-side arguments
+auto println = State::script("return Base.println");
+println(Main["instance"]);
 ```
 ```
 Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27], ["string", "string", "string"])
@@ -136,7 +142,7 @@ to:
 set(JULIA_EXECUTABLE /path/to/your/.../julia/bin/julia) # replace with the path to julia/bin/julia here
 ```
 
-During `make` jluna should now be able to determine all the information to build jluna and link Julia properly
+During `make` `jluna` should now be able to determine all the information to build `jluna` and link Julia properly
 
 ### State::initialize() fails
 
