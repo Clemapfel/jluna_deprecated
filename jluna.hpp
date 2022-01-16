@@ -5,7 +5,7 @@
 
 #pragma once
 
-/// @brief collects all relevant headers for jluna/include
+/// @brief collects all relevant headers from jluna/include
 
 #include <include/typedefs.hpp>
 #include <include/state.hpp>

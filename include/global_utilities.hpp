@@ -23,6 +23,9 @@ namespace jluna
     /// @brief singleton proxy of base module
     static inline Proxy<State> Core = Proxy<State>(nullptr, (jl_sym_t*) nullptr);
 
+    /*
+    // not yet implemented
+
     /// @brief get type of proxy
     /// @param proxy
     /// @returns type as Type Proxy
@@ -38,5 +41,6 @@ namespace jluna
     /// @param value
     /// @returns string
     extern std::string to_string(jl_value_t*);
+     */
 }
 
