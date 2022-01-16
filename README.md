@@ -164,7 +164,7 @@ The manual is not yet complete, consider visiting the already completed [overvie
 
 ## License
 
-`jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](www.clemens-cords.com/contact).
+`jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](https://www.clemens-cords.com/contact).
 
 
 
