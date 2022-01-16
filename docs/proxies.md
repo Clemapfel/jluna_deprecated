@@ -1,6 +1,23 @@
-# jluna::Proxy
+# All about jluna::Proxy
 
-## Introduction: Glossary
+This tutorial will be a deep-dive into `jluna::Proxy`. Please be sure that you read the tutorials on ["jluna::State and the Basics"](./state.md) before you continue.
+
+## Table of Contents
+
+1. [Introduction](#introduction-glossary)<br>
+2. [Memory Management](#memory-management)<br>
+3. [Mutating Values](#mutating-values)<br>
+4. [Accessing Fields: The (.) Operator](#accessing-fields-and-the--operator)<br>
+5. [Functions](#functions)<br>
+6. [Arrays](#arrays)<br>
+    6.1 [Indexed Access](#index-access)<br>
+    6.2 [Iterability](#iteration)<br>
+7. [~~Expressions~~](#expressions)<br>
+8. [~~Types~~](#types)<br>
+   
+   
+
+## Introduction
 
 `Proxy<State>` is the most central class of `jluna` and most of it's C++-side functionality runs through this proxy class. Before we can discuss it, though, we need to get some nomenclature out of the way. As julia and C++ sometimes use different terms for different things (for example in C++ an "error" is always fatal while in julia an "error" such as `UndefVarError` can be catchable) it's best to get a baseline established as to not confuse some people:
 
@@ -147,7 +164,7 @@ We can make a named proxy unnamed by using `.set_mutating(false)`. We can make a
 
 ## Accessing Fields and the (.) operator
 
-As a proxy can hold any value, it may also hold a value which is a `structtype`, which may or may not have *fields*:
+As a proxy can hold any value, this includes value of a *structtype*
 
 ```cpp
 State::safe_script(R"(
@@ -166,73 +183,68 @@ instance = Outer(Inner(123))
 auto instance = Main["instance"];
 ```
 
-Here we create two structs, `Outer` which is immutable has only one field which is of type `Inner`, also a structtype however this one is mutable and has again one field of arbitrary type. 
+Here we create two structs, `Inner` which is mutable and has one field `_inner_field` of arbirtrary type and `Outer` and immutable structtype with one field `_outer_field` of type `inner`.
 
-We can then access the value in instances field like so:
+We then create an instance of `Outer` named `instance` and access it in C++ via `operator[]` (which means it is mutating). We can then access the fields of instance like so:
 
 ```cpp
 auto outer_field = instance["_outer_field"];
 auto inner_field = outer_field["_inner_field"];
+
 // or chaining is also fine
 auto inner_field = instance["_outer_field"]["_inner_field"];
 ```
 
-`operator[](const std::string&)` itself returns a proxy which may itself be a structtype. Because of this chaining multiple `[]` after each other is valid syntax and we've been using it all throughout this tutorial already. You may have also already noticed that we also use `[]` on `Main` which is of course Module. Why is that?
-
-To approximate julias syntax, `jluna`s `operator[]` was decided to be basically equivalent to the dot operator in julia:
+Indeed, both accessing variables in modules and accessing fields of strucctype both use `operator[]`. This is because `operator[]` is best though of as a wrapper for a julia-side dot operator:
 
 ```cpp
-// julia:
-auto res = State::script("Main.instance._outer_field._inner_field");
-
 // cpp:
-auto res = Main["instance"]["_outer_field"]["_inner_field"];
+Main["instance"]["_outer_field"]["_inner_field"]
+
+// julia:
+Main.instance._outer_field._inner_field
 ```
-This means any class where the dot operator would be well-defined, `operator[]` also works on which includes modules. This, combined with arrays, makes long chains of proxies of different type (module, struct, array) possible (if discourage for legibility). Indeed, the proxy will remember it's entire name as we can verify with `get_name`.
+
+Because proxies obtained via `operator[]` are mutating by default, we can assign julia-side variables in an elegant one-liner:
 
 ```cpp
-auto res = Main["instance"]["_outer_field"]["_inner_field"];
-std::cout << res.get_name() << std::endl;
+Main["instance"]["_outer_field"]["_inner_field"] = 456;
+State::script("println(Main.instance._outer_field._inner_field")
 ```
 ```
-instance._outer_field._inner_field
+456
 ```
-
-Where the starting `Main.` is implicit and thus not displayed manually.
 
 ## Functions
 
-`jluna::Proxy` has quite a lot of features but one it doesn't sport out-of-the-box is being callable:
+`jluna::Proxy` is quite flexible already as it can hold any value, and variable and any structtype which includes modules. However, it can also hold *functions*:
 
 ```cpp
-Function f = State::script("f(x) = sqrt(x^x^x)");
-f(2);
-```
-```
-/home/Workspace/jluna/.test/main.cpp: In function ‘int main()’:
-/home/Workspace/jluna/.test/main.cpp:21:4: error: no match for call to ‘(jluna::Proxy<jluna::State>) (int)’
-   21 | f(2);
-      |    ^
-```
-
-To wrap a function in a way where we can call it from C++, we need to instead assign it to an object of type `jluna::Function` or `jluna::SafeFunction`:
-
-```cpp
-Function f = State::script("f(x) = sqrt(x^x^x)");
-std::cout << (int) f(2) << std::endl;
+auto f = State::script("f(x) = sqrt(x^x^x)");
+std::cout << (float) f(2) << std::endl;;
 ```
 ```
 4
 ```
-Any `Boxable` argument can be used directly as arguments for `jluna::Function`, this includes other proxies including proxy functions. If a type does not fulfill the constraints of boxable you will need to manually convert it into a `jl_value_t*` using the C-API or defined your own `box(T)` functino. 
 
-Other than the callability, function proxies are still proxies of course so all the functionality detailed so far is also available to them. 
-
-Similar to `State::safe_script`, `SafeFunction` wraps the function call in a marginally slower but much safer, exception-forwarding call:
+We usually call function proxy using `operator()`. Here, arguments can be either other proxies or any type that implements the concepts `Boxable` and `Unboxable` (see the chapter on boxing in the [state tutorial](./state.md)).
 
 ```cpp
-Function f = State::script("f(x) = sqrt(x^x^x)");
-std::cout << (int) f(-1) << std::endl;
+Main["println"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
+```
+```
+Set(IdDict{UInt64, Pair{UInt64, Vector{Int32}}}[IdDict(0x0000000000000001 => (0x0000000000000001 => [1, 1, 1]))])
+```
+
+Proxies that are functions have two more members functions `.safe_call` and `.call` which have exception forwarding and no exception forwarding respectively. `operator()` simply invokes `safe_call` so it is exactly equivalent:
+
+```cpp
+auto sqrt = Base["sqrt"];
+
+sqrt.call(-1);      // nothing happens
+
+sqrt.safe_call(-1); // exception raised
+sqrt(-1);           // exception raised
 ```
 ```
 terminate called after throwing an instance of 'jluna::JuliaException'
@@ -243,35 +255,36 @@ Stacktrace:
    @ Base.Math ./math.jl:33
  [2] sqrt
    @ ./math.jl:567 [inlined]
- [3] sqrt
-   @ ./math.jl:1221 [inlined]
- [4] f(x::Int32)
-   @ Main ./none:1
- [5] safe_call(f::Function, args::Int32)
-   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:75
+ [3] sqrt(x::Int32)
+   @ Base.Math ./math.jl:1221
+ [4] invoke(x::Function, args::Int32)
+   @ Main.jluna ~/Workspace/jluna/.src/julia/common.jl:99
+ [5] safe_call(::Function, ::Function, ::Int32)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:80
 
 signal (6): Aborted
 in expression starting at none:0
 gsignal at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
 abort at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-unknown function (ip: 0x7f9a5afe8a30)
-unknown function (ip: 0x7f9a5aff44fb)
+unknown function (ip: 0x7fa36444ba30)
+unknown function (ip: 0x7fa3644574fb)
 _ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
 __cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
-forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:39
-safe_call<int> at /home/clem/Workspace/jluna/./.src/state.inl:157
-operator()<int> at /home/clem/Workspace/jluna/./.src/function_proxy.inl:72
-main at /home/clem/Workspace/jluna/.test/main.cpp:21
+forward_last_exception at /home/Workspace/jluna/./.src/exceptions.inl:38
+safe_call<_jl_value_t*, int&> at /home/Workspace/jluna/./.src/state.inl:163
+safe_call<int&> at /home/Workspace/jluna/./.src/proxy.inl:218
+operator()<int> at /home/Workspace/jluna/./.src/proxy.inl:225
+main at /home/Workspace/jluna/.test/main.cpp:23
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-_start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
-Allocations: 1613608 (Pool: 1612710; Big: 898); GC: 2
-```
+_start at /home/Workspace/jluna/cmake-build-debug/TEST (unknown line)
+Allocations: 1611957 (Pool: 1611066; Big: 891); GC: 2
 
-It should thus be preferred to `Function` in any situation that isn't bleeding edge performance critical. 
+Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
+```
 
 ## Arrays
 
-Julias arrays are quite powerful and fully featured, it is thus only natural that a julia-binding library should have an intuitive and similarly fully features Array wrapper. In `jluna`, this is done by `jluna::Array<T, R>` where `T` is the value type and `R` is the *rank* (or dimensionality) of the array. This is directly equivalent to how julia declares its array types:
+Julias arrays are quite powerful and fully featured, it is thus only natural that a julia-binding library should have an intuitive and similarly fully-featured Array wrapper. In `jluna`, this is done by daughter of `Proxy<State>`: `jluna::Array<T, R>` where `T` is the value type and `R` is the *rank* (or dimensionality) of the array. This is directly equivalent to how julia declares its array types:
 
 | Julia          | jluna         |
 |----------------|---------------|
@@ -279,7 +292,9 @@ Julias arrays are quite powerful and fully featured, it is thus only natural tha
 | `Matrix{T}`    | `Array<T, 2>` |
 | `Array{T, R}`  | `Array<T, R>` | 
 
-For any R in {1, 2, ...}. Note that `jluna::Array<T, 1>` is not the same as `jluna::Vector<T, 1>`, `Vector` actually inherits from `Array<T, 1>` and while it is functionally equivalent, it has the following additional functions:
+For any R in {1, 2, ...}. 
+
+Note that `jluna::Array<T, 1>` is not the identical to `jluna::Vector<T, 1>`, `Vector` actually inherits from `Array<T, 1>` and while this means all functionality of `Array<T, 1>` is available to `Vector<T>`, the inverse is not true as `Vector<T>` has the following additional functions:
 
 ```
 void insert(size_t pos, Value_t value);
@@ -365,15 +380,22 @@ vec_1d[6]
 [6, 6, 6, 6, 6, 6]
 ```
 
-Because the iterator can become a proxy, the arrays value type is truly aribtrary and each element offers the same functionality as any other proxy:
+Because the iterator can become a proxy, the arrays value type is truly arbitrary and each element offers the same functionality as any other proxy:
+```
+Array<Vector<std::pair<int, Symbol>>, 2> array
 ```
 
-# Usertypes
+## Expressions
+
+(this feature is not yet implemented)
+
+## Types
+
+(this documentation is not yet complete)
 
 
 
-
-        
+       
         
 
 
@@ -488,10 +510,10 @@ unknown function (ip: 0x7fa109483a30)
 unknown function (ip: 0x7fa10948f4fb)
 _ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
 __cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
-forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:29
-main at /home/clem/Workspace/jluna/.test/main.cpp:16
+forward_last_exception at /home/Workspace/jluna/./.src/exceptions.inl:29
+main at /home/Workspace/jluna/.test/main.cpp:16
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-_start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
+_start at /home/Workspace/jluna/cmake-build-debug/TEST (unknown line)
 Allocations: 2722 (Pool: 2712; Big: 10); GC: 0
 
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)
@@ -530,11 +552,11 @@ unknown function (ip: 0x7fe1eaa49a30)
 unknown function (ip: 0x7fe1eaa554fb)
 _ZSt9terminatev at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
 __cxa_throw at /lib/x86_64-linux-gnu/libstdc++.so.6 (unknown line)
-forward_last_exception at /home/clem/Workspace/jluna/./.src/exceptions.inl:38
-safe_script at /home/clem/Workspace/jluna/./.src/state.inl:96
-main at /home/clem/Workspace/jluna/.test/main.cpp:15
+forward_last_exception at /home/Workspace/jluna/./.src/exceptions.inl:38
+safe_script at /home/Workspace/jluna/./.src/state.inl:96
+main at /home/Workspace/jluna/.test/main.cpp:15
 __libc_start_main at /lib/x86_64-linux-gnu/libc.so.6 (unknown line)
-_start at /home/clem/Workspace/jluna/cmake-build-debug/TEST (unknown line)
+_start at /home/Workspace/jluna/cmake-build-debug/TEST (unknown line)
 Allocations: 798814 (Pool: 798379; Big: 435); GC: 1
 
 Process finished with exit code 134 (interrupted by signal 6: SIGABRT)

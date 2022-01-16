@@ -17,19 +17,23 @@ int main()
     // initialize state, always needs to be called first
     State::initialize();
 
-    State::safe_script("print_types(xs...) = for x in xs println(typeof(x)) end");
-    Main["print_types"](
-        std::string("string"),
-        std::complex<double>(0, 1),
-        std::pair<size_t, std::string>{1, "string"},
-        std::tuple<float, size_t, std::string>{1.f, 2, "string"},
-        std::vector<long>{1, 2, 3},
-        std::map<float, size_t>{{1, 1}},
-        std::set<char>{1}
-    );
+    jl_array_t* array = (jl_array_t*) jl_eval_string("return [1, 2, 3, 4]");
+jl_arrayset(array, box<Int64>(999), 0);
 
-    Main["print_types"](std::set<std::map<size_t, std::pair<size_t, std::vector<int>>>>({{{1, {1, {1, 1, 1}}}}}));
+jl_function_t* println = jl_get_function(jl_base_module, "println");
+jl_call1(println, (jl_value_t*) array);
 
+    jl_atexit_hook(0)
+
+
+    jl_value_t* jl_string = jl_eval_string("return \"abcdef\"");
+    std::string std_string = std::string(jl_string_data(jl_string));
+    std::cout << std_string << std::endl;
+
+    array = (jl_array_t*) jl_eval_string("return [[1, 2, 3]; [2, 3, 4]; [3, 4, 5]]");
+
+    for (size_t i = 0; i < jl_array_len(array); ++i)
+    std::cout << unbox<jluna::Int64>(jl_arrayref(array, i)) << " ";
 }
     /*
 

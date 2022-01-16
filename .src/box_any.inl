@@ -20,7 +20,7 @@ namespace jluna
     template<Decayable T>
     jl_value_t* box(T&& value)
     {
-        return (jl_value_t*) (std::forward<T*>(value));
+        return (jl_value_t*) (value);
     }
 
     /// @brief box to string
