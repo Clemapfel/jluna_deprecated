@@ -144,7 +144,7 @@ to:
 set(JULIA_EXECUTABLE /path/to/your/.../julia/bin/julia) # replace with the path to julia/bin/julia here
 ```
 
-During `make` `jluna` should now be able to determine all the information to build `jluna` and link Julia properly
+During make, `jluna` should now be able to determine all the information to build `jluna` and link Julia properly
 
 ### State::initialize() fails
 
