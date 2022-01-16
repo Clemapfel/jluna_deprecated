@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <string>
 #include <set>
+#include <map>
+#include <unordered_map>
 
 namespace jluna
 {
@@ -77,9 +79,13 @@ namespace jluna
     template<typename... Ts>
     jl_value_t* box(const std::tuple<Ts...>& value);
 
-    /// @brief box map, unordered map to IdMap
-    template<IsDict T, typename Key_t = typename T::key_type, typename Value_t = typename T::mapped_type>
-    jl_value_t* box(const T& value);
+    /// @brief box map to IdDict
+    template<typename Key_t, typename Value_t>
+    jl_value_t* box(const std::map<Key_t, Value_t>& value);
+
+    /// @brief box unordered map to Dict
+    template<typename Key_t, typename Value_t>
+    jl_value_t* box(const std::unordered_map<Key_t, Value_t>& value);
 
     /// @brief box set
     template<typename T>
