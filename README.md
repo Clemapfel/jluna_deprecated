@@ -1,8 +1,30 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented. <br> Heavily inspired in design and syntax by the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
+Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented.
 
-(*`jluna` is in no way affiliated with the sol2 team and no code is shared between libraries)
+Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
+
+---
+
+### Table of Contents
+
+0. [Introduction](./README.md)
+1. [Showcase](#showcase)<br>
+2. [Features](#features)<br>
+3. [Planned Features](#planned-but-not-yet-implemented)<br>
+4. [Dependencies](#dependencies)<br>
+   4.1 [Julia 1.7.0+](#dependencies)<br>
+   4.2 [g++10](#dependencies)<br>
+   4.3 [cmake 3.19+](#dependencies)<br>
+   4.4 [Linux / Mac OS](#dependencies)
+5. [Installation](#installation)<br>
+  5.1 [Linking](#installation)<br>
+  5.2 [Troubleshooting](#troubleshooting)<br>
+6. [Documentation](#documentation)<br>
+    6.1 [Manual](./docs/docs.md)<br>
+    6.2 [Quick & Dirty Overview](#documentation)
+   
+---
 
 ## Showcase
 
@@ -38,26 +60,6 @@ println(Main["instance"]);
 ```
 Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27], ["string", "string", "string"])
 ```
-
----
-
-### Table of Contents
-
-0. [Introduction](./README.md)
-1. [Features](#features)<br>
-2. [Planned Features](#planned-but-not-yet-implemented)<br>
-3. [Dependencies](#dependencies)<br>
-   3.1 [Julia 1.7.0+](#dependencies)<br>
-   3.2 [g++10](#dependencies)<br>
-   3.3 [cmake 3.19+](#dependencies)<br>
-   3.3 [Linux / Mac OS](#dependencies)
-4. [Installation](#installation)<br>
-  4.1 [Linking](#installation)<br>
-  4.2 [Troubleshooting](#troubleshooting)<br>
-5. [Documentation](#documentation)<br>
-    5.1 [Manual](./docs/docs.md)<br>
-    5.2 [Quick & Dirty Overview](#documentation)
-   
 ---
 
 ### Features
@@ -66,9 +68,9 @@ Some advantages `jluna` has over the C-API include:
 + automatically detects and links Julia during make
 + expressive generic syntax
 + Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
-+ mutating C++-side proxies also assigns the corresponding variable Julia-side if desired
++ assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
 + verbose exceptions, including exception forwarding from Julia
-+ wraps most of the relevant C++ std objects and types
++ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objects and types
 + multi-dimensional, iterable array interface with Julia-Style indexing
 + `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
 + mixing the C-API and `jluna` works out-of-the-box
