@@ -16,24 +16,23 @@ int main()
 {
     // initialize state, always needs to be called first
     State::initialize();
+State::safe_script(R"(
+mutable struct ArrayHolder
+    _array_field::Array{Int64, 3}
+    _vector_field::Vector{String}
 
-    jl_array_t* array = (jl_array_t*) jl_eval_string("return [1, 2, 3, 4]");
-jl_arrayset(array, box<Int64>(999), 0);
+    ArrayHolder() = new(reshape(collect(1:(3*3*3)), 3, 3, 3), Vector{String}())
+end
 
-jl_function_t* println = jl_get_function(jl_base_module, "println");
-jl_call1(println, (jl_value_t*) array);
+instance = ArrayHolder();
+)");
 
-    jl_atexit_hook(0)
+Array<Int64, 3> field = Main["instance"]["_array_field"];
+field.at(0, 1, 2) = 9999;
 
+Main["instance"]["_vector_field"] = std::vector<std::string>{"string", "string", "string"};
 
-    jl_value_t* jl_string = jl_eval_string("return \"abcdef\"");
-    std::string std_string = std::string(jl_string_data(jl_string));
-    std::cout << std_string << std::endl;
-
-    array = (jl_array_t*) jl_eval_string("return [[1, 2, 3]; [2, 3, 4]; [3, 4, 5]]");
-
-    for (size_t i = 0; i < jl_array_len(array); ++i)
-    std::cout << unbox<jluna::Int64>(jl_arrayref(array, i)) << " ";
+Base["print"](Main["instance"], "\n");
 }
     /*
 
