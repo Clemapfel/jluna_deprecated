@@ -1,6 +1,6 @@
 # jluna: Quick & Dirty
 
-This page will give a fly-by, cheat-sheet-like overview of all relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorials on [jluna::State](./state.md) and [jluna::Proxy](./proxies.md) at some point.
+This page will give a fly-by, cheat-sheet-like overview of all relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorials on [~~jluna::State~~]() and [~~jluna::Proxy~~]() at some point.
 
 ## Table Of Contents
 
@@ -183,7 +183,7 @@ State::script("println(variable_name));
 456
 ```
 
-(see the [tutorial on proxies](./proxies.md) if this behavior seems unintuitive to you)
+(see the [~~tutorial on proxies~~]() if this behavior seems unintuitive to you)
 
 ### Accessing Fields
 

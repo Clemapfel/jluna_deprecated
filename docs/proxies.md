@@ -1,3 +1,5 @@
+# (this document is not yet finished and is not intended for public view)
+
 # All about jluna::Proxy
 
 This tutorial will be a deep-dive into `jluna::Proxy`. Please be sure that you read the tutorials on ["jluna::State and the Basics"](./state.md) before you continue.

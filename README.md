@@ -160,6 +160,12 @@ Make sure that the image is uncompressed, as `.zip` or `.tar` files cannot be us
 
 The manual is not yet complete, consider visiting the already completed [overview cheat-sheet](./docs/quick_and_dirty.md) instead. Furthermore, inline-documentation inside the headers is already available through any IDE.
 
+----
+
+## License
+
+`jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](www.clemens-cords.com/contact).
+
 
 
 
