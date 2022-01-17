@@ -21,7 +21,22 @@ int main()
     test::test("state_initialize", [](){
 
         State::initialize();
-        test::assert_that(false); //jl_is_initialized());
+        test::assert_that(jl_is_initialized());
+    });
+
+    test::test("safe_script", [](){
+
+        bool thrown = false;
+        try
+        {
+            State::safe_script("sqrt(-1)");
+        }
+        catch (const JuliaException& e)
+        {
+            thrown = true;
+        }
+
+        test::assert_that(thrown);
     });
 
     test::conclude();

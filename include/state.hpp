@@ -70,6 +70,17 @@ namespace jluna
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string& command, const std::string& module);
 
+            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
+            template<Decayable... Args_t>
+            static auto safe_call(jl_function_t*, Args_t&&...);
+
+            /// @brief trigger the garbage collector
+            static void collect_garbage();
+
+            /// @brief activate/deactivate garbage collector
+            static void set_garbage_collector_enabled(bool);
+
+        protected:
             /// @brief call julia function without exception forwarding
             /// @param function
             /// @param arguments
@@ -84,17 +95,6 @@ namespace jluna
             template<typename... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
-            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
-            template<Decayable... Args_t>
-            static auto safe_call(jl_function_t*, Args_t&&...);
-
-            /// @brief trigger the garbage collector
-            static void collect_garbage();
-
-            /// @brief activate/deactivate garbage collector
-            static void set_garbage_collector_enabled(bool);
-
-        protected:
             /// @brief access a function just by name, searches for it in any module currently loaded
             /// @param function_name: exact function name, e.g. "push!"
             static jl_function_t* find_function(const std::string& function_name);
