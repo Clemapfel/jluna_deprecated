@@ -71,7 +71,7 @@ namespace jluna
     Array<V, R>::ConstIterator::operator Proxy<State>()
     {
         return Proxy<State>(
-                jl_arrayref((jl_array_t*) _owner->_content->_value, _index),
+                jl_arrayref((jl_array_t*) _owner->_content->value(), _index),
                 _owner->_content,
                 jl_symbol(("[" + std::to_string(_index+1) + "]").c_str())
         );

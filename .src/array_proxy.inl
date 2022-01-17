@@ -14,7 +14,7 @@ namespace jluna
     size_t Array<T, Rank>::get_dimension(int index)
     {
         static jl_function_t* size = jl_get_function(jl_base_module, "size");
-        return jl_unbox_uint64(jl_call2(size, _content->_value, jl_box_int32(index + 1)));
+        return jl_unbox_uint64(jl_call2(size, _content->value(), jl_box_int32(index + 1)));
     }
 
     template<Boxable T, size_t Rank>
@@ -61,7 +61,7 @@ namespace jluna
             throw std::out_of_range(str.str().c_str());
         }
 
-        return unbox<T>(jl_arrayref((jl_array_t*) _content->_value, i));
+        return unbox<T>(jl_arrayref((jl_array_t*) _content->value(), i));
     }
 
     template<Boxable V, size_t R>
@@ -128,7 +128,7 @@ namespace jluna
     void Array<V, R>::set(size_t i, T value)
     {
         jl_value_t* boxed = box(value);
-        jl_arrayset((jl_array_t*) _content->_value, box<V>(value), i);
+        jl_arrayset((jl_array_t*) _content->value(), box<V>(value), i);
     }
 
     template<Boxable V, size_t R>
@@ -172,7 +172,7 @@ namespace jluna
     auto Array<V, R>::back()
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return operator[](jl_unbox_uint64(jl_call1(length, _content->_value)));
+        return operator[](jl_unbox_uint64(jl_call1(length, _content->value())));
     }
 
     template<Boxable V, size_t R>
@@ -180,14 +180,14 @@ namespace jluna
     T Array<V, R>::back() const
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return operator[]<T>(jl_unbox_uint64(jl_call1(length, _content->_value)));
+        return operator[]<T>(jl_unbox_uint64(jl_call1(length, _content->value())));
     }
 
     template<Boxable V, size_t R>
     size_t Array<V, R>::get_n_elements() const
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return jl_unbox_uint64(jl_call1(length, _content->_value));
+        return jl_unbox_uint64(jl_call1(length, _content->value()));
     }
 
     // ###

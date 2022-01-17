@@ -40,6 +40,6 @@ namespace jluna
 
     Symbol::operator std::string() const
     {
-        return std::string(jl_symbol_name((jl_sym_t*) _content->_value));
+        return std::string(jl_symbol_name((jl_sym_t*) _content->value()));
     }
 }

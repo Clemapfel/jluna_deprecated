@@ -54,8 +54,7 @@ namespace jluna
         _create_reference = jl_get_function(module, "create_reference");
         _free_reference =  jl_get_function(module, "free_reference");
         _force_free =  jl_get_function(module, "force_free");
-        _get_value =  jl_get_function(module, "get_reference");
-        _get_reference =  jl_get_function(module, "get_value");
+        _get_reference =  jl_get_function(module, "get_reference");
 
         jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr);
         jluna::Base = Main["Base"];//Proxy<State>((jl_value_t*) jl_base_module, Main._content, jl_symbol("Base"));
@@ -206,62 +205,40 @@ namespace jluna
         jl_gc_enable(b);
     }
 
-    jl_value_t* State::create_reference(jl_value_t* in)
+    size_t State::create_reference(jl_value_t* in)
     {
         THROW_IF_UNINITIALIZED;
 
         if (in == nullptr)
-            return nullptr;
+            return 0;
 
         //std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
+        size_t res = -1;
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
         jl_value_t* value;
-        try
-        {
-            value = safe_call(_create_reference, reinterpret_cast<size_t>(in), in);
-        }
-        catch (jluna::JuliaException& exc)
-        {
-            std::cerr << "[C++][ERROR][FATAL] illegal allocation of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
-            std::cerr << "If this exception was triggered in an unmodified release version of jluna, please notify the developer.\n" << std::endl;
-            std::cerr << exc.what() << std::endl;
-            throw exc;
-            exit(1);
-        }
+        res = jl_unbox_uint64(safe_call(_create_reference, in));
         jl_gc_enable(before);
 
-        std::cout << jl_typeof_str(in) << " -> " << jl_typeof_str(value) << std::endl;
-        std::cout << "in : " << in << std::endl;
-        std::cout << "out: " << value << std::endl;
-
-        return value;
+        return res;
     }
 
-    void State::free_reference(jl_value_t* in)
+    jl_value_t * State::get_reference(size_t key)
+    {
+        return safe_call(_get_reference, jl_box_uint64(key));
+    }
+
+    void State::free_reference(size_t key)
     {
         THROW_IF_UNINITIALIZED;
 
-        if (in == nullptr)
+        if (key == 0)
             return;
-
-        //std::cout << "freed " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
 
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
-        try
-        {
-            safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(in)));
-        }
-        catch (jluna::JuliaException& exc)
-        {
-            std::cerr << "[C++][ERROR][FATAL] illegal freeing of value with pointer " << in << " (" << jl_typeof_str(reinterpret_cast<jl_value_t*>(in)) << ").\n" << std::endl;
-            std::cerr << "If this exception was triggered in an unmodified release version of jluna, please notify the developer.\n" << std::endl;
-            std::cerr << exc.what() << std::endl;
-            throw exc;
-            exit(1);
-        }
+        safe_call(_free_reference, jl_box_uint64(reinterpret_cast<size_t>(key)));
         jl_gc_enable(before);
     }
 

@@ -12,24 +12,9 @@ begin # included into module jluna
     """
     module memory_handler
 
-        """
-        typealias, 64-bit C-pointer
-        """
-        const Cpointer = UInt64
-        export Cpointer
-
-        """
-        string(::Cpointer) -> String
-
-        convert pointer to C++ to_string notation
-        """
-        function string(ptr::Cpointer) ::String
-            return "0x" * Base.string(ptr; base=16)
-        end
-        export string
-
-        const _refs = Ref(IdDict{Cpointer, Base.RefValue{Any}}())
-        const _ref_counter = Ref(IdDict{Cpointer, UInt64}())
+        _current_id = UInt64(1);
+        const _refs = Ref(Dict{UInt64, Base.RefValue{Any}}())
+        const _ref_counter = Ref(IdDict{UInt64, UInt64}())
         
         """
         assign(::Module, ::Symbol, ::Any) -> Any
@@ -77,51 +62,62 @@ begin # included into module jluna
         assign(symbol::Symbol, v::String) = assign(Main, symbol, v)
 
         """
-        assign(::Cpointer, ::Any) -> Nothing
-
-        reassign C++ manage value
-        """
-        function assign(pointer::Cpointer, v::Any) ::Nothing
-
-            @assert haskey(_refs[], pointer)
-            _refs[][pointer].x = v
-            return nothing
-        end
-
-        """
-        create_reference(::Cpointer, ::T) -> T
+        create_reference(::UInt64, ::Any) -> UInt64
 
         add reference to _refs
         """
-        function create_reference(ptr::Cpointer, to_wrap::T) ::T where T
+        function create_reference(to_wrap::Any) ::UInt64
 
-            #println("[JULIA] allocated " * string(ptr) * " (" * Base.string(typeof(to_wrap)) * ")")
-            if (haskey(_refs[], ptr))
-                @assert _refs[][ptr].x == to_wrap && typeof(to_wrap) == typeof(_refs[][ptr].x)
-                _ref_counter[][ptr] += 1
-            else
-                _refs[][ptr] = Base.RefValue{Any}(to_wrap)
-                _ref_counter[][ptr] = 1
+            if (to_wrap == nothing)
+                return 0;
             end
 
-            return _refs[][ptr].x;
+            global _current_id += 1;
+            key = _current_id;
+
+            #println("[JULIA] allocated " * string(key) * " (" * Base.string(typeof(to_wrap)) * ")")
+            if (haskey(_refs[], key))
+                @assert _refs[][key].x == to_wrap && typeof(to_wrap) == typeof(_refs[][key].x)
+                _ref_counter[][key] += 1
+            else
+                _refs[][key] = Base.RefValue{Any}(to_wrap)
+                _ref_counter[][key] = 1
+            end
+
+            return key;
         end
 
         """
-        free_reference(::Cpointer) -> Nothing
+        get_reference(::Int64) -> Any
+        """
+        function get_reference(key::UInt64) ::Any
+
+            if (key == 0)
+                return nothing;
+            end
+
+           return _refs[][key];
+        end
+
+        """
+        free_reference(::UInt64) -> Nothing
 
         free reference from _refs
         """
-        function free_reference(ptr::Cpointer) ::Nothing
+        function free_reference(key::UInt64) ::Nothing
 
-            @assert haskey(_refs[], ptr)
+            if (key == 0)
+                return nothing;
+            end
+
+            @assert haskey(_refs[], key)
             #println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
 
-            count = _ref_counter[][ptr]
-            _ref_counter[][ptr] -= 1
+            count = _ref_counter[][key]
+            _ref_counter[][key] -= 1
 
             if (count == 0)
-                delete!(_ref_counter[], ptr)
+                delete!(_ref_counter[], key)
             end
 
             return nothing;
@@ -142,34 +138,6 @@ begin # included into module jluna
             @assert isempty(_refs) && isempty(_ref_counter)
 
             return nothing;
-        end
-
-        """
-        get_value(::Cpointer) -> Any
-
-        access value of allocated memory
-        """
-        function get_value(ptr::Cpointer) ::Any
-
-            if (!haskey(_refs[], ptr))
-                return nothing
-            else
-                return _refs[][ptr].x
-            end
-        end
-
-        """
-        get_reference(::Cpointer) -> RefValue{Any}
-
-        access reference in _refs
-        """
-        function get_reference(ptr::Cpointer) ::Base.RefValue{Any}
-
-            if (!haskey(_refs[], ptr))
-                return nothing
-            else
-                return _refs[][ptr]
-            end
         end
     end
 end

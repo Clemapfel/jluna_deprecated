@@ -17,8 +17,11 @@ namespace jluna
             return;
 
         _owner = owner;
-        _value = State_t::create_reference(value);
-        _symbol = (jl_sym_t*) State_t::create_reference((jl_value_t*) symbol);
+        _value_key = State_t::create_reference(value);
+        _value_ref = State_t::get_reference(_value_key);
+
+        _symbol_key = State_t::create_reference((jl_value_t*) symbol);
+        _symbol_ref = State_t::get_reference(_symbol_key);
     }
 
     template<typename State_t>
@@ -28,15 +31,30 @@ namespace jluna
         if (value == nullptr)
             return;
 
-        _value = State_t::create_reference(value);
-        _symbol = (jl_sym_t*) State_t::create_reference((jl_value_t*) symbol);
+        _value_key = State_t::create_reference(value);
+        _value_ref = State_t::get_reference(_value_key);
+
+        _symbol_key = State_t::create_reference((jl_value_t*) symbol);
+        _symbol_ref = State_t::get_reference(_symbol_key);
     }
 
     template<typename State_t>
     Proxy<State_t>::ProxyValue::~ProxyValue()
     {
-        State_t::free_reference(_value);
-        State_t::free_reference((jl_value_t*) _symbol);
+        State_t::free_reference(_value_key);
+        State_t::free_reference(_symbol_key);
+    }
+
+    template<typename State_t>
+    jl_value_t * Proxy<State_t>::ProxyValue::value()
+    {
+        return jl_get_nth_field(_value_ref, 0);
+    }
+
+    template<typename State_t>
+    jl_value_t * Proxy<State_t>::ProxyValue::symbol()
+    {
+        return jl_get_nth_field(_symbol_ref, 0);
     }
 
     template<typename State_t>
@@ -47,7 +65,7 @@ namespace jluna
         static jl_function_t* safe_call = jl_get_function(exception_module, "safe_call");
         static jl_function_t* dot = jl_get_function(jluna_module, "dot");
 
-        jl_value_t* args[3] = {(jl_value_t*) dot, _value, (jl_value_t*) symbol};
+        jl_value_t* args[3] = {(jl_value_t*) dot, value(), (jl_value_t*) symbol};
         auto* res = jl_call(safe_call, args, 3);
         forward_last_exception();
 
@@ -86,7 +104,7 @@ namespace jluna
     {
         static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
         return Proxy<State_t>(
-                State_t::safe_call(getindex, _content.get()->_value, i + 1),
+                State_t::safe_call(getindex, _content->value(), i + 1),
                 _content,
                 jl_symbol(("[" + std::to_string(i) + "]").c_str())
         );
@@ -97,52 +115,34 @@ namespace jluna
     T Proxy<State_t>::operator[](size_t i)
     {
         static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
-        return unbox<T>(State_t::safe_call(getindex, _content.get()->_value(), i + 1));
-    }
-
-    template<typename State_t>
-    jl_value_t * Proxy<State_t>::value()
-    {
-        return _content->_value;
-    }
-
-    template<typename State_t>
-    jl_sym_t * Proxy<State_t>::symbol()
-    {
-        return _content->_symbol;
-    }
-
-    template<typename State_t>
-    typename Proxy<State_t>::ProxyValue * Proxy<State_t>::owner()
-    {
-        return _content->_owner.get();
+        return unbox<T>(State_t::safe_call(getindex, _content->value(), i + 1));
     }
 
     template<typename State_t>
     Proxy<State_t>::operator jl_value_t*()
     {
-        return _content.get()->_value;
+        return _content->value();
     }
 
     template<typename State_t>
     Proxy<State_t>::operator std::string() const
     {
         static jl_function_t* to_string = jl_get_function(jl_base_module, "string");
-        return std::string(jl_string_data(jl_call1(to_string, _content->_value)));
+        return std::string(jl_string_data(jl_call1(to_string, _content->value())));
     }
 
      template<typename State_t>
     template<Unboxable T>
     Proxy<State_t>::operator T() const
     {
-        return unbox<T>(_content->_value);
+        return unbox<T>(_content->value());
     }
 
     template<typename State_t>
     template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool>>
     Proxy<State_t>::operator T()
     {
-        return T(value(), _content->_owner, symbol());
+        return T(_content->value(), _content->_owner, _content->symbol());
     }
 
     template<typename State_t>
@@ -189,7 +189,7 @@ namespace jluna
     template<typename State_t>
     std::vector<std::string> Proxy<State_t>::get_field_names() const
     {
-        auto* svec = jl_field_names((jl_datatype_t*) jl_typeof(_content->_value));
+        auto* svec = jl_field_names((jl_datatype_t*) jl_typeof(_content->value()));
         std::vector<std::string> out;
         for (size_t i = 0; i < jl_svec_len(svec); ++i)
             out.push_back(std::string(jl_symbol_name((jl_sym_t*) jl_svecref(svec, i))));
@@ -204,7 +204,7 @@ namespace jluna
         static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
         static jl_function_t* invoke = jl_get_function(jluna_module, "invoke");
 
-        return Proxy<State>(State_t::call(invoke, value(), std::forward<Args_t>(args)...), nullptr);
+        return Proxy<State>(State_t::call(invoke, _content->value(), std::forward<Args_t>(args)...), nullptr);
     }
 
     template<typename State_t>
@@ -214,7 +214,7 @@ namespace jluna
         static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
         static jl_function_t* invoke = jl_get_function(jluna_module, "invoke");
 
-        return Proxy<State>(State_t::safe_call(invoke, value(), std::forward<Args_t>(args)...), nullptr);
+        return Proxy<State>(State_t::safe_call(invoke, _content->value(), std::forward<Args_t>(args)...), nullptr);
     }
 
     template<typename State_t>
@@ -233,17 +233,17 @@ namespace jluna
     template<typename State_t>
     void Proxy<State_t>::set_mutating(bool b)
     {
-        if (symbol() == nullptr or std::string(jl_symbol_name_((jl_sym_t*) symbol())) == "")
-            throw UnnamedVariableException(value());
+        if (_content->symbol() == nullptr or std::string(jl_symbol_name_((jl_sym_t*) _content->symbol())) == "")
+            throw UnnamedVariableException(_content->value());
 
-        else if (jl_isa(owner()->_value, (jl_value_t*) jl_module_type))
+        else if (jl_isa(_content->_owner->_value, (jl_value_t*) jl_module_type))
         {
-            if (jl_is_const((jl_module_t*) owner()->_value, (jl_sym_t*) symbol()))
-                throw ImmutableVariableException(value());
+            if (jl_is_const((jl_module_t*) _content->_owner->_value, (jl_sym_t*) _content->symbol()))
+                throw ImmutableVariableException(_content->value());
             goto skip; //because modules are structtypes, skip next else if on success
         }
-        else if (jl_is_structtype(jl_typeof(owner()->_value)) and not jl_is_mutable_datatype(jl_typeof(owner()->_value)))
-            throw ImmutableVariableException(owner()->_value);
+        else if (jl_is_structtype(jl_typeof(_content->_owner->_value)) and not jl_is_mutable_datatype(jl_typeof(_content->_owner->_value)))
+            throw ImmutableVariableException(_content->_owner->_value);
 
         skip:
         _is_mutating = b;
@@ -252,10 +252,10 @@ namespace jluna
     template<typename State_t>
     bool Proxy<State_t>::can_mutate() const
     {
-        if ((symbol() == nullptr) or
-            (std::string(jl_symbol_name_(symbol())) == "") or
-            (jl_isa(owner()->_value, (jl_value_t*) jl_module_type) and jl_is_const((jl_module_t*) owner()->_value, symbol())) or
-            (jl_is_structtype(jl_typeof(owner()->_value)) and jl_is_mutable_datatype(jl_typeof(owner()->_value))))
+        if ((_content->symbol() == nullptr) or
+            (std::string(jl_symbol_name_(_content->symbol())) == "") or
+            (jl_isa(_content->_owner->_value, (jl_value_t*) jl_module_type) and jl_is_const((jl_module_t*) _content->_owner->_value, _content->symbol())) or
+            (jl_is_structtype(jl_typeof(_content->_owner->_value)) and jl_is_mutable_datatype(jl_typeof(_content->_owner->_value))))
             return false;
         else
             return true;
@@ -269,9 +269,9 @@ namespace jluna
 
         if (not _is_mutating)
         {
-            State_t::free_reference(value());
-            _content->_value = v;
-            State_t::create_reference(value());
+            State_t::free_reference(_content->value());
+            _content->value() = v;
+            State_t::create_reference(_content->value());
         }
         else
         {
@@ -286,10 +286,10 @@ namespace jluna
             for (auto* n : name)
                 args.push_back((jl_value_t*) n);
 
-            State_t::free_reference(value());
-            _content->_value = jl_call(safe_call, args.data(), args.size());
+            State_t::free_reference(_content->value());
+            _content->value() = jl_call(safe_call, args.data(), args.size());
             forward_last_exception();
-            State_t::create_reference(value());
+            State_t::create_reference(_content->value());
         }
 
         jl_gc_enable(before);

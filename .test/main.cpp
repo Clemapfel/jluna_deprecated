@@ -19,6 +19,28 @@ int main()
     State::initialize();
     assert(jl_is_initialized());
 
+    jl_init();
+    jl_eval_string(R"(
+
+    struct StructType
+        _first
+        _filed
+        _asda
+        _asdas
+
+        StructType() = new(999, 0, 0, 0)
+    end
+)");
+
+
+    auto* ref = jl_eval_string("return Ref{StructType}(StructType())");
+
+    std::cout << jl_unbox_int64(jl_get_nth_field(jl_get_nth_field(ref, 0), 0)) << std::endl;
+
+
+    return 0;
+
+
     jl_eval_string(R"(
         struct StructType
             any

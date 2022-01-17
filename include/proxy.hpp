@@ -141,31 +141,32 @@ namespace jluna
             auto& operator=(T);
 
         protected:
-            struct ProxyValue
+            class ProxyValue
             {
-                ProxyValue(jl_value_t*, jl_sym_t*);
-                ProxyValue(jl_value_t*, std::shared_ptr<ProxyValue>& owner, jl_sym_t*);
-                ~ProxyValue();
+                public:
+                    ProxyValue(jl_value_t*, jl_sym_t*);
+                    ProxyValue(jl_value_t*, std::shared_ptr<ProxyValue>& owner, jl_sym_t*);
+                    ~ProxyValue();
 
-                jl_value_t* get_field(jl_sym_t*);
+                    jl_value_t* get_field(jl_sym_t*);
 
-                std::shared_ptr<ProxyValue> _owner;
-                jl_sym_t* _symbol;
-                jl_value_t* _value;
+                    std::shared_ptr<ProxyValue> _owner;
 
-                size_t _symbol_key;
-                size_t _value_key;
+                    jl_value_t* value();
+                    jl_value_t* symbol();
+
+                private:
+                    size_t _symbol_key;
+                    size_t _value_key;
+
+                    jl_value_t* _symbol_ref;
+                    jl_value_t* _value_ref;
             };
 
             std::shared_ptr<ProxyValue> _content;
 
             bool _is_mutating = true;
             std::deque<jl_sym_t*> assemble_name() const;
-
-            // for nicer syntax internally:
-            jl_value_t* value();
-            jl_sym_t* symbol();
-            ProxyValue* owner();
     };
 
     /// @brief forward proxy after setting to mutating, useful for inline-forwarding
