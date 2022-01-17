@@ -199,6 +199,13 @@ namespace jluna
         jl_gc_enable(before);
     }
 
+    void State::set_garbage_collector_enabled(bool b)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        jl_gc_enable(b);
+    }
+
     jl_value_t* State::create_reference(jl_value_t* in)
     {
         THROW_IF_UNINITIALIZED;

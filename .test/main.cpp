@@ -10,12 +10,21 @@
 #include <global_utilities.hpp>
 #include <array_proxy.hpp>
 
+#include <.test/test.hpp>
+
 using namespace jluna;
 
 int main()
 {
-    // initialize state, always needs to be called first
-    State::initialize();
+    test::initialize();
+
+    test::test("state_initialize", [](){
+
+        State::initialize();
+        test::assert_that(false); //jl_is_initialized());
+    });
+
+    test::conclude();
 
 
 }
