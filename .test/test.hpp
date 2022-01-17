@@ -70,7 +70,7 @@ namespace test
 
     void initialize()
     {
-        std::cout << "starting test..." << std::endl;
+        std::cout << "starting test...\n" << std::endl;
         _failed = std::map<std::string, std::string>();
 
         // disable julia cout

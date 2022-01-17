@@ -100,16 +100,15 @@ namespace jluna
             static jl_function_t* find_function(const std::string& function_name);
 
             /// @brief add a value to be safeguarded from the garbage collector
-            /// @param key
+            /// @param pointer to value
             /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
             static size_t create_reference(jl_value_t*);
 
             /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
-            /// @param key
+            /// @param pointer to value
             static void free_reference(size_t);
 
             /// @brief access reference for protected value
-            /// @param key
             static jl_value_t* get_reference(size_t);
 
         private:
