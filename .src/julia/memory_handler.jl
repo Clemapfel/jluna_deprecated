@@ -104,7 +104,7 @@ begin # included into module jluna
                 _ref_counter[][ptr] = 1
             end
 
-            return _refs[][ptr].x
+            return _refs[][ptr].x;
         end
 
         """

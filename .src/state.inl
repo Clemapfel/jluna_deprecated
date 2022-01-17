@@ -232,6 +232,10 @@ namespace jluna
         }
         jl_gc_enable(before);
 
+        std::cout << jl_typeof_str(in) << " -> " << jl_typeof_str(value) << std::endl;
+        std::cout << "in : " << in << std::endl;
+        std::cout << "out: " << value << std::endl;
+
         return value;
     }
 
@@ -252,7 +256,7 @@ namespace jluna
         }
         catch (jluna::JuliaException& exc)
         {
-            std::cerr << "[C++][ERROR][FATAL] illegal freeing of value with pointer " << in << " (" << jl_typeof_str(in) << ").\n" << std::endl;
+            std::cerr << "[C++][ERROR][FATAL] illegal freeing of value with pointer " << in << " (" << jl_typeof_str(reinterpret_cast<jl_value_t*>(in)) << ").\n" << std::endl;
             std::cerr << "If this exception was triggered in an unmodified release version of jluna, please notify the developer.\n" << std::endl;
             std::cerr << exc.what() << std::endl;
             throw exc;

@@ -152,6 +152,9 @@ namespace jluna
                 std::shared_ptr<ProxyValue> _owner;
                 jl_sym_t* _symbol;
                 jl_value_t* _value;
+
+                size_t _symbol_key;
+                size_t _value_key;
             };
 
             std::shared_ptr<ProxyValue> _content;

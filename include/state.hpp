@@ -80,7 +80,7 @@ namespace jluna
             /// @brief activate/deactivate garbage collector
             static void set_garbage_collector_enabled(bool);
 
-        protected:
+        //protected:
             /// @brief call julia function without exception forwarding
             /// @param function
             /// @param arguments

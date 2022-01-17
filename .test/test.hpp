@@ -34,6 +34,9 @@ namespace test
     {
         std::cout << name << ": ";
 
+        std::cout.setstate(std::ios_base::failbit);
+        std::cerr.setstate(std::ios_base::failbit);
+
         bool failed = false;
         std::string what;
         try
@@ -51,8 +54,11 @@ namespace test
             what = e.what();
         }
 
+        std::cout.clear();
+        std::cerr.clear();
+
         if (failed == false)
-            std::cout << "[SUCCESSFUL]";
+            std::cout << "[OK]";
         else
         {
             std::cout << "[FAILED]";
@@ -66,24 +72,24 @@ namespace test
     {
         std::cerr << "starting test..." << std::endl;
         _failed = std::map<std::string, std::string>();
+
+        // disable julia cout
+        //jl_eval_string(R"(Base.eval(Meta.parse("println(xs...) = begin end")))");
     }
 
     void conclude()
     {
-        std::cerr << "Number of tests unsuccesfull: " << _failed.size();
+        std::cout << std::endl;
+        std::cout << "Number of tests unsuccessful: " << _failed.size() << std::endl;
 
         for (auto& pair : _failed)
         {
             std::cout << "__________________________________\n";
-            std::cout << "| " << pair.first << ": \n\n";
+            std::cout << "| " << pair.first << ": \n|\n";
             std::cout << "| " << pair.second << "\n";
             std::cout << "|_________________________________\n\n" << std::endl;
         }
     }
-
-
-
-
 
     void assert_that(bool b)
     {

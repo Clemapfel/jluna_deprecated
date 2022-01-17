@@ -16,15 +16,31 @@ using namespace jluna;
 
 int main()
 {
+    State::initialize();
+    assert(jl_is_initialized());
+
+    jl_eval_string(R"(
+        struct StructType
+            any
+        end
+    )");
+
+    auto p = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr);
+    auto any = p["any"];
+    auto zero = any[0];
+
+    State::collect_garbage();
+
+
+    std::cout << (Int64) zero << std::endl;
+    return 0;
+
+
+    // ##################
+
     test::initialize();
 
-    test::test("state_initialize", [](){
-
-        State::initialize();
-        test::assert_that(jl_is_initialized());
-    });
-
-    test::test("safe_script", [](){
+    test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
         try
@@ -37,6 +53,36 @@ int main()
         }
 
         test::assert_that(thrown);
+    });
+
+    test::test("safe_script: syntax error", [](){
+
+        bool thrown = false;
+        try
+        {
+            State::safe_script(R"(test = """\\"\""\)");
+        }
+        catch (const JuliaException& e)
+        {
+            thrown = true;
+        }
+
+        test::assert_that(thrown);
+    });
+
+    test::test("create_reference", []() {
+
+        jl_eval_string(R"(
+            struct StructType
+                any
+            end
+        )");
+
+        auto hold = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr);
+
+        State::script("jluna.exception_handler._refs[]");
+        State::collect_garbage();
+        test::assert_that(((int) hold["any"][0]) == 99);
     });
 
     test::conclude();

@@ -12,25 +12,24 @@ namespace jluna
 
     template<typename State_t>
     Proxy<State_t>::ProxyValue::ProxyValue(jl_value_t* value, std::shared_ptr<ProxyValue>& owner, jl_sym_t* symbol)
-        : _value(value), _symbol(symbol)
     {
         if (value == nullptr)
             return;
 
         _owner = owner;
-        State_t::create_reference(_value);
-        State_t::create_reference((jl_value_t*) _symbol);
+        _value = State_t::create_reference(value);
+        _symbol = (jl_sym_t*) State_t::create_reference((jl_value_t*) symbol);
     }
 
     template<typename State_t>
     Proxy<State_t>::ProxyValue::ProxyValue(jl_value_t* value, jl_sym_t* symbol)
-        : _value(value), _owner(nullptr), _symbol(symbol)
+        : _owner(nullptr)
     {
         if (value == nullptr)
             return;
 
-        State_t::create_reference(_value);
-        State_t::create_reference((jl_value_t*) _symbol);
+        _value = State_t::create_reference(value);
+        _symbol = (jl_sym_t*) State_t::create_reference((jl_value_t*) symbol);
     }
 
     template<typename State_t>
