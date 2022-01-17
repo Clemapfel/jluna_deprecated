@@ -70,11 +70,12 @@ namespace test
 
     void initialize()
     {
-        std::cerr << "starting test..." << std::endl;
+        std::cout << "starting test..." << std::endl;
         _failed = std::map<std::string, std::string>();
 
         // disable julia cout
-        //jl_eval_string(R"(Base.eval(Meta.parse("println(xs...) = begin end")))");
+        THROW_IF_UNINITIALIZED;
+        jl_eval_string(R"(Base.eval(Base, Meta.parse("println(xs...) = return nothing")))");
     }
 
     void conclude()

@@ -76,6 +76,7 @@ begin # included into module jluna
             key = _current_id;
 
             #println("[JULIA] allocated " * string(key) * " (" * Base.string(typeof(to_wrap)) * ")")
+
             if (haskey(_refs[], key))
                 @assert _refs[][key].x == to_wrap && typeof(to_wrap) == typeof(_refs[][key].x)
                 _ref_counter[][key] += 1
@@ -111,13 +112,14 @@ begin # included into module jluna
             end
 
             @assert haskey(_refs[], key)
-            #println("[JULIA] freed " * string(ptr) * " (" * Base.string(typeof(_refs[][ptr].x)) * ")")
+            #println("[JULIA] freed " * string(key) * " (" * Base.string(typeof(_refs[][key].x)) * ")")
 
+            global _ref_counter[][key] -= 1
             count = _ref_counter[][key]
-            _ref_counter[][key] -= 1
 
             if (count == 0)
                 delete!(_ref_counter[], key)
+                delete!(_refs[], key)
             end
 
             return nothing;

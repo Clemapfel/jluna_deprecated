@@ -10,6 +10,8 @@
 #include <global_utilities.hpp>
 #include <array_proxy.hpp>
 
+#include <thread>
+
 #include <.test/test.hpp>
 
 using namespace jluna;
@@ -17,39 +19,16 @@ using namespace jluna;
 int main()
 {
     State::initialize();
-    assert(jl_is_initialized());
-
-
-    jl_eval_string(R"(
-        struct StructType
-            any
-        end
-    )");
-
-    auto p = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr)["any"][0];
-
-    State::collect_garbage();
-
-    std::cout << (Int64) p << std::endl;
-
-    State::safe_script(R"(
-
-    function println(dict::Dict{T, U}) where {T, U}
-
-        for e in dict
-            Base.println(e)
-        end
-    end
-
-    Main.println(jluna.memory_handler._refs.x);
-    )");
-
-    return 0;
-
-
-    // ##################
 
     test::initialize();
+
+    /*
+    test::test("state_initialize", [](){
+
+        State::initialize();
+        test::assert_that(jl_is_initialized());
+    });
+     */
 
     test::test("safe_script: exception forwarding", [](){
 
@@ -94,6 +73,19 @@ int main()
         State::script("jluna.exception_handler._refs[]");
         State::collect_garbage();
         test::assert_that(((int) hold["any"][0]) == 99);
+    });
+
+    test::test("free_reference", [](){
+
+        auto* val = jl_eval_string("return [1, 2, 3]");
+        size_t key = State::create_reference(val);
+
+        size_t before = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
+
+        State::free_reference(key);
+        size_t after = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
+
+        test::assert_that(abs(static_cast<int>(before) - static_cast<int>(after)) == 1);
     });
 
     test::conclude();
