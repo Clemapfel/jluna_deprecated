@@ -19,27 +19,6 @@ int main()
     State::initialize();
     assert(jl_is_initialized());
 
-    jl_init();
-    jl_eval_string(R"(
-
-    struct StructType
-        _first
-        _filed
-        _asda
-        _asdas
-
-        StructType() = new(999, 0, 0, 0)
-    end
-)");
-
-
-    auto* ref = jl_eval_string("return Ref{StructType}(StructType())");
-
-    std::cout << jl_unbox_int64(jl_get_nth_field(jl_get_nth_field(ref, 0), 0)) << std::endl;
-
-
-    return 0;
-
 
     jl_eval_string(R"(
         struct StructType
@@ -47,14 +26,24 @@ int main()
         end
     )");
 
-    auto p = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr);
-    auto any = p["any"];
-    auto zero = any[0];
+    auto p = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr)["any"][0];
 
     State::collect_garbage();
 
+    std::cout << (Int64) p << std::endl;
 
-    std::cout << (Int64) zero << std::endl;
+    State::safe_script(R"(
+
+    function println(dict::Dict{T, U}) where {T, U}
+
+        for e in dict
+            Base.println(e)
+        end
+    end
+
+    Main.println(jluna.memory_handler._refs.x);
+    )");
+
     return 0;
 
 

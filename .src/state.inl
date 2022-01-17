@@ -209,7 +209,9 @@ namespace jluna
     {
         THROW_IF_UNINITIALIZED;
 
-        if (in == nullptr)
+        static jl_value_t* _refs = jl_eval_string("return jluna.memory_handler._refs[]");
+
+        if (in == nullptr)// or in == _refs)
             return 0;
 
         //std::cout << "added " << in << " (" << jl_typeof_str(in) << ")" << std::endl;
