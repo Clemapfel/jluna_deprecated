@@ -12,9 +12,36 @@
 #include <type_traits>
 #include <utility>
 #include <.src/common.hpp>
+#include <exceptions.hpp>
 
 namespace jluna
 {
+
+    // TODO
+    template<typename... Args_t>
+    auto safe_call(jl_function_t* function, Args_t&&... args)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+        std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
+        auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
+
+        {
+            params.at(0) = (jl_value_t*) function;
+            size_t i = 1;
+            (insert(i++, box(std::forward<Args_t>(args))), ...);
+        }
+
+        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jluna.exception_handler");
+        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
+        auto* result = jl_call(safe_call, params.data(), params.size());
+
+        forward_last_exception();
+        return result;
+    }
+
+
     jl_value_t* unbox(jl_value_t* value)
     {
         return value;
@@ -80,10 +107,11 @@ namespace jluna
     {
         static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
 
+        jl_value_t* res;
         if (jl_isa(value, (jl_value_t*) jl_int64_type))
                 return jl_unbox_int64(value);
         else
-            return jl_unbox_int64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
+            return jl_unbox_int64(safe_call(convert, (jl_value_t*) jl_int64_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, uint8_t>, bool>>

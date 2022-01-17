@@ -34,6 +34,7 @@ namespace jluna
     class Proxy
     {
         friend union State;
+
         protected: class ProxyValue;
 
         public:
@@ -121,14 +122,6 @@ namespace jluna
             /// @returns true if set as mutating and neither an immutable type, singleton or const variable
             bool is_mutating() const;
 
-            /// @brief set mutating behavior, if true, proxy will mutation julia-side variables if possible
-            /// @param bool
-            void set_mutating(bool);
-
-            /// @brief check whether a call to set_mutating(true) would result in an exception
-            /// @returns bool
-            bool can_mutate() const;
-
             /// @brief assign value to proxy, this modifies the value julia-side
             /// @param jl_value_t*
             /// @returns reference to self
@@ -155,7 +148,13 @@ namespace jluna
                     jl_value_t* value();
                     jl_value_t* symbol();
 
-                private:
+                    size_t value_key();
+                    size_t symbol_key();
+
+                    const jl_value_t* value() const;
+                    const jl_value_t* symbol() const;
+
+                //private:
                     size_t _symbol_key;
                     size_t _value_key;
 
@@ -164,68 +163,19 @@ namespace jluna
             };
 
             std::shared_ptr<ProxyValue> _content;
-
-            bool _is_mutating = true;
             std::deque<jl_sym_t*> assemble_name() const;
     };
 
-    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
-    /// @param proxy
-    /// @returns proxy after mutation
-    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t>
-    inline Proxy_t& make_mutating(Proxy_t& proxy)
-    {
-        proxy.set_mutating(true);
-        return std::forward<Proxy_t&>(proxy);
-    }
-
-    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
-    /// @param proxy
-    /// @returns proxy after mutation
-    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t>
-    inline Proxy_t& make_mutating(Proxy_t& proxy, const std::string& name)
-    {
-        proxy.assign_name(name);
-        proxy.set_mutating(true);
-        return std::forward<Proxy_t&>(proxy);
-    }
-
-    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
-    /// @param proxy
-    /// @returns proxy after mutation
-    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
-    template<typename Proxy_t>
-    inline Proxy_t make_mutating(Proxy_t&& proxy)
-    {
-        proxy.set_mutating(true);
-        return std::forward<Proxy_t>(proxy);
-    }
-
-    /// @brief forward proxy after setting to mutating, useful for inline-forwarding
-    /// @param proxy
-    /// @returns proxy after mutation
-    /// @exceptions throws ImmutableVariableException if the proxies underlying julia type cannot be modified
     template<typename Proxy_t>
     inline Proxy_t make_mutating(Proxy_t&& proxy, const std::string& name)
     {
-        proxy.assign_name(name);
-        proxy.set_mutating(true);
-        return std::forward<Proxy_t>(proxy);
+        //TODO
     }
 
-    /// @brief forward proxy after setting to mutating, if this is not possible, simply forward the proxy with no operation
-    /// @param proxy
-    /// @returns proxy
-    /// @exceptions no exceptions are thrown
     template<typename Proxy_t>
-    inline decltype(auto) try_make_mutating(Proxy_t& proxy) noexcept
+    inline Proxy_t make_non_mutating(Proxy_t&& proxy)
     {
-        if (proxy.can_mutate())
-            proxy.set_mutating(true);
-
-        return std::forward<Proxy_t>(proxy);
+        //TODO
     }
 }
 

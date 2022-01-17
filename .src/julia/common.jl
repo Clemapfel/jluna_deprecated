@@ -9,9 +9,19 @@ begin
 
     forward value type of array
     """
-    function get_value_type_of_array(_::Array{T}) ::Type where {T}
+    function get_value_type_of_array(_::Array{T}) ::Type where T
 
         return T
+    end
+
+    """
+    get_reference_value(::Base.RefValue{T}) -> T
+
+    forward value of reference
+    """
+    function get_reference_value(ref::Base.RefValue{T}) ::T where T
+
+        return ref[];
     end
 
     """
@@ -182,10 +192,12 @@ begin
 
     used by jluna::Proxy C++-side to mutate it's corresponding variable
     """
-    function assemble_assign(new_value::Any, names::Symbol...) ::Nothing
+    function assemble_assign(new_value::T, names::Symbol...) ::T where T
 
-        Main.eval(Expr(:(=), Meta.parse(assemble_name(names...)), new_value));
-        return nothing
+        name = assemble_name(names...)
+        Main.eval(Expr(:(=), Meta.parse(name), new_value))
+
+        return new_value
     end
 
     """

@@ -20,15 +20,28 @@ int main()
 {
     State::initialize();
 
+    jl_eval_string("variable = [1, 2, 3, 4]");
+
+    auto mutating_proxy = Main["variable"];
+    test::assert_that(mutating_proxy.is_mutating());
+
+    auto test = mutating_proxy.operator Int64();
+
+    mutating_proxy[0] = 9999;
+
+    test::assert_that(mutating_proxy[0].operator Int64() == 9999);
+    test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) == 9999);
+
+    auto non_mutating_proxy = State::script("return variable");
+    non_mutating_proxy = 8888;
+
+    test::assert_that(non_mutating_proxy.operator Int64() == 8888);
+    test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
+
+    return 0;
     test::initialize();
 
     /*
-    test::test("state_initialize", [](){
-
-        State::initialize();
-        test::assert_that(jl_is_initialized());
-    });
-     */
 
     test::test("safe_script: exception forwarding", [](){
 
@@ -193,6 +206,28 @@ int main()
         }
         catch (...)
         {}
+    });
+
+     */
+    test::test("proxy mutation", [](){
+
+        jl_eval_string("variable = [1, 2, 3, 4]");
+
+        auto mutating_proxy = Main["variable"];
+
+        test::assert_that(mutating_proxy.is_mutating());
+        mutating_proxy[0] = 9999;
+
+        test::assert_that(mutating_proxy.operator Int64() == 9999);
+        test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) == 9999);
+
+
+        auto non_mutating_proxy = State::script("return variable");
+        non_mutating_proxy = 8888;
+
+        test::assert_that(non_mutating_proxy.operator Int64() == 8888);
+        test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
+
     });
 
 

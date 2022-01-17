@@ -34,6 +34,13 @@ extern "C"
         static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
         return jl_string_data(jl_call1(to_string, v));
     }
+
+    /// @brief get value of reference
+    jl_value_t* jl_ref_value(jl_value_t* reference)
+    {
+        static jl_function_t* get_reference_value = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "get_reference_value");
+        return jl_call1(get_reference_value, reference);
+    }
 }
 
 
