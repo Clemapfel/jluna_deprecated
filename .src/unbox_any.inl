@@ -17,31 +17,6 @@
 namespace jluna
 {
 
-    // TODO
-    template<typename... Args_t>
-    auto safe_call(jl_function_t* function, Args_t&&... args)
-    {
-        THROW_IF_UNINITIALIZED;
-
-        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
-        std::array<jl_value_t*, sizeof...(Args_t) + 1> params;
-        auto insert = [&](size_t i, jl_value_t* to_insert) {params.at(i) = to_insert;};
-
-        {
-            params.at(0) = (jl_value_t*) function;
-            size_t i = 1;
-            (insert(i++, box(std::forward<Args_t>(args))), ...);
-        }
-
-        static jl_module_t* module = (jl_module_t*) jl_eval_string("return jluna.exception_handler");
-        static jl_function_t* safe_call = jl_get_function(module, "safe_call");
-        auto* result = jl_call(safe_call, params.data(), params.size());
-
-        forward_last_exception();
-        return result;
-    }
-
-
     jl_value_t* unbox(jl_value_t* value)
     {
         return value;

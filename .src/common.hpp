@@ -53,5 +53,37 @@ namespace jluna
     {
         static inline constexpr size_t value = sizeof(Array_t) / sizeof(typename Array_t::value_type);
     };
+
+    // call any function with exception forwarding
+    template<typename... Args_t>
+    auto safe_call(jl_function_t* function, Args_t... args)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+
+        std::vector<jl_value_t*> params = {(jl_value_t*) function};
+        (params.push_back(reinterpret_cast<jl_value_t*>(args)), ...);
+
+        static jl_function_t* safe_call = jl_get_function((jl_module_t*) jl_eval_string("return jluna.exception_handler"), "safe_call");
+        auto* result = jl_call(safe_call, params.data(), params.size());
+
+        forward_last_exception();
+        return result;
+    }
+
+    // call any function without exception forwarding
+    template<typename... Args_t>
+    auto call(jl_function_t* function, Args_t... args)
+    {
+        THROW_IF_UNINITIALIZED;
+
+        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+
+        auto params = std::vector<jl_value_t*>();
+        (params.push_back(reinterpret_cast<jl_value_t*>(args)), ...);
+
+        return jl_call(function, params.data(), params.size());
+    }
 }
 
