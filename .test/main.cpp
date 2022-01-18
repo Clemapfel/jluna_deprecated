@@ -24,10 +24,10 @@ int main()
     State::initialize();
 
     jl_value_t* boxed = box(std::set<size_t>{1, 2, 3, 4});
-    auto unboxed = unbox<std::unordered_map<size_t, std::string>>(boxed);
+    auto unboxed = unbox<std::map<size_t, size_t>>(boxed);
+}
 
-    TODO julia-side type assert
-
+    /*
     for (auto& e : unboxed)
         std::cout << e.first << " " << e.second << std::endl;
 
@@ -305,4 +305,4 @@ int main()
 
 
     Test::conclude();
-}
+}*/

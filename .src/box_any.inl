@@ -22,14 +22,12 @@ namespace jluna
         return (jl_value_t*) (value);
     }
 
-    
     jl_value_t* box(const std::string& value)
     {
         std::string command = "return \"" + value + "\"";
         return jl_eval_string(command.c_str());
     }
 
-    
     jl_value_t* box(const char* value)
     {
         std::string command = "return \"" + std::string(value) + "\"";

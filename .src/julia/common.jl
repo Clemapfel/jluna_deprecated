@@ -101,6 +101,36 @@ begin
     end
 
     """
+    assert_isa(::T, ::Symbol) -> Nothing
+
+    throw assertion if x is not of named type
+    """
+    function assert_isa(x::Any, type_name::Symbol) ::Nothing
+
+        type = Main.eval(type_name);
+        @assert type isa Type
+
+        if !(x isa type)
+            throw(AssertionError("expected " * string(type) * " but got an object of type " * string(typeof(x))));
+        end
+
+        return nothing
+    end
+
+    """
+    convert(::Any, symbol::Symbol) -> T
+
+    convert value to type if possible
+    """
+    function convert(x::Any, symbol::Symbol) ::Any
+
+        type = Main.eval(symbol);
+        @assert type isa Type
+
+        return Base.convert(type, x)
+    end
+
+    """
     invoke(function::Any, arguments::Any...) -> Any
 
     wrap function call for non-function objects

@@ -38,7 +38,7 @@ namespace jluna
     {
         static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
 
-        if (jl_isa(value, (jl_value_t*) jl_bool_type))
+        if (jl_isa(value, (jl_value_t*) jl_char_type))
                 return jl_unbox_int8(value);
         else
             return jl_unbox_int8(safe_call(convert, (jl_value_t*) jl_char_type, value));
@@ -190,7 +190,7 @@ namespace jluna
     template<typename T, typename S, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool>>
     T unbox(jl_value_t* value)
     {
-        assert(jl_isa(value, jl_eval_string("return Complex")));
+        assert_type(value, "Complex");
 
         auto* re = jl_get_nth_field(value, 0);
         auto* im = jl_get_nth_field(value, 1);
@@ -201,7 +201,7 @@ namespace jluna
     template<typename T, typename T1, typename T2, std::enable_if_t<std::is_same_v<T, std::pair<T1, T2>>, bool>>
     T unbox(jl_value_t* value)
     {
-        assert(jl_isa(value, (jl_value_t*) jl_pair_type));
+        assert_type(value, "Pair");
 
         auto* first = jl_get_nth_field(value, 0);
         auto* second = jl_get_nth_field(value, 1);
@@ -212,7 +212,7 @@ namespace jluna
     template<typename T, typename U, std::enable_if_t<std::is_same_v<T, std::vector<U>>, bool>>
     T unbox(jl_value_t* value)
     {
-        assert(jl_isa(value, (jl_value_t*) jl_array_type));
+        assert_type(value, "Vector");
 
         std::vector<U> out;
         out.reserve(jl_array_len(value));
@@ -226,8 +226,7 @@ namespace jluna
     template<typename T, size_t N, typename U, std::enable_if_t<std::is_same_v<T, std::array<U, N>>, bool>>
     T unbox(jl_value_t* value)
     {
-        assert(jl_isa(value, (jl_value_t*) jl_array_type));
-        assert(N == jl_unbox_int64((jl_value_t*) jl_array_len(value)));
+        assert_type(value, "Array");
 
         std::array<U, N> out;
 
@@ -272,12 +271,15 @@ namespace jluna
     template<IsTuple T, std::enable_if_t<std::tuple_size<T>::value != 2, bool>>
     T unbox(jl_value_t* value)
     {
+        assert_type(value, "Tuple");
+
         return detail::unbox_tuple_pre(value, T());
     }
     template<IsDict T, typename Key_t, typename Value_t>
     T unbox(jl_value_t* value)
     {
-        // TODO: optimize
+        assert_type(value, "AbstractDict");
+
         static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
 
         jl_array_t* as_array = (jl_array_t*) safe_call(serialize, value);
@@ -291,6 +293,8 @@ namespace jluna
     template<typename T, typename U, std::enable_if_t<std::is_same_v<T, std::set<U>>, bool>>
     T unbox(jl_value_t* value)
     {
+        assert_type(value, "AbstractSet");
+
         static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
         jl_array_t* as_array = (jl_array_t*) safe_call(serialize, value);
 
