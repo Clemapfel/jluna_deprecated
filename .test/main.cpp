@@ -22,18 +22,9 @@ using namespace jluna;
 int main()
 {
     State::initialize();
-
-    jl_value_t* boxed = box(std::set<size_t>{1, 2, 3, 4});
-    auto unboxed = unbox<std::map<size_t, size_t>>(boxed);
-}
-
-    /*
-    for (auto& e : unboxed)
-        std::cout << e.first << " " << e.second << std::endl;
-
-    return 0;
     Test::initialize();
 
+    /*
     Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
@@ -219,6 +210,11 @@ int main()
         {}
     });
 
+    Test::test("proxy fieldnames", [](){
+
+        Test::assert_that(false);
+     });
+
     Test::test("proxy mutation", [](){
 
         jl_eval_string("variable = [1, 2, 3, 4]");
@@ -302,7 +298,52 @@ int main()
     test_box_unbox_iterable("IdDict", std::map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Dict", std::unordered_map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Set", std::set<size_t>{1, 2, 3, 4});
+    */
 
+    Test::test("vector: ctor", [](){
+
+    });
+
+    Test::test("vector: insert", [](){
+
+    });
+
+    Test::test("vector: erase", [](){
+
+    });
+
+    Test::test("vector: append", [](){
+
+    });
+
+    Test::test("array: Nd at", [](){
+
+    });
+
+    Test::test("array: out of range", [](){
+        // check ouf of range in all dimensions
+    });
+
+    Test::test("array_iterator: +/-", [](){
+
+        // check forward and backwards iteration
+    });
+
+    Test::test("array_iterator: on owner reassignment", [](){
+
+        // check behavior if owner proxy gets reassigned during iteration
+        // unlike proxy, should segfault
+    });
+
+    Test::test("array_iterator: cast to value", [](){
+
+        // check unboxing call corresponds to value_t
+    });
+
+     Test::test("array_iterator: cast to proxy", [](){
+
+         // check name and assignment behavior
+    });
 
     Test::conclude();
-}*/
+}

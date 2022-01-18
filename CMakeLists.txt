@@ -48,7 +48,7 @@ add_library(jluna STATIC
 
     .src/box_any.inl
     .src/unbox_any.inl
-)
+        include/cpp_call.hpp)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)

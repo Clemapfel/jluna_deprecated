@@ -33,14 +33,12 @@ namespace jluna
         std::string command = "return \"" + std::string(value) + "\"";
         return jl_eval_string(command.c_str());
     }
-
     
     jl_value_t* box(bool value)
     {
         return jl_box_bool(value);
     }
 
-    
     jl_value_t* box(char value)
     {
         return jl_box_char(value);

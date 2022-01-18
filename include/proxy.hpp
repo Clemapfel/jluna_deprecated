@@ -103,6 +103,10 @@ namespace jluna
             /// @returns vector of strings
             std::vector<std::string> get_field_names() const;
 
+            /// @brief get type as unnamed proxy
+            /// @returns proxy to singleton type
+            auto get_type() const;
+
             /// @brief call with any arguments
             /// @tparams Args_t: types of arguments, need to be boxable
             template<Boxable... Args_t>

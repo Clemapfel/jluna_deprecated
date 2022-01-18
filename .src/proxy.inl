@@ -222,6 +222,12 @@ namespace jluna
     }
 
     template<typename State_t>
+    auto Proxy<State_t>::get_type() const
+    {
+        return Proxy<State_t>(jl_typeof(_content->value()), nullptr);
+    }
+
+    template<typename State_t>
     template<Boxable... Args_t>
     auto Proxy<State_t>::call(Args_t&&... args)
     {

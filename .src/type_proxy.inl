@@ -7,6 +7,55 @@
 
 namespace jluna
 {
+    /*
+    /// @brief proxy for julia-side singleton instances of Base.Type{T}
+    class Type : public Proxy<State>
+    {
+        public:
+            /// @brief ctor from already existing type
+            Type(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
+
+            /// @brief implicitly decay to julia c-type
+            operator jl_datatype_t*();
+
+            /// @brief cast to string
+            explicit operator std::string() const;
+
+            /// @brief compare
+            /// @param other
+            /// @returns true if in julia (==)(*this, other) would return true
+            bool operator==(const Type&) const;
+
+            /// @brief compare
+            /// @param other
+            /// @returns true if in julia (!=)(*this, other) would return true
+            bool operator!=(const Type&) const;
+
+            // not yet implemented
+
+            /// @brief is mutable
+            /// @returns true if Base.ismutable would return true
+            bool is_mutable_type() const;
+
+            /// @brief is structtype
+            /// @returns true if Base.issstructype would return true
+            bool is_structtype() const;
+
+            /// @brief <: operator
+            /// @param type
+            /// @returns true if type <: this
+            bool is_subtype(const Type& type) const;
+
+
+        private:
+            using Proxy<State>::_content;
+    };
+
+    /// @brief get type of proxy as jluna::Type
+    /// @param proxy
+    /// @returns Type
+    extern Type get_typeof(Proxy<State>&);
+
     inline jl_value_t* box(Type type)
     {
         return (jl_value_t*) type.operator _jl_datatype_t *();
@@ -40,13 +89,6 @@ namespace jluna
     {
         static jl_function_t* not_equals = jl_get_function(jl_base_module, "!=");
         return jl_unbox_bool(jl_call2(not_equals, this->_content->value(), other._content->value()));
-    }
-
-    /*
-    bool Type::is_mutable_type() const
-    {
-        static jl_function_t* ismutabletype = jl_get_function(jl_base_module, "ismutabletype");
-        return jl_call1(ismutabletype, _content->value());
     }
      */
 }
