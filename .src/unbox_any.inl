@@ -30,7 +30,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_bool_type))
                 return jl_unbox_bool(value);
         else
-            return jl_unbox_bool(jl_call2(convert, (jl_value_t*) jl_bool_type, value));
+            return jl_unbox_bool(safe_call(convert, (jl_value_t*) jl_bool_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, char>, bool>>
@@ -41,7 +41,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_bool_type))
                 return jl_unbox_int8(value);
         else
-            return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_char_type, value));
+            return jl_unbox_int8(safe_call(convert, (jl_value_t*) jl_char_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, int8_t>, bool>>
@@ -52,7 +52,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_int8_type))
                 return jl_unbox_int8(value);
         else
-            return jl_unbox_int8(jl_call2(convert, (jl_value_t*) jl_int8_type, value));
+            return jl_unbox_int8(safe_call(convert, (jl_value_t*) jl_int8_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, int16_t>, bool>>
@@ -63,7 +63,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_int16_type))
                 return jl_unbox_int16(value);
         else
-            return jl_unbox_int16(jl_call2(convert, (jl_value_t*) jl_int16_type, value));
+            return jl_unbox_int16(safe_call(convert, (jl_value_t*) jl_int16_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, int32_t>, bool>>
@@ -74,7 +74,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_int32_type))
                 return jl_unbox_int32(value);
         else
-            return jl_unbox_int32(jl_call2(convert, (jl_value_t*) jl_int32_type, value));
+            return jl_unbox_int32(safe_call(convert, (jl_value_t*) jl_int32_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, int64_t>, bool>>
@@ -97,7 +97,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_uint8_type))
                 return jl_unbox_uint8(value);
         else
-            return jl_unbox_uint8(jl_call2(convert, (jl_value_t*) jl_uint8_type, value));
+            return jl_unbox_uint8(safe_call(convert, (jl_value_t*) jl_uint8_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, uint16_t>, bool>>
@@ -108,7 +108,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_uint16_type))
                 return jl_unbox_uint16(value);
         else
-            return jl_unbox_uint16(jl_call2(convert, (jl_value_t*) jl_uint16_type, value));
+            return jl_unbox_uint16(safe_call(convert, (jl_value_t*) jl_uint16_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, uint32_t>, bool>>
@@ -119,7 +119,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_uint32_type))
                 return jl_unbox_uint32(value);
         else
-            return jl_unbox_uint32(jl_call2(convert, (jl_value_t*) jl_uint32_type, value));
+            return jl_unbox_uint32(safe_call(convert, (jl_value_t*) jl_uint32_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, bool>>
@@ -130,7 +130,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_uint64_type))
                 return jl_unbox_uint64(value);
         else
-            return jl_unbox_uint64(jl_call2(convert, (jl_value_t*) jl_int64_type, value));
+            return jl_unbox_uint64(safe_call(convert, (jl_value_t*) jl_int64_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, float>, bool>>
@@ -143,7 +143,7 @@ namespace jluna
         else if (jl_isa(value, (jl_value_t*) jl_float32_type))
             return jl_unbox_float32(value);
         else
-            return jl_unbox_float32(jl_call2(convert, (jl_value_t*) jl_float32_type, value));
+            return jl_unbox_float32(safe_call(convert, (jl_value_t*) jl_float32_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, double>, bool>>
@@ -154,7 +154,7 @@ namespace jluna
         if (jl_isa(value, (jl_value_t*) jl_float64_type))
                 return jl_unbox_float64(value);
         else
-            return jl_unbox_float64(jl_call2(convert, (jl_value_t*) jl_float64_type, value));
+            return jl_unbox_float64(safe_call(convert, (jl_value_t*) jl_float64_type, value));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, std::string>, bool>>
@@ -166,10 +166,25 @@ namespace jluna
         static jl_function_t* is_method_available = jl_eval_string("return jluna.is_method_available");
         static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
 
-        if (not jl_unbox_bool(jl_call2(is_method_available, (jl_value_t*) to_string, value)))
+        if (not jl_unbox_bool(safe_call(is_method_available, (jl_value_t*) to_string, value)))
             assert(false);
 
-        return std::string(jl_string_data(jl_call1(to_string, value)));
+        return std::string(jl_string_data(safe_call(to_string, value)));
+    }
+
+    template<typename T, std::enable_if_t<std::is_same_v<T, const char*>, bool>>
+    T unbox(jl_value_t* value)
+    {
+        if (jl_isa(value, (jl_value_t*) jl_string_type))
+            return jl_string_data(value);
+
+        static jl_function_t* is_method_available = jl_eval_string("return jluna.is_method_available");
+        static jl_function_t* to_string = jl_get_function(jl_main_module, "string");
+
+        if (not jl_unbox_bool(safe_call(is_method_available, (jl_value_t*) to_string, value)))
+            assert(false);
+
+        return jl_string_data(safe_call(to_string, value));
     }
 
     template<typename T, typename S, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool>>
@@ -228,7 +243,7 @@ namespace jluna
         void unbox_tuple_aux_aux(Tuple_t& tuple, jl_value_t* value)
         {
             static jl_function_t* tuple_at = (jl_function_t*) jl_eval_string("jluna.tuple_at");
-            auto* v = jl_call2(tuple_at, value, jl_box_uint64(i + 1));
+            auto* v = safe_call(tuple_at, value, jl_box_uint64(i + 1));
             std::get<i>(tuple) = unbox<std::tuple_element_t<i, Tuple_t>>(v);
         }
 
@@ -265,7 +280,7 @@ namespace jluna
         // TODO: optimize
         static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
 
-        jl_array_t* as_array = (jl_array_t*) jl_call1(serialize, value);
+        jl_array_t* as_array = (jl_array_t*) safe_call(serialize, value);
 
         T out;
         for (size_t i = 0; i < jl_array_len(as_array); ++i)
@@ -277,7 +292,7 @@ namespace jluna
     T unbox(jl_value_t* value)
     {
         static jl_function_t* serialize = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "serialize");
-        jl_array_t* as_array = (jl_array_t*) jl_call1(serialize, value);
+        jl_array_t* as_array = (jl_array_t*) safe_call(serialize, value);
 
         std::set<U> out;
         for (size_t i = 0; i < jl_array_len(as_array); ++i)

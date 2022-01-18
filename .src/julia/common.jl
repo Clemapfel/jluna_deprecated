@@ -110,11 +110,11 @@ begin
     end
 
     """
-    serialize(::IdDict{T, U}) -> Vector{Pair{T, U}}
+    serialize(<:AbstractDict{T, U}) -> Vector{Pair{T, U}}
 
     transform dict into array
     """
-    function serialize(x::IdDict{Key_t, Value_t}) ::Vector{Pair{Key_t, Value_t}} where {Key_t, Value_t}
+    function serialize(x::T) ::Vector{Pair{Key_t, Value_t}} where {Key_t, Value_t, T <: AbstractDict{Key_t, Value_t}}
 
         out = Vector{Pair{Key_t, Value_t}}()
         for e in x
@@ -128,9 +128,9 @@ begin
 
     transform dict into array
     """
-    function serialize(x::Set{T}) ::Vector{T} where T
+    function serialize(x::T) ::Vector{U} where {U, T <: AbstractSet{U}}
 
-        out = Vector{T}()
+        out = Vector{U}()
 
         for e in x
             push!(out, e)

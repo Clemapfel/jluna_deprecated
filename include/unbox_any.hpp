@@ -70,6 +70,10 @@ namespace jluna
     template<typename T, std::enable_if_t<std::is_same_v<T, std::string>, bool> = true>
     T unbox(jl_value_t* value);
 
+    /// @brief unbox to c string
+    template<typename T, std::enable_if_t<std::is_same_v<T, const char*>, bool> = true>
+    T unbox(jl_value_t* value);
+
     /// @brief unbox to complex
     template<typename T, typename S = typename T::value_type, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool> = true>
     T unbox(jl_value_t* value);

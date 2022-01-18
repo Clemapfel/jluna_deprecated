@@ -136,6 +136,8 @@ namespace jluna
         protected:
             class ProxyValue
             {
+                friend auto& Proxy<State_t>::operator=(jl_value_t*);
+
                 public:
                     ProxyValue(jl_value_t*, jl_sym_t*);
                     ProxyValue(jl_value_t*, std::shared_ptr<ProxyValue>& owner, jl_sym_t*);
@@ -154,7 +156,7 @@ namespace jluna
                     const jl_value_t* value() const;
                     const jl_value_t* symbol() const;
 
-                //private:
+                private:
                     size_t _symbol_key;
                     size_t _value_key;
 

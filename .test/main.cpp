@@ -9,6 +9,9 @@
 #include <proxy.hpp>
 #include <global_utilities.hpp>
 #include <array_proxy.hpp>
+#include <symbol_proxy.hpp>
+#include <type_proxy.hpp>
+#include <array_proxy.hpp>
 
 #include <thread>
 
@@ -20,30 +23,18 @@ int main()
 {
     State::initialize();
 
-    jl_eval_string("variable = [1, 2, 3, 4]");
+    jl_value_t* boxed = box(std::set<size_t>{1, 2, 3, 4});
+    auto unboxed = unbox<std::unordered_map<size_t, std::string>>(boxed);
 
-    auto mutating_proxy = Main["variable"];
-    test::assert_that(mutating_proxy.is_mutating());
+    TODO julia-side type assert
 
-    auto test = mutating_proxy.operator Int64();
-
-    mutating_proxy[0] = 9999;
-
-    test::assert_that(mutating_proxy[0].operator Int64() == 9999);
-    test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) == 9999);
-
-    auto non_mutating_proxy = State::script("return variable");
-    non_mutating_proxy = 8888;
-
-    test::assert_that(non_mutating_proxy.operator Int64() == 8888);
-    test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
+    for (auto& e : unboxed)
+        std::cout << e.first << " " << e.second << std::endl;
 
     return 0;
-    test::initialize();
+    Test::initialize();
 
-    /*
-
-    test::test("safe_script: exception forwarding", [](){
+    Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
         try
@@ -55,10 +46,10 @@ int main()
             thrown = true;
         }
 
-        test::assert_that(thrown);
+        Test::assert_that(thrown);
     });
 
-    test::test("safe_script: syntax error", [](){
+    Test::test("safe_script: syntax error", [](){
 
         bool thrown = false;
         try
@@ -70,10 +61,10 @@ int main()
             thrown = true;
         }
 
-        test::assert_that(thrown);
+        Test::assert_that(thrown);
     });
 
-    test::test("create_reference", []() {
+    Test::test("create_reference", []() {
 
         jl_eval_string(R"(
             struct StructType
@@ -85,31 +76,18 @@ int main()
 
         State::script("jluna.exception_handler._refs[]");
         State::collect_garbage();
-        test::assert_that(((int) hold["any"][0]) == 99);
+        Test::assert_that(((int) hold["any"][0]) == 99);
     });
 
-    test::test("free_reference", [](){
-
-        auto* val = jl_eval_string("return [1, 2, 3]");
-        size_t key = State::create_reference(val);
-
-        size_t before = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
-
-        State::free_reference(key);
-        size_t after = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
-
-        test::assert_that(abs(static_cast<int>(before) - static_cast<int>(after)) == 1);
-    });
-
-    test::test("proxy ctor", [](){
+    Test::test("proxy ctor", [](){
 
         jl_value_t* val = jl_eval_string("return [1, 2, 3, 4]");
         auto proxy = Proxy<State>(val, nullptr);
 
-        test::assert_that(jl_unbox_bool(jl_call2(jl_get_function(jl_base_module, "=="), val, (jl_value_t*) proxy)));
+        Test::assert_that(jl_unbox_bool(jl_call2(jl_get_function(jl_base_module, "=="), val, (jl_value_t*) proxy)));
     });
 
-    test::test("proxy trivial dtor", [](){
+    Test::test("proxy trivial dtor", [](){
 
         jl_value_t* val = jl_eval_string("return [1, 2, 3, 4]");
         size_t n = 0;
@@ -118,10 +96,10 @@ int main()
             n = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
         }
 
-        test::assert_that(n - jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)")) == 1);
+        Test::assert_that(n - jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)")) == 1);
     });
 
-    test::test("proxy inheritance dtor", [](){
+    Test::test("proxy inheritance dtor", [](){
 
         jl_eval_string(R"(
             struct Inner
@@ -143,10 +121,10 @@ int main()
         }
         State::collect_garbage();
 
-        test::assert_that((bool) inner.get());
+        Test::assert_that((bool) inner.get());
     });
 
-    test::test("proxy reject as non-vector", [](){
+    Test::test("proxy reject as non-vector", [](){
 
         jl_eval_string(R"(
             struct NonVec
@@ -159,23 +137,23 @@ int main()
 
         try
         {
-            test::assert_that((int) vec[0] == 1);
+            Test::assert_that((int) vec[0] == 1);
         }
         catch (...)
         {
-            test::assert_that(false);
+            Test::assert_that(false);
         }
 
         try
         {
-            test::assert_that((int) non_vec[0] == 1);
-            test::assert_that(false);   // fails if no exception thrown
+            Test::assert_that((int) non_vec[0] == 1);
+            Test::assert_that(false);   // fails if no exception thrown
         }
         catch (...)
         {}
     });
 
-    test::test("proxy reject as non-function", [](){
+    Test::test("proxy reject as non-function", [](){
 
         jl_eval_string(R"(
             struct NonVec
@@ -192,48 +170,139 @@ int main()
 
         try
         {
-            test::assert_that((int) func(1, 2, 3, 4) == 10);
+            Test::assert_that((int) func(1, 2, 3, 4) == 10);
         }
         catch (...)
         {
-            test::assert_that(false);
+            Test::assert_that(false);
         }
 
         try
         {
             non_func();
-            test::assert_that(false);   // fails if no exception thrown
+            Test::assert_that(false);   // fails if no exception thrown
         }
         catch (...)
         {}
     });
 
-     */
-    test::test("proxy mutation", [](){
+    Test::test("proxy reject as non-struct", [](){
+
+        State::safe_script(R"(
+            struct NewStructType
+                _field
+                NewStructType() = new(true)
+            end
+
+            f(xs...) = return sum([xs...])
+            instance = NewStructType()
+        )");
+
+        auto non_struct = Main["f"];
+        auto is_struct = Main["instance"];
+
+        try
+        {
+            Test::assert_that((bool) is_struct["_field"]);
+        }
+        catch (...)
+        {
+            Test::assert_that(false);
+        }
+
+        try
+        {
+            auto res = non_struct["_field"];
+            Test::assert_that(false);   // fails if no exception thrown
+        }
+        catch (...)
+        {}
+    });
+
+    Test::test("proxy mutation", [](){
 
         jl_eval_string("variable = [1, 2, 3, 4]");
 
         auto mutating_proxy = Main["variable"];
 
-        test::assert_that(mutating_proxy.is_mutating());
+        Test::assert_that(mutating_proxy.is_mutating());
         mutating_proxy[0] = 9999;
 
-        test::assert_that(mutating_proxy.operator Int64() == 9999);
-        test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) == 9999);
+        Test::assert_that(mutating_proxy[0].operator Int64() == 9999);
+        Test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) == 9999);
 
 
         auto non_mutating_proxy = State::script("return variable");
         non_mutating_proxy = 8888;
 
-        test::assert_that(non_mutating_proxy.operator Int64() == 8888);
-        test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
-
+        Test::assert_that(non_mutating_proxy.operator Int64() == 8888);
+        Test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
     });
 
+    Test::test("proxy cast", []() {
+
+        State::safe_script(R"(
+            symbol = Symbol("")
+            array = [1, 2, 3, 4]
+            type = Type
+        )");
+
+        Symbol s = Main["symbol"].as<Symbol>();
+        Test::assert_that(s.operator std::string() == "");
+
+        Array<Int64, 1> a = Main["array"].as<Array<Int64, 1>>();
+        Test::assert_that((int) a.at(0) == 1);
+
+        Type t = Main["type"].as<Type>();
+        Test::assert_that(t.operator std::string() == "Type");
+    });
+
+    auto test_box_unbox = []<typename T>(const std::string type_name, T&& value)
+    {
+        Test::test("box/unbox " + type_name , [value]() {
+
+            jl_value_t* boxed = box<T>(value);
+            Test::assert_that(unbox<T>(boxed) == value);
+
+            boxed = box<T>(T());
+            Test::assert_that(unbox<T>(boxed) == T());
+        });
+    };
+
+    test_box_unbox("Bool", Bool(true));
+    test_box_unbox("Char", Char(12));
+    test_box_unbox("String", std::string("abc"));
+    test_box_unbox("Int8", Int8(12));
+    test_box_unbox("Int16", Int16(12));
+    test_box_unbox("Int32", Int32(12));
+    test_box_unbox("Int64", Int64(12));
+    test_box_unbox("UInt8", UInt8(12));
+    test_box_unbox("UInt16", UInt16(12));
+    test_box_unbox("UInt32", UInt32(12));
+    test_box_unbox("UInt64", UInt64(12));
+    test_box_unbox("Float32", Float32(0.01));
+    test_box_unbox("Float64", Float64(0.01));
+    test_box_unbox("Complex", std::complex<double>(0, 1));
+
+    test_box_unbox("Pair", std::pair<size_t, std::string>(12, "abc"));
+    test_box_unbox("Tuple3", std::tuple<size_t, std::string, float>(12, "abc", 0.01));
+
+    auto test_box_unbox_iterable = []<typename T>(const std::string& name, T&& value){
+
+        Test::test("box/unbox " + name, [&value](){
+
+            jl_value_t* boxed = box(value);
+            auto unboxed = unbox<T>(boxed);
+
+            Test::assert_that(value == unboxed);
+        });
+    };
+
+    test_box_unbox_iterable("Vector", std::vector<size_t>{1, 2, 3, 4});
+    test_box_unbox_iterable("IdDict", std::map<size_t, std::string>{{12, "abc"}});
+    test_box_unbox_iterable("Dict", std::unordered_map<size_t, std::string>{{12, "abc"}});
+    test_box_unbox_iterable("Set", std::set<size_t>{1, 2, 3, 4});
 
 
-
-    test::conclude();
-
-
+    Test::conclude();
 }

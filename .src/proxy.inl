@@ -166,7 +166,7 @@ namespace jluna
     template<typename T, std::enable_if_t<std::is_base_of_v<Proxy<State_t>, T>, bool>>
     Proxy<State_t>::operator T()
     {
-        return T(_content->value(), _content->_owner, _content->symbol());
+        return T(_content->value(), _content->_owner, (jl_sym_t*) _content->symbol());
     }
 
     template<typename State_t>
@@ -282,10 +282,10 @@ namespace jluna
             forward_last_exception();
 
             // update value
-            State_t::free_reference(_content->_value_key);
+            State_t::free_reference(_content->value_key());
 
             _content->_value_key = State_t::create_reference(res);
-            _content->_value_ref = State_t::get_reference(_content->_value_key);
+            _content->_value_ref = State_t::get_reference(_content->value_key());
         }
 
         jl_gc_enable(before);

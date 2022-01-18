@@ -173,7 +173,7 @@ namespace jluna
         args.reserve(value.size());
 
         for (const std::pair<Key_t, Value_t>& pair : value)
-            args.push_back(box(pair));
+            args.push_back(box<std::pair<Key_t, Value_t>>(pair));
 
         return jl_call(dict, args.data(), args.size());
     }

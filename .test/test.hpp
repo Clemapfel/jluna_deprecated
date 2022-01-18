@@ -9,9 +9,9 @@
 #include <string>
 #include <iostream>
 
-namespace test
+struct Test
 {
-    static std::map<std::string, std::string> _failed;
+    static inline std::map<std::string, std::string> _failed = {};
 
     class AssertionException : public std::exception
     {
@@ -30,7 +30,7 @@ namespace test
     };
 
     template<typename Lambda_t>
-    void test(const std::string name, Lambda_t&& lambda)
+    static void test(const std::string name, Lambda_t&& lambda)
     {
         std::cout << name << ": ";
 
@@ -46,7 +46,7 @@ namespace test
         catch (const AssertionException& e)
         {
             failed = true;
-            what = "test::assertion failed";
+            what = "Test::assertion failed";
         }
         catch (const std::exception& e)
         {
@@ -62,23 +62,23 @@ namespace test
         else
         {
             std::cout << "[FAILED]";
-            test::_failed.insert({name, what});
+            Test::_failed.insert({name, what});
         }
 
         std::cout << std::endl;
     }
 
-    void initialize()
+    static void initialize()
     {
         std::cout << "starting test...\n" << std::endl;
         _failed = std::map<std::string, std::string>();
 
         // disable julia cout
-        THROW_IF_UNINITIALIZED;
+        assert(jl_is_initialized());
         jl_eval_string(R"(Base.eval(Base, Meta.parse("println(xs...) = return nothing")))");
     }
 
-    void conclude()
+    static void conclude()
     {
         std::cout << std::endl;
         std::cout << "Number of tests unsuccessful: " << _failed.size() << std::endl;
@@ -92,9 +92,9 @@ namespace test
         }
     }
 
-    void assert_that(bool b)
+    static void assert_that(bool b)
     {
         if (not b)
             throw AssertionException("");
     }
-}
+};
