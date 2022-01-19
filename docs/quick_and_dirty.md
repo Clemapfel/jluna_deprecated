@@ -1,6 +1,6 @@
 # jluna: Quick & Dirty
 
-This page will give a fly-by, cheat-sheet-like overview of all relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorials on [~~jluna::State~~]() and [~~jluna::Proxy~~]() at some point.
+This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorials on [~~jluna::Proxy~~]() at some point.
 
 ## Table Of Contents
 

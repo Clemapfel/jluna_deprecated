@@ -16,12 +16,34 @@
 #include <thread>
 
 #include <.test/test.hpp>
+#include <cpp_call.hpp>
 
 using namespace jluna;
 
 int main()
 {
     State::initialize();
+
+    cppcall::register_function("test", [](int, va_list) -> jl_value_t*{
+
+        std::cout << "test" << std::endl;
+        return jl_nothing;
+    });
+
+    cppcall::call_function("test", 1, jl_nothing);
+
+    return 0;
+
+
+    jl_eval_string("t = tuple(\"abc\", 2, [1, 2])");
+
+    jl_array_t* as_array = (jl_array_t*) jl_eval_string("return t");
+    std::cout << unbox<std::string>(jl_arrayref(as_array, 0)) << std::endl;
+    std::cout << unbox<int>(jl_arrayref(as_array, 1)) << std::endl;
+    std::cout << unbox<std::vector<size_t>>(jl_arrayref(as_array, 2)).at(0) << std::endl;
+
+
+    return 0;
     Test::initialize();
 
     /*
