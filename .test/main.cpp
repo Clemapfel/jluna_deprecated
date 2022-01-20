@@ -17,18 +17,41 @@
 
 #include <.test/test.hpp>
 #include <cpp_call.hpp>
+#include <type_traits>
 
 using namespace jluna;
+
+namespace jluna
+{
+
+    std::unordered_map<std::string, std::function<jl_value_t*(const std::vector<jl_value_t*>&)>> map;
+
+    template<typename Lambda_t>
+    void insert(const std::string& name, Lambda_t&& lambda)
+    {
+        map.insert({name, [lambda](const std::vector<jl_value_t*>& vec) -> jl_value_t* {
+
+            return std::invoke(lambda, vec);
+            return jl_nothing;
+            //if (std::is_invocable_r<decltype(lambda), jl_value_t*, jl_value_t*>::value)
+            //return jl_nothing;
+        }});
+    }
+}
 
 int main()
 {
     State::initialize();
 
-    State::safe_script(R"(
-        jluna.cppcall(:cpp_test, [1, 2, 3])
-        println(jluna._CppCall._state[]._arguments)
-    )");
-    //forward_last_exception();
+
+    insert("abc", [](const std::vector<jl_value_t*>& values) -> jl_value_t* {
+        std::cout << "done" << std::endl;
+        return jl_nothing;
+    });
+
+    map.at("abc")({});
+
+
 
     return 0;
     Test::initialize();

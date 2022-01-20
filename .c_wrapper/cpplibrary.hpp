@@ -5,17 +5,12 @@
 
 #pragma once
 
-#include <julia.h>
-
 #ifdef __cplusplus
-
-#include <jluna.hpp>
 
 extern "C"
 {
-    jl_value_t* cpp_jl_to_string(jl_value_t*);
-
-    void cpp_void();
+    /// @brief adapter function for jluna::cppcall
+    void call_cpp(long unsigned int);
 }
 
 #endif

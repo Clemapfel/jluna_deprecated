@@ -11,14 +11,11 @@
 #include <map>
 #include <set>
 #include <.test/test.hpp>
+#include <unordered_map>
+#include <functional>
 
 namespace jluna
 {
-    inline void test()
-    {
-        std::cout << "test" << std::endl;
-    }
-
     template<typename>
     class Proxy;
 
@@ -76,15 +73,17 @@ namespace jluna
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string& command, const std::string& module);
 
-            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
-            template<Decayable... Args_t>
-            static auto safe_call(jl_function_t*, Args_t&&...);
-
             /// @brief trigger the garbage collector
             static void collect_garbage();
 
             /// @brief activate/deactivate garbage collector
             static void set_garbage_collector_enabled(bool);
+
+            template<typename Lambda_t>
+            static void register_function(const std::string& name, Lambda_t&& lambda);
+
+            /// @brief TODO
+            static void call_function(size_t hash);
 
         protected:
             /// @brief call julia function without exception forwarding
@@ -99,6 +98,10 @@ namespace jluna
             /// @param arguments
             /// @returns function result as jl_value_t*
             template<typename... Args_t>
+            static auto safe_call(jl_function_t*, Args_t&&...);
+
+            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
+            template<Decayable... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
             /// @brief access a function just by name, searches for it in any module currently loaded
@@ -126,6 +129,10 @@ namespace jluna
             static inline jl_function_t* _force_free = nullptr;
             static inline jl_function_t* _get_value = nullptr;
             static inline jl_function_t* _get_reference = nullptr;
+
+            // cppcall interface
+            static inline jl_function_t* _hash = nullptr;
+            std::unordered_map<size_t, std::function<jl_value_t*()>> _functions;
     };
 }
 
