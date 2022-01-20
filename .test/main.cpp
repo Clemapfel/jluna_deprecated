@@ -23,30 +23,8 @@ using namespace jluna;
 int main()
 {
     State::initialize();
-
-    cppcall::register_function("test", [](int, va_list) -> jl_value_t*{
-
-        std::cout << "test" << std::endl;
-        return jl_nothing;
-    });
-
-    cppcall::call_function("test", 1, jl_nothing);
-
-    return 0;
-
-
-    jl_eval_string("t = tuple(\"abc\", 2, [1, 2])");
-
-    jl_array_t* as_array = (jl_array_t*) jl_eval_string("return t");
-    std::cout << unbox<std::string>(jl_arrayref(as_array, 0)) << std::endl;
-    std::cout << unbox<int>(jl_arrayref(as_array, 1)) << std::endl;
-    std::cout << unbox<std::vector<size_t>>(jl_arrayref(as_array, 2)).at(0) << std::endl;
-
-
-    return 0;
     Test::initialize();
 
-    /*
     Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
@@ -270,9 +248,6 @@ int main()
 
         Array<Int64, 1> a = Main["array"].as<Array<Int64, 1>>();
         Test::assert_that((int) a.at(0) == 1);
-
-        Type t = Main["type"].as<Type>();
-        Test::assert_that(t.operator std::string() == "Type");
     });
 
     auto test_box_unbox = []<typename T>(const std::string type_name, T&& value)
@@ -320,7 +295,6 @@ int main()
     test_box_unbox_iterable("IdDict", std::map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Dict", std::unordered_map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Set", std::set<size_t>{1, 2, 3, 4});
-    */
 
     Test::test("vector: ctor", [](){
 

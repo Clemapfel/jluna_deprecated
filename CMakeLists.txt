@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.18)
+
 project(jluna)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread -lGL -Wl,--export-dynamic")
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE Debug) # change to release for marginally better performance
+set(CMAKE_BUILD_TYPE Debug)
+
+# cmake -D CMAKE_C_COMPILER=gcc-10 -D CMAKE_CXX_COMPILER=g++-10 .ls
 
 ### DEPENDENCIES ###
 
@@ -48,7 +51,9 @@ add_library(jluna STATIC
 
     .src/box_any.inl
     .src/unbox_any.inl
-        include/cpp_call.hpp)
+
+    include/cpp_call.hpp
+)
 
 set_target_properties(jluna PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
@@ -56,9 +61,23 @@ target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
 include_directories("./include")
 include_directories("./")
 
+# c adapter
+add_library(jluna_c_adapter SHARED
+    .c_wrapper/cpplibrary.hpp
+    .c_wrapper/cpplibrary.hpp
+)
+
+set_target_properties(jluna_c_adapter PROPERTIES
+    LINKER_LANGUAGE C
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    LIBRARY_OUTPUT_NAME jluna_c
+)
+
+target_link_libraries(jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
+
 ### EXECUTABLES ###
 
-add_executable(TEST .test/main.cpp .test/test.hpp)
-target_link_libraries(TEST jluna)
+add_executable(JLUNA_TEST .test/main.cpp .test/test.hpp)
+target_link_libraries(JLUNA_TEST jluna)
 
 

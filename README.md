@@ -104,28 +104,79 @@ Currently, only g++10 is supported, clang support is planned in the future.
 
 ## Installation
 
-`jluna` is header only, to add it to your application, simply use
+
+### jluna-Only Application:
+
+Go to your workspace folder and execute:
 
 ```bash
 git clone https://github.com/Clemapfel/jluna.git
+cd jluna
+mkdir build
+cd build
+cmake -D CMAKE_CXX_COMPILER=g++-10 ..
+make
+```
+If errors appear, make sure all the dependencies are met. You can verify everything works by calling:
+
+```
+./JLUNA_TEST
 ```
 
-or if you already have a library:
+At the very end it should show:
+```
+Number of tests unsuccessful: 0
+```
+
+You can now create your application, first create a main file `my_main.cpp`:
+```
+#include <jluna.h>
+
+using namespace jluna;
+int main()
+{
+    State::initialize();
+    State::script(R"(println("hello world"))");
+}
+```
+
+Then add the the follow lines to the end of `jluna/CmakeLists.txt`
+
+```cmake
+add_executable(MY_EXECUTABLE path/to/.../my_main.cpp)   # modify this as needed
+target_link_libraries(MY_EXECUTABLE jluna)
+```
+
+Once again navigate to `jluna/build`:
 ```bash
+cd path/to/.../jluna/build
+cmake -D CMAKE_CXX_COMPILER=g++-10 ..
+make
+```
+
+Your executable can now be run via `./MY_EXECUTABLE`:
+
+```
+[JULIA] hello world
+```
+
+### Adding jluna to your existing Library
+
+First, add jluna as a submodule to your git repository:
+
+```
 git submodule add https://github.com/Clemapfel/jluna.git
 ```
 
-add the header to your C++ code:
-```cpp
-#include <jluna.hpp>
+Add the header include path to your CMakeLists.txt and link your library like so:
+
+```cmake
+include_directories("/path/to/.../jluna/")
+target_link_libraries(YOUR_LIBRARY jluna)
 ```
 
-then link against `jluna` in your `CMakeList.txt` like so:
-```CMAKE
-include_directories("/path/to/.../jluna/")
-add_executable(MY_EXECUTABLE path/to/my/main.cpp)
-target_link_libraries(MY_EXECUTABLE jluna)
-```
+Now simply `#import <jluna.hpp>` to your headers and everything should work.
+
 ---
 
 ## Troubleshooting
@@ -155,6 +206,35 @@ jluna::State::initialize("/path/to/your/.../Julia/bin");
 ```
 
 Make sure that the image is uncompressed, as `.zip` or `.tar` files cannot be used for initialization.
+
+### @cppcall fails
+
+While jluna is header-only, julia needs a shared c library to interface with jluna in the julia -> C++ direction. This library is `jluna/libjluna_c.so` and comes precompiled with the github repo. If `@cppcall` fails on your system, we will need to recompile it.
+
+First navigate to `jluna/`, then:
+
+```bash
+mkdir temp
+cd temp
+cmake -D CMAKE_CXX_COMPILER=g++-10 ..
+make
+```
+
+We just recompiled the library, we can now make sure everything works and nothing is corrupted:
+
+```
+# still in jluna/temp
+./JLUNA_TEST
+
+```
+If this executable reports no failed tests, we can remove the superfluous files:
+
+```bash
+cd ..
+rm -r temp
+```
+
+This will leave a shiny new `jluna/libjluna_c.so` in your folder that should now allow julia to interface with the jluna C library.
 
 ---
 

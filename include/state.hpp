@@ -14,6 +14,11 @@
 
 namespace jluna
 {
+    inline void test()
+    {
+        std::cout << "test" << std::endl;
+    }
+
     template<typename>
     class Proxy;
 

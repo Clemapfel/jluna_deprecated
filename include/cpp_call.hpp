@@ -11,13 +11,14 @@
 #include <memory>
 #include <string>
 #include <cstdarg>
+#include <proxy.hpp>
 
 namespace jluna
 {
     namespace cppcall
     {
         using ID = size_t;
-        using Function_t = std::function<jl_value_t*(int, va_list)>;
+        using Function_t = std::function<jl_value_t*(jl_value_t*, int count)>;
 
         std::unordered_map<ID, std::unique_ptr<Function_t>> _functions;
 
@@ -27,10 +28,14 @@ namespace jluna
             _functions.insert({std::hash<std::string>{}(id), std::make_unique<Function_t>(lambda)});
         }
 
-        auto call_function(const std::string& id, int argc, ...)
+        template<typename... Ts>
+        auto call_function(const std::string& id, Ts... in)
         {
-            va_list args;
-            _functions.at(std::hash<std::string>{}(id))->operator()(argc, args);
+            std::vector<jl_value_t*> args;
+            args.reserve(sizeof...(Ts));
+            (args.push_back(in), ...);
+
+            _functions.at(std::hash<std::string>{}(id))->operator()(args[0], args.size());
         }
     }
 }
