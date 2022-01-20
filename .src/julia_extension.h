@@ -41,6 +41,12 @@ extern "C"
         static jl_function_t* get_reference_value = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "get_reference_value");
         return jl_call1(get_reference_value, reference);
     }
+
+    /// @brief undef initializer
+    jl_value_t* jl_undef_initializer()
+    {
+        return jl_eval_string("return undef");
+    }
 }
 
 

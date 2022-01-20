@@ -12,17 +12,18 @@ Heavily inspired in design and syntax by (but in no way affiliated with) the exc
 1. [Showcase](#showcase)<br>
 2. [Features](#features)<br>
 3. [Planned Features](#planned-but-not-yet-implemented)<br>
-4. [Dependencies](#dependencies)<br>
-   4.1 [Julia 1.7.0+](#dependencies)<br>
-   4.2 [g++10](#dependencies)<br>
-   4.3 [cmake 3.19+](#dependencies)<br>
-   4.4 [Linux / Mac OS](#dependencies)
-5. [Installation](#installation)<br>
-  5.1 [Linking](#installation)<br>
-  5.2 [Troubleshooting](#troubleshooting)<br>
-6. [Documentation](#documentation)<br>
-    6.1 [Manual](./docs/docs.md)<br>
-    6.2 [Quick & Dirty Overview](#documentation)
+4. [Documentation](#documentation)<br>
+    4.1 [Manual](./docs/proxies.md)<br>
+    4.2 [Quick & Dirty Overview](#documentation)<br>
+5. [Dependencies](#dependencies)<br>
+   5.1 [Julia 1.7.0+](#dependencies)<br>
+   5.2 [g++10](#dependencies)<br>
+   5.3 [cmake 3.19+](#dependencies)<br>
+   5.4 [Linux / Mac OS](#dependencies)
+6. [Installation](#installation)<br>
+  6.1 [Single Application](#jluna-only-application)<br>
+  6.2 [As a Library](#adding-jluna-to-your-existing-library)<br>
+  6.3 [Troubleshooting](#troubleshooting)<br>
    
 ---
 
@@ -97,6 +98,12 @@ In order of priority, highest first:
 
 ---
 
+## Documentation
+
+The manual is not yet complete, consider visiting the already completed [overview cheat-sheet](./docs/quick_and_dirty.md) instead. Furthermore, inline-documentation inside the headers is already available through any IDE.
+
+---
+
 ## Dependencies
 
 `jluna` aims to be as modern as is practical. It uses C++20 features extensively and aims to support the newest Julia version, rather than focusing on backwards compatibility. If you are looking for a C++ library that supports Julia 1.5 or lower, consider checking out [CxxWrap](https://github.com/JuliaInterop/CxxWrap.jl) instead.
@@ -105,10 +112,13 @@ For `jluna` you'll need:
 + [**Julia 1.7.0**](https://julialang.org/downloads/#current_stable_release) (or higher)
 + [**g++10**](https://askubuntu.com/questions/1192955/how-to-install-g-10-on-ubuntu-18-04) (or higher)
   - including `-fconcepts`
-+ [**cmake 3.19**](https://cmake.org/download/) (or higher)
++ [**cmake 3.16**](https://cmake.org/download/) (or higher)
 + unix-based operating system
 
 Currently, only g++10 is supported, clang support is planned in the future.
+
+If you are curious, modernity is also a necessity: `jluna` makes extensive use of C++ concepts to allow for easy-to-understand compile-time errors when boxing and unboxing julia-side values into various C++ types. This requires specifically G++10 or higher due to [this bug in G++9](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79917). <br>
+For julia, `jluna` needs `get(::Tuple, ::Integer, default)` to forward generic function arguments to C++ during `cppcall` which is [only available in v.1.7+](https://docs.julialang.org/en/v1/base/collections/#Base.get), though this is not the only 1.7+-only function used in `jluna`.
 
 ---
 
@@ -244,12 +254,6 @@ rm -r temp
 ```
 
 This will leave a shiny new `jluna/libjluna_c.so` in your folder that should now allow julia to interface with the jluna C library.
-
----
-
-## Documentation
-
-The manual is not yet complete, consider visiting the already completed [overview cheat-sheet](./docs/quick_and_dirty.md) instead. Furthermore, inline-documentation inside the headers is already available through any IDE.
 
 ----
 

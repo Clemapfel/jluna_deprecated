@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 
 project(jluna)
 
@@ -51,7 +51,7 @@ add_library(jluna_common STATIC
     .src/unbox_any.inl
 
     include/cpp_call.hpp
-)
+        .c_wrapper/cppcall.hpp)
 
 set_target_properties(jluna_common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna_common ${JULIA_DIR}/lib/libjulia.so)
@@ -61,8 +61,8 @@ include_directories("./")
 
 # c adapter
 add_library(jluna_c_adapter SHARED
-    .c_wrapper/cpplibrary.cpp
-    .c_wrapper/cpplibrary.hpp
+        .c_wrapper/c_adapter.cpp
+        .c_wrapper/c_adapter.hpp
 )
 
 set_target_properties(jluna_c_adapter PROPERTIES

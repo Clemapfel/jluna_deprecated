@@ -1,4 +1,4 @@
-#include "cpplibrary.hpp"
+#include "c_adapter.hpp"
 
 #ifdef __cplusplus
 
