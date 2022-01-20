@@ -26,15 +26,13 @@ namespace jluna
 
     std::unordered_map<std::string, std::function<jl_value_t*(const std::vector<jl_value_t*>&)>> map;
 
-    template<typename Lambda_t>
+    template<typename Lambda_t, std::enable_if_t<std::is_invocable_r<Lambda_t, jl_value_t*, void>::value, Bool> = true>
     void insert(const std::string& name, Lambda_t&& lambda)
     {
         map.insert({name, [lambda](const std::vector<jl_value_t*>& vec) -> jl_value_t* {
 
-            return std::invoke(lambda, vec);
+            lambda();
             return jl_nothing;
-            //if (std::is_invocable_r<decltype(lambda), jl_value_t*, jl_value_t*>::value)
-            //return jl_nothing;
         }});
     }
 }
@@ -42,16 +40,14 @@ namespace jluna
 int main()
 {
     State::initialize();
-
-
-    insert("abc", [](const std::vector<jl_value_t*>& values) -> jl_value_t* {
+    auto lambda = [](jl_value_t*) -> void {
         std::cout << "done" << std::endl;
-        return jl_nothing;
-    });
+    };
 
-    map.at("abc")({});
+    std::cout << std::is_invocable<decltype(lambda), jl_value_t*>::value << std::endl;
+    std::cout << std::is_same_v<std::invoke_result<decltype(lambda), jl_value_t*>::type, void> << std::endl;
 
-
+    return 0;
 
     return 0;
     Test::initialize();
