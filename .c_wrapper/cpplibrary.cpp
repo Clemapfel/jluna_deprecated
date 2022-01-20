@@ -7,9 +7,16 @@
 
 extern "C"
 {
-    void cpp_test()
+    jl_value_t* cpp_jl_to_string(jl_value_t* v)
     {
-        jluna::test();
+        std::cout << "cpp prints: " << jl_to_string(v) << std::endl;
+        return v;
+    }
+
+    void cpp_void()
+    {
+        std::cout << "cpp called" << std::endl;
+        jl_eval_string("println(\"void\"))");
     }
 }
 

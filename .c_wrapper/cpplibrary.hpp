@@ -5,17 +5,17 @@
 
 #pragma once
 
+#include <julia.h>
+
 #ifdef __cplusplus
 
-#include <julia.h>
+#include <jluna.hpp>
 
 extern "C"
 {
-    void cpp_test();
+    jl_value_t* cpp_jl_to_string(jl_value_t*);
+
+    void cpp_void();
 }
-
-#else
-
-void cpp_test();
 
 #endif

@@ -23,9 +23,15 @@ using namespace jluna;
 int main()
 {
     State::initialize();
-    State::safe_script(R"(ccall((:cpp_test, "/home/clem/Workspace/jluna/libjluna_c.so"), Nothing, ()))");
-    Test::initialize();
 
+    State::safe_script(R"(
+        jluna.cppcall(:cpp_test, [1, 2, 3])
+        println(jluna._CppCall._state[]._arguments)
+    )");
+    //forward_last_exception();
+
+    return 0;
+    Test::initialize();
     Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
