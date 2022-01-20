@@ -3,17 +3,13 @@
 #ifdef __cplusplus
 
 #include <iostream>
+#include <jluna.hpp>
 
 extern "C"
 {
-    void cpp_print(const char* c)
+    void cpp_test()
     {
-        std::cout << c << std::endl;
-    }
-
-    void cpp_void()
-    {
-        std::cout << "void" << std::endl;
+        jluna::test();
     }
 }
 

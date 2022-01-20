@@ -3,16 +3,15 @@
 // Created on 19.01.22 by clem (mail@clemens-cords.com)
 //
 
+#pragma once
+
 #ifdef __cplusplus
 
-#include <include/state.hpp>
+#include <julia.h>
 
 extern "C"
 {
-    void cpp_test()
-    {
-        jluna::test();
-    }
+    void cpp_test();
 }
 
 #else

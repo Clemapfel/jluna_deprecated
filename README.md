@@ -56,9 +56,19 @@ Main["instance"]["_vector_field"] = std::vector<std::string>{"string", "string",
 // call julia-side functions with C++-side arguments
 auto println = State::script("return Base.println");
 println(Main["instance"]);
+
+// call c++-side functions julia-side arguments
+State::register_function("cpp_print", [](auto first, auto second) -> jl_value_t* {
+   
+    std::cout << "cpp prints: " << jl_to_string(first) << " " << jl_to_string(second) << std::endl;
+    return nullptr;
+});
+
+State::safe_script("cppcall(:cpp_print, [1, 2, 3, 4], Main");
 ```
 ```
 Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27], ["string", "string", "string"])
+cpp prints: [1, 2, 3, 4] Main
 ```
 ---
 
@@ -70,7 +80,7 @@ Some advantages `jluna` has over the C-API include:
 + Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
 + assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
 + verbose exceptions, including exception forwarding from Julia
-+ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objects and types
++ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objec1ts and types
 + multi-dimensional, iterable array interface with Julia-Style indexing
 + `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
 + mixing the C-API and `jluna` works out-of-the-box
@@ -104,10 +114,9 @@ Currently, only g++10 is supported, clang support is planned in the future.
 
 ## Installation
 
-
 ### jluna-Only Application:
 
-Go to your workspace folder and execute:
+Go to your (empty) workspace folder and execute:
 
 ```bash
 git clone https://github.com/Clemapfel/jluna.git

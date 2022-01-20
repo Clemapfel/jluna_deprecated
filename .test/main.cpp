@@ -23,6 +23,7 @@ using namespace jluna;
 int main()
 {
     State::initialize();
+    State::safe_script(R"(ccall((:cpp_test, "/home/clem/Workspace/jluna/libjluna_c.so"), Nothing, ()))");
     Test::initialize();
 
     Test::test("safe_script: exception forwarding", [](){

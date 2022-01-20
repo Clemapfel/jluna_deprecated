@@ -66,14 +66,14 @@ namespace jluna
         if (not jl_is_initialized())
             return;
 
-        detail::on_exit();
-
         _jluna_module = nullptr;
         _create_reference = nullptr;
         _free_reference = nullptr;
         _force_free = nullptr;
         _get_value = nullptr;
         _get_reference = nullptr;
+
+        detail::on_exit();
     }
 
     auto State::script(const std::string& command) noexcept
