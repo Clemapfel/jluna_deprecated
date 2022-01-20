@@ -26,7 +26,19 @@ namespace jluna
 
     std::unordered_map<std::string, std::function<jl_value_t*(const std::vector<jl_value_t*>&)>> map;
 
-    template<typename Lambda_t, std::enable_if_t<std::is_invocable_r<Lambda_t, jl_value_t*, void>::value, Bool> = true>
+    /// @brief check if lambda has specified return and value type
+    /// @tparam Lambda_t: lambda type
+    /// @tparam Return_t: return type
+    /// @tparam Args_t...: argument types
+    template<typename Lambda_t, typename Return_t, typename... Args_t>
+    struct is_lambda_type
+    {
+        static inline constexpr bool value =
+                std::is_invocable<Lambda_t, Args_t...>::value and
+                std::is_same_v<typename std::invoke_result<Lambda_t, Args_t...>::type, Return_t>;
+    };
+
+    template<typename Lambda_t, std::enable_if_t<is_lambda_type<Lambda_t, void>::value, Bool> = true>
     void insert(const std::string& name, Lambda_t&& lambda)
     {
         map.insert({name, [lambda](const std::vector<jl_value_t*>& vec) -> jl_value_t* {
@@ -40,12 +52,12 @@ namespace jluna
 int main()
 {
     State::initialize();
-    auto lambda = [](jl_value_t*) -> void {
+    auto lambda = []() -> void {
         std::cout << "done" << std::endl;
     };
 
-    std::cout << std::is_invocable<decltype(lambda), jl_value_t*>::value << std::endl;
-    std::cout << std::is_same_v<std::invoke_result<decltype(lambda), jl_value_t*>::type, void> << std::endl;
+    insert("name", lambda);
+    std::cout << jl_to_string(map.at("name")(std::vector<jl_value_t*>{})) << std::endl;
 
     return 0;
 
