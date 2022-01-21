@@ -15,12 +15,13 @@ namespace jluna
         template<typename Lambda_t, typename Return_t, typename... Args_t, std::enable_if_t<std::is_same_v<Return_t, void>, Bool> = true>
         jl_value_t* detail::invoke_lambda(const Lambda_t* func, Args_t... args)
         {
-            try
+            //try
             {
                 (*func)(args...);
                 return jl_nothing;
             }
-            catch (JuliaException& e)
+
+            /*catch (JuliaException& e)
             {
                 static auto print = [](auto arg, size_t i)
                 {
@@ -36,18 +37,19 @@ namespace jluna
                 }
                 std::cerr << "}" << std::endl;
                 throw e;
-            }
+            }*/
         }
 
         template<typename Lambda_t, typename Return_t, typename... Args_t, std::enable_if_t<std::is_same_v<Return_t, jl_value_t*>, Bool> = true>
         jl_value_t* detail::invoke_lambda(const Lambda_t* func, Args_t... args)
         {
-            try
+            //try
             {
                 jl_value_t* res = (*func)(args...);
                 return res;
             }
-            catch (JuliaException& e)
+
+            /*catch (JuliaException& e)
             {
                 static auto print = [](auto arg, size_t i)
                 {
@@ -63,7 +65,7 @@ namespace jluna
                 }
                 std::cerr << "}" << std::endl;
                 throw e;
-            }
+            }*/
         }
     }
 

@@ -17,8 +17,10 @@ This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relev
   5.1 [Mutating Variables](#mutating-variables)<br>
   5.2 [Accessing Fields](#accessing-fields)<br>
 6. [Functions](#functions)<br>
-   6.1 [Accessing Functions](#accessing-functions)<br>
-  6.2 [Calling Functions](#calling-functions)<br>
+   6.1 [Accessing Julia Functions from C++](#accessing-julia-functions)<br>
+   6.2 [Calling Julia Functions from C++](#calling-julia-functions)<br>
+   6.3 [Accessing C++ Functions from Julia](#registering-functions)<br>
+   6.2 [Calling C++ Functions from Julia](#calling-c-functions-from-julia)<br>
 7. [Arrays](#arrays)<br>
   7.1 [Multi-Dimensional Arrays](#multi-dimensional-arrays)<br>
   7.2 [Vectors](#vectors)<br>
@@ -206,8 +208,8 @@ State::script("println(Main.instance._field)");
 ```
 
 ## Functions
-
-### Accessing Functions
+### Calling Julia Functions from C++
+#### Accessing Julia Functions
 ```cpp
 State::script("f(x) = sqrt(x^x^x)");
 
@@ -217,7 +219,7 @@ auto f = Main["f"];
 auto f = State::script("return f");
 ```
 
-### Calling Functions
+#### Calling Julia Functions
 ```cpp
 auto println = Main["println"];
 
@@ -235,6 +237,61 @@ Base["println"](Base["typeof"](std::set<std::map<size_t, std::pair<size_t, std::
 ```
 ```
 Set{IdDict{UInt64, Pair{UInt64, Vector{Int32}}}}
+```
+
+### Calling C++ Functions from Julia
+#### Registering Functions
+```cpp
+// always specify trailing return type manually
+register_function("print_vector", [](jl_value_t* in) -> jl_value_t* {
+    
+    // convert jl_value_t* to jluna objects via box/unbox
+    auto as_vector = unbox<Vector<size_t>>(in);
+    std::cout << "cpp prints:" << std::endl;
+    for (auto e : as_vector)
+    {
+        std::cout << (size_t) e << std::endl;
+        e = (int e) + 10;
+    }
+
+    // return as jluna object or boxed, both will be forwarded to julia
+    return as_vector;
+});
+```
+#### Calling Functions
+```julia
+# in julia
+result = cppcall(:print_vector, [1, 2, 3, 4])
+println("julia prints: ", result)
+```
+```
+cpp prints:
+1 
+2 
+3 
+4
+
+julia prints: [11, 12, 13, 14]
+```
+#### Possible Signatures
+The following signatures for functions to be bound via `register_function` are allowed (enforced at compile time):
+
+```cpp
+() -> void
+(jl_value_t*) -> void
+(std::vector<jl_value_t*>) -> void
+(jl_value_t*, jl_value_t*) -> void
+(jl_value_t*, jl_value_t*, jl_value_t*) -> void
+(jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> void
+(jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> void
+
+() -> jl_value_t*
+(jl_value_t*) -> jl_value_t*
+(std::vector<jl_value_t*>) -> jl_value_t*
+(jl_value_t*, jl_value_t*) -> jl_value_t*
+(jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
+(jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
+(jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
 ```
 
 ## Arrays
@@ -290,7 +347,7 @@ This section will focus on using the C-API in addition to jluna and from within 
 
 ### Meaning of C-Types
 
-+ `jl_value_t*`: address julia-side value of arbitrary type
++ `jl_value_t*: address julia-side value of arbitrary type
 + `jl_function_t*`: address of julia-side function
 + `jl_sym_t*`: address of julia-side symbol
 + `jl_module_t*`: address of julia-side singleton module
