@@ -37,7 +37,7 @@
         global cpp_call._state._id = hash(function_name);
         global cpp_call._state._result = nothing
 
-        ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c_adapter.so"), Cvoid, ())
+        ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c_adapter.so"), Cvoid, (Csize_t,), hash(function_name))
         #ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c.so"), Cvoid, (Csize_t,), UInt64(32));
         return cpp_call._state._result;
     end

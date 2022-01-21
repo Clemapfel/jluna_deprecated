@@ -25,6 +25,10 @@ using namespace jluna;
 
 int main()
 {
+    std::cout << jluna::cppcall::_functions.size() << std::endl;
+
+    std::cout << "end" << std::endl;
+    return 0;
     State::initialize();
     size_t i = 0;
 
@@ -32,6 +36,8 @@ int main()
         std::cout << "cpp prints:" << jl_to_string(in) << std::endl;
         return in;
     });
+
+    jl_eval_string("println(pwd())");
 
     jl_eval_string(R"(
         jluna.cppcall(:test_function, 123)

@@ -10,9 +10,7 @@ extern "C"
 {
     void call_cpp(size_t id)
     {
-        std::cout << jluna::cppcall::_functions.size()+1 << std::endl;
-
-        //jluna::cppcall::call_from_julia(id);
+        jluna::cppcall::call_from_julia(1443994487737173028);
     }
 }
 

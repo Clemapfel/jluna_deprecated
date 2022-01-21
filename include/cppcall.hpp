@@ -7,17 +7,19 @@
 
 #include <state.hpp>
 
-namespace jluna
-{
-    void test()
-    {
-        std::cout << "test" << std::endl;
-    }
-}
-
 namespace jluna::cppcall
 {
-    static inline std::unordered_map<size_t, std::unique_ptr<std::function<jl_value_t*(jl_value_t*)>>> _functions = {};
+    static inline std::unordered_map<size_t, std::unique_ptr<std::function<jl_value_t*(jl_value_t*)>>> _functions = []() -> decltype(_functions) {
+
+        std::unordered_map<size_t, std::unique_ptr<std::function<jl_value_t*(jl_value_t*)>>> to_return;
+
+       to_return.insert({1443994487737173028, std::make_unique<std::function<jl_value_t*(jl_value_t*)>>([](jl_value_t*) -> jl_value_t* {
+            std::cout << "works" << std::endl;
+            return nullptr;
+        })});
+
+       return to_return;
+    }();
 
     jl_value_t* jl_tupleref(jl_value_t* tuple, size_t n)
     {
@@ -80,10 +82,10 @@ namespace jluna::cppcall
         jl_value_t* tuple = jl_eval_string("return jluna.cpp_call._state._arguments");
         jl_value_t* state_id = jl_eval_string("return jluna.cpp_call._state._id");
 
-        //auto* res = _functions.at(id).get()->operator()(tuple);
+        auto* res = _functions.at(id).get()->operator()(tuple);
 
-        //static jl_function_t* set_result = jl_eval_string("return jluna.cpp_call.set_result");
-        //jl_call1(set_result, res);
+        static jl_function_t* set_result = jl_eval_string("return jluna.cpp_call.set_result");
+        jl_call1(set_result, res);
 
         return jl_nothing;
     }
