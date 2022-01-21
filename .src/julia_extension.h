@@ -75,6 +75,13 @@ extern "C"
         static jl_function_t* hash = jl_get_function(jl_base_module, "hash");
         return jl_unbox_uint64(jl_call1(hash, (jl_value_t*) jl_symbol(str)));
     }
+
+    /// @brief get proper typeof as str
+    const char* jl_verbose_typeof_str(jl_value_t* v)
+    {
+        static jl_function_t* type_of = jl_get_function(jl_base_module, "typeof");
+        return jl_to_string(jl_call1(type_of, v));
+    }
 }
 
 

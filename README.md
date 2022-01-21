@@ -2,7 +2,7 @@
 
 Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented.
 
-Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2)*, `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
+Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
 
 ---
 
@@ -61,46 +61,47 @@ println(Main["instance"]);
 // call c++-side functions julia-side arguments
 State::register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
    
-    std::cout << "cpp called." << std::endl;
-    Vector<size_t> as_vector = in;
+    std::cout << "cpp called" << std::endl;
+    
+    // increment all elements in vector by one
+    auto as_vector = unbox<jluna::Vector<size_t>>(in);
     for (auto e : as_vector)
         e = ((size_t)) e + 1
                 
     return as_vector;
 });
-
 State::safe_script("println(cppcall(:cpp_print, [1, 2, 3, 4]))");
 ```
 ```
 Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27], ["string", "string", "string"])
 
-cpp called.
+cpp called
 [2, 3, 4, 5]
 ```
 ---
 
 ### Features
-Some advantages `jluna` has over the C-API include:
+Some of the many advantages `jluna` has over the C-API include:
 
 + automatically detects and links Julia during make
 + expressive generic syntax
-+ call C++ functions from julia, including argument and return value forwarding
++ call C++ functions from julia using arbitrary argument- and return types
 + assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
-+ verbose exceptions, including exception forwarding from Julia
-+ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objects and types
-+ multi-dimensional, iterable array interface with Julia-Style indexing
-+ `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
 + Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
-+ mixing the C-API and `jluna` works out-of-the-box
++ verbose exceptions, including exception forwarding from Julia
++ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ `std` objects and types
++ multi-dimensional, iterable array interface with Julia-style indexing
++ `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
++ mixing the C-API and `jluna` works no problem
 + And more!
 
 ### Planned (but not yet implemented):
 In order of priority, highest first:
 + expression proxy, access to meta features via C++
-+ creating new modules and datatypes completely C++-Side
++ creating new modules and datatypes including member-access completely C++-Side
 + save-states, restoring a previous Julia state
 + clang support
-+ Julia-side macro expansion during C++ compile time 
++ Julia-side macro-expansion aided computation during C++ compile time 
 
 ---
 
@@ -124,7 +125,7 @@ For `jluna` you'll need:
 Currently, only g++10 is supported, clang support is planned in the future.
 
 If you are curious, modernity is also a necessity: `jluna` makes extensive use of C++ concepts to allow for easy-to-understand compile-time errors when boxing and unboxing julia-side values into various C++ types. This requires specifically G++10 or higher due to [this bug in G++9](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79917). <br>
-For julia, `jluna` needs `get(::Tuple, ::Integer, default)` to forward generic function arguments to C++ during `cppcall` which is [only available in v.1.7+](https://docs.julialang.org/en/v1/base/collections/#Base.get), though this is not the only 1.7+-only function used in `jluna`.
+For julia, `jluna` needs `get(::Tuple, ::Integer, default)` to forward generic function arguments to C++ during `cppcall` directly as a tuple which is [only available in v.1.7+](https://docs.julialang.org/en/v1/base/collections/#Base.get), though this is not the only 1.7+-only function used in `jluna`.
 
 ---
 
@@ -142,18 +143,19 @@ cd build
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
 make
 ```
-If errors appear, make sure all the dependencies are met. You can verify everything works by calling:
+If errors appear, make sure [all the dependencies](#dependencies) are met. You can verify everything works by calling:
 
-```
+```bash
+#still in jluna/build
 ./JLUNA_TEST
 ```
 
-At the very end it should show:
+At the very end of the programs output it should show:
 ```
 Number of tests unsuccessful: 0
 ```
 
-You can now create your application, first create a main file `my_main.cpp`:
+Great! You can now create your application, first create a main file `my_main.cpp`:
 ```
 #include <jluna.h>
 
@@ -165,14 +167,14 @@ int main()
 }
 ```
 
-Then add the the follow lines to the end of `jluna/CmakeLists.txt`
+Then add the following lines to the end of `jluna/CmakeLists.txt`
 
 ```cmake
 add_executable(MY_EXECUTABLE path/to/.../my_main.cpp)   # modify this as needed
 target_link_libraries(MY_EXECUTABLE jluna)
 ```
 
-Once again navigate to `jluna/build`:
+Then, navigate again to `jluna/build` and execute:
 ```bash
 cd path/to/.../jluna/build
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
@@ -184,6 +186,8 @@ Your executable can now be run via `./MY_EXECUTABLE`:
 ```
 [JULIA] hello world
 ```
+
+Alternatively you can run `jluna/CmakeLists.txt` from within your own `CMakeLists.txt` using [include](https://cmake.org/cmake/help/latest/command/include.html).
 
 ### Adding jluna to your existing Library
 
@@ -200,7 +204,7 @@ include_directories("/path/to/.../jluna/")
 target_link_libraries(YOUR_LIBRARY jluna)
 ```
 
-Now simply `#import <jluna.hpp>` to your headers and everything should work.
+Now simply add `#import <jluna.hpp>` to your headers and everything should work.
 
 ---
 
@@ -222,7 +226,7 @@ set(JULIA_EXECUTABLE /path/to/your/.../julia/bin/julia) # replace with the path 
 
 During make, `jluna` should now be able to determine all the information to build `jluna` and link Julia properly
 
-### State::initialize() fails
+### jl_init() fails
 
 jluna assumes that `Julia` is installed on a system level. If this is not the case, you will need to manually specify the path to your image during the initialization step in C++. When calling `jluna::State::initialize()` at the start of your C++ main, instead of the no-argument call, use this overload and provide the full path to your Julia image like so:
 
@@ -232,13 +236,15 @@ jluna::State::initialize("/path/to/your/.../Julia/bin");
 
 Make sure that the image is uncompressed, as `.zip` or `.tar` files cannot be used for initialization.
 
-### @cppcall fails
+### cppcall fails
 
-While jluna is header-only, julia needs a shared c library to interface with jluna in the julia -> C++ direction. This library is `jluna/libjluna_c.so` and comes precompiled with the github repo. If `@cppcall` fails on your system, we will need to recompile it.
+While jluna is header-only, julia needs a shared c library to interface with jluna in the julia -> C++ direction. This library is `libjluna_c_adapter.so` and comes precompiled with the github repo. If `cppcall` fails on your system (usually an assertion is triggered on `State::initialize`), we will need to recompile it.
 
 First navigate to `jluna/`, then:
 
 ```bash
+rm libjluna_c_adapter.so
+
 mkdir temp
 cd temp
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
@@ -247,11 +253,11 @@ make
 
 We just recompiled the library, we can now make sure everything works and nothing is corrupted:
 
-```
+```bash
 # still in jluna/temp
 ./JLUNA_TEST
-
 ```
+
 If this executable reports no failed tests, we can remove the superfluous files:
 
 ```bash
@@ -259,9 +265,9 @@ cd ..
 rm -r temp
 ```
 
-This will leave a shiny new `jluna/libjluna_c.so` in your folder that should now allow julia to interface with the jluna C library.
+This will leave a shiny new `jluna/libjluna_c_adapter.so` in your folder that should now allow julia to interface with C++  through the jluna C library.
 
-----
+---
 
 ## License
 

@@ -15,15 +15,55 @@ namespace jluna
         template<typename Lambda_t, typename Return_t, typename... Args_t, std::enable_if_t<std::is_same_v<Return_t, void>, Bool> = true>
         jl_value_t* detail::invoke_lambda(const Lambda_t* func, Args_t... args)
         {
-            (*func)(args...);
-            return jl_nothing;
+            try
+            {
+                (*func)(args...);
+                return jl_nothing;
+            }
+            catch (JuliaException& e)
+            {
+                static auto print = [](auto arg, size_t i)
+                {
+                    std::cerr << jl_verbose_typeof_str(arg);
+                    if (i != sizeof...(Args_t))
+                        std::cerr << ", ";
+                };
+
+                std::cerr << "[C++][EXCEPTION] in cppcall with arguments of type: {";
+                {
+                    size_t i = 1;
+                    (print(args, i++), ...);
+                }
+                std::cerr << "}" << std::endl;
+                throw e;
+            }
         }
 
         template<typename Lambda_t, typename Return_t, typename... Args_t, std::enable_if_t<std::is_same_v<Return_t, jl_value_t*>, Bool> = true>
         jl_value_t* detail::invoke_lambda(const Lambda_t* func, Args_t... args)
         {
-            jl_value_t* res = (*func)(args...);
-            return res;
+            try
+            {
+                jl_value_t* res = (*func)(args...);
+                return res;
+            }
+            catch (JuliaException& e)
+            {
+                static auto print = [](auto arg, size_t i)
+                {
+                    std::cerr << jl_verbose_typeof_str(arg);
+                    if (i != sizeof...(Args_t))
+                        std::cerr << ", ";
+                };
+
+                std::cerr << "[C++][EXCEPTION] in cppcall with arguments of type: {";
+                {
+                    size_t i = 1;
+                    (print(args, i++), ...);
+                }
+                std::cerr << "}" << std::endl;
+                throw e;
+            }
         }
     }
 

@@ -18,6 +18,12 @@ namespace jluna
     /// @brief unbox identity
     jl_value_t* unbox(jl_value_t* value);
 
+    template<IsUnnamedProxy T>
+    T unbox(jl_value_t* value)
+    {
+        return T(value, (jl_sym_t*) nullptr);
+    };
+
     /// @brief unbox to bool
     template<typename T, std::enable_if_t<std::is_same_v<T, bool>, bool> = true>
     T unbox(jl_value_t* value);

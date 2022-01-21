@@ -46,6 +46,13 @@ namespace jluna
         std::tuple_size<T>::value;
     };
 
+    // concept: has ctor that takes jl_value_t* and symbol
+    template<typename T>
+    concept IsUnnamedProxy = requires(T t, jl_value_t* v)
+    {
+        T(v, (jl_sym_t*) nullptr);
+    };
+
     /// get sizeof array
     /// reference: https://brevzin.github.io/c++/2020/02/05/constexpr-array-size/
     template<HasValueType Array_t>

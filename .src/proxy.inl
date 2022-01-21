@@ -9,7 +9,6 @@
 
 namespace jluna
 {
-
     template<typename State_t>
     Proxy<State_t>::ProxyValue::ProxyValue(jl_value_t* value, std::shared_ptr<ProxyValue>& owner, jl_sym_t* symbol)
     {

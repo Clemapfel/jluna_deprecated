@@ -28,6 +28,10 @@ namespace jluna
             /// @returns c-string
             virtual const char* what() const noexcept override final;
 
+            /// @brief decay to jl value
+            /// @returns jl_value_t*
+            operator jl_value_t*();
+
         protected:
             jl_value_t* _value;
             std::string _message;

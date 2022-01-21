@@ -22,8 +22,9 @@ extern "C"
             static jl_function_t* get_args = jl_get_function((jl_module_t*) jl_eval_string("return Main._cppcall"), "get_arguments");
             static jl_function_t* set_result = jl_get_function((jl_module_t*) jl_eval_string("return Main._cppcall"), "set_result");
             jl_value_t* tuple = jl_call0(get_args);
+            jl_value_t* res;
 
-            jl_value_t* res = _functions.at(id)(tuple);
+            res = _functions.at(id)(tuple);
 
             if (res == nullptr) // catch returning nullptr
                 res = jl_nothing;

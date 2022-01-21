@@ -63,7 +63,6 @@ namespace jluna
     auto Array<V, R>::ConstIterator::operator*()
     {
         auto res = operator Proxy();
-        make_mutating(res);
         return res;
     }
 

@@ -15,19 +15,16 @@ int main()
 {
     State::initialize();
 
-    register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
+    register_function("print_vector", [](jl_value_t* in) -> jl_value_t* {
 
-        /*
-        std::cout << "cpp called." << std::endl;
-        Vector<size_t> as_vector = in;
+        auto as_vector = unbox<Vector<size_t>>(in);
         for (auto e : as_vector)
-            e = ((size_t)) e + 1
+            std::cout << (size_t) e << std::endl;
 
         return as_vector;
-         */
     });
 
-    State::safe_script("println(cppcall(:print_symbol, :test))");
+    State::safe_script("println(cppcall(:print_vector, ([1, 2, 3, 4], 1)))");
     return 0;
 }
 

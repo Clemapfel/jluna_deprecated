@@ -49,6 +49,11 @@ namespace jluna
         return _message.c_str();
     }
 
+    JuliaException::operator jl_value_t*()
+    {
+        return _value;
+    }
+
     AmbiguousCandidateException::AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidate_modules)
     {
         std::stringstream str;

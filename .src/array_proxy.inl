@@ -8,7 +8,24 @@ namespace jluna
     template<Boxable V, size_t R>
     Array<V, R>::Array(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>& owner, jl_sym_t* symbol)
         : Proxy<State>(value, owner, symbol)
+    {
+        assert_type(value, "Array");
+    }
+
+    template<Boxable V, size_t R>
+    Array<V, R>::Array(jl_value_t* value, jl_sym_t* symbol)
+        : Proxy<State>(value, symbol)
+    {
+        assert_type(value, "Array");
+    }
+
+    /*
+    template<Boxable V, size_t R>
+    template<Boxable T>
+    Array<V, R>::Array(const std::vector<T>& value, jl_sym_t* symbol)
+        : Proxy<State>(box(value), symbol)
     {}
+     */
 
     template<Boxable T, size_t Rank>
     size_t Array<T, Rank>::get_dimension(int index)
@@ -195,7 +212,16 @@ namespace jluna
     template<Boxable V>
     Vector<V>::Vector(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>& owner, jl_sym_t* symbol)
         : Array<V, 1>(value, owner, symbol)
-    {}
+    {
+        assert_type(value, "Vector");
+    }
+
+    template<Boxable V>
+    Vector<V>::Vector(jl_value_t* value, jl_sym_t* symbol)
+        : Array<V, 1>(value, symbol)
+    {
+        assert_type(value, "Vector");
+    }
 
     template<Boxable V>
     void Vector<V>::insert(size_t pos, V value)

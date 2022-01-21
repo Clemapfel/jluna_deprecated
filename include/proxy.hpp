@@ -42,7 +42,7 @@ namespace jluna
             /// @brief construct with no owner, reserved for global temporaries and main
             /// @param value
             /// @param symbol
-            Proxy(jl_value_t* value, jl_sym_t* symbol);
+            Proxy(jl_value_t* value, jl_sym_t* symbol = nullptr);
 
             /// @brief construct with no owner, reserved for global temporaries and main
             /// @param value

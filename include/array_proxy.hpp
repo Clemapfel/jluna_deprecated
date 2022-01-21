@@ -29,6 +29,11 @@ namespace jluna
             /// @param symbol
             Array(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
+            /// @brief ctor unowned proxy
+            /// @param value
+            /// @param name or nulltpr
+            Array(jl_value_t*, jl_sym_t* = nullptr);
+
             /// @brief linear indexing, no bounds checking
             /// @param index, 0-based
             /// @returns assignable iterator to element
@@ -184,6 +189,11 @@ namespace jluna
         /// @param owner
         /// @param symbol
         Vector(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
+
+        /// @brief ctor
+        /// @param value
+        /// @param symbol
+        Vector(jl_value_t* value, jl_sym_t* = nullptr);
 
         /// @brief insert
         /// @param linear index, 0-based
