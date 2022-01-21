@@ -6,40 +6,17 @@
 #pragma once
 
 #include <state.hpp>
+#include <.c_wrapper/c_adapter.hpp>
 
-namespace jluna::cppcall
+namespace jluna
 {
-    static inline std::unordered_map<size_t, std::unique_ptr<std::function<jl_value_t*(jl_value_t*)>>> _functions = []() -> decltype(_functions) {
-
-        std::unordered_map<size_t, std::unique_ptr<std::function<jl_value_t*(jl_value_t*)>>> to_return;
-
-       to_return.insert({1443994487737173028, std::make_unique<std::function<jl_value_t*(jl_value_t*)>>([](jl_value_t*) -> jl_value_t* {
-            std::cout << "works" << std::endl;
-            return nullptr;
-        })});
-
-       return to_return;
-    }();
-
-    jl_value_t* jl_tupleref(jl_value_t* tuple, size_t n)
+    template<typename Lambda_t>
+    void register_function(const std::string& str, Lambda_t&& lambda)
     {
-        static jl_function_t* get = jl_get_function(jl_base_module, "get");
-        return jl_call3(get, tuple, jl_box_uint64(n + 1), jl_undef_initializer());
+        c_adapter::register_function(str, lambda);
     }
 
-    size_t jl_tuple_len(jl_value_t* tuple)
-    {
-        static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return jl_unbox_int64(jl_call1(length, tuple));
-    }
-
-    size_t jl_hash(const std::string& str)
-    {
-        static jl_function_t* hash = jl_get_function(jl_base_module, "hash");
-
-        return jl_unbox_uint64(jl_call1(hash, (jl_value_t*) jl_symbol(str.c_str())));
-    }
-
+    /*
     template<typename T, typename... Args_t>
     concept LambdaType = requires(T lambda)
     {
@@ -205,6 +182,5 @@ namespace jluna::cppcall
             );
         })});
     }
-
-
+     */
 }

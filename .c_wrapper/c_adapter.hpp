@@ -9,13 +9,30 @@
 
 #ifdef __cplusplus
 
+#include <map>
+#include <julia.h>
+#include <functional>
+#include <string>
+
 extern "C"
 {
-    void call_cpp(size_t);
+    namespace c_adapter
+    {
+        /// @brief holds lambda registers via jluna
+        static std::map<size_t, std::function<jl_value_t*(jl_value_t*)>> _functions;
+
+        /// @brief initialize c-adapter
+        void initialize();
+
+        /// @brief hash lambda-side
+        size_t hash(const std::string&);
+
+        /// @brief add lambda to function register
+        void register_function(const std::string& name, std::function<jl_value_t*(jl_value_t*)>&&);
+
+        /// @brief call lambda by id
+        void call_function(size_t);
+    }
 }
-
-#elif
-
-void call_cpp(size_t);
 
 #endif

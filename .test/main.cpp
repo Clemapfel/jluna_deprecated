@@ -25,29 +25,8 @@ using namespace jluna;
 
 int main()
 {
-    std::cout << jluna::cppcall::_functions.size() << std::endl;
+    State::initialize()
 
-    std::cout << "end" << std::endl;
-    return 0;
-    State::initialize();
-    size_t i = 0;
-
-    cppcall::register_function("test_function", [](jl_value_t* in) -> jl_value_t* {
-        std::cout << "cpp prints:" << jl_to_string(in) << std::endl;
-        return in;
-    });
-
-    jl_eval_string("println(pwd())");
-
-    jl_eval_string(R"(
-        jluna.cppcall(:test_function, 123)
-    )");
-    forward_last_exception();
-
-    //cppcall::call_from_julia(cppcall::jl_hash("test_function"));
-
-    //jl_eval_string("jlune.cppcall(:test_function, 456)");
-    //jl_eval_string("println(jluna.cpp_call._state._arguments)");
 
     return 0;
 

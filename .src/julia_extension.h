@@ -54,6 +54,27 @@ extern "C"
         static jl_function_t* string = jl_get_function(jl_base_module, "string");
         return jl_call1(string, (jl_value_t*) jl_symbol(str));
     }
+
+    /// @brief get nth element of tuple
+    jl_value_t* jl_tupleref(jl_value_t* tuple, size_t n)
+    {
+        static jl_function_t* get = jl_get_function(jl_base_module, "get");
+        return jl_call3(get, tuple, jl_box_uint64(n + 1), jl_undef_initializer());
+    }
+
+    /// @brief get length of tuple
+    size_t jl_tuple_len(jl_value_t* tuple)
+    {
+        static jl_function_t* length = jl_get_function(jl_base_module, "length");
+        return jl_unbox_int64(jl_call1(length, tuple));
+    }
+
+    /// @brief hash julia-side
+    size_t jl_hash(const char* str)
+    {
+        static jl_function_t* hash = jl_get_function(jl_base_module, "hash");
+        return jl_unbox_uint64(jl_call1(hash, (jl_value_t*) jl_symbol(str)));
+    }
 }
 
 
