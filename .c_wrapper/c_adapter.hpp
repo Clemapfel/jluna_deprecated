@@ -22,6 +22,7 @@ extern "C"
         static std::map<size_t, std::function<jl_value_t*(jl_value_t*)>> _functions;
 
         /// @brief initialize c-adapter
+        /// @note call from julia using: ccall((:initialize, "./libjluna_c_adapter.so"), Cvoid, ())
         void initialize();
 
         /// @brief hash lambda-side
@@ -34,5 +35,9 @@ extern "C"
         void call_function(size_t);
     }
 }
+
+#else
+
+void initialize();
 
 #endif

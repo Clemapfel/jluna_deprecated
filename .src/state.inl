@@ -31,6 +31,8 @@ namespace jluna
         else
             jl_init_with_image(path.c_str(), NULL);
 
+        c_adapter::initialize();
+
         jl_eval_string(detail::include);
         forward_last_exception();
 

@@ -3,6 +3,28 @@
 // Created on 17.12.21 by clem (mail@clemens-cords.com)
 //
 
+#include <julia.h>
+#include ".c_wrapper/c_adapter.hpp"
+#include <state.hpp>
+
+using namespace jluna;
+int main()
+{
+    State::initialize();
+
+    c_adapter::register_function("new_function", [](jl_value_t* _) -> jl_value_t* {
+
+        std::cout << "new_function called" << std::endl;
+        return jl_nothing;
+    });
+
+    jl_eval_string("println(cppcall(:new_function, 1, 2, 3))");
+
+    return 0;
+}
+
+/*
+
 #include <iostream>
 #include <jluna.hpp>
 #include <functional>
@@ -25,52 +47,14 @@ using namespace jluna;
 
 int main()
 {
-    State::initialize()
+    jl_init();
 
-
+    jl_eval_string(R"(ccall((:initialize, "./libjluna_c_adapter.so"), Cvoid, ()))");
+    jl_eval_string("println(cppcall(:test_function, 1, 2, 3))");
     return 0;
 
-    State::safe_script(R"(jluna.cpp_call(:test_function, [1, 2, 3, 4]))");
+    // TEST #############################################################
 
-    {
-        cppcall::register_function("voidvoid", []() -> void {
-        });
-
-        cppcall::register_function("voidval", []() -> jl_value_t* {
-            return (jl_value_t*) jl_base_module;
-        });
-
-        cppcall::register_function("valvoid", [](jl_value_t* v) -> void {
-            std::cout << jl_to_string(v) << std::endl;
-        });
-
-        cppcall::register_function("valval", [](jl_value_t* v) -> jl_value_t* {
-            std::cout << jl_to_string(v) << std::endl;
-            return (jl_value_t*) jl_base_module;
-        });
-
-        cppcall::register_function("valvalvoid", [](jl_value_t* v1, jl_value_t* v2) -> void {
-            std::cout << jl_to_string(v1) << jl_to_string(v2) << std::endl;
-        });
-
-        cppcall::register_function("valvalval", [](jl_value_t* v1, jl_value_t* v2) -> jl_value_t* {
-            std::cout << jl_to_string(v1) << jl_to_string(v2) << std::endl;
-            return (jl_value_t*) jl_base_module;
-        });
-    }
-
-    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("voidvoid")) << std::endl;
-    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("voidval")) << std::endl;
-    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvoid", jl_nothing)) << std::endl;
-        std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valval", jl_nothing)) << std::endl;
-    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvalvoid", jl_nothing, jl_nothing)) << std::endl;
-    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvalval", jl_nothing, jl_nothing)) << std::endl;
-
-    //std::cout << jl_to_string(_functions.at("name")(std::vector<jl_value_t*>{})) << std::endl;
-
-    return 0;
-
-    return 0;
     Test::initialize();
     Test::test("safe_script: exception forwarding", [](){
 
@@ -390,3 +374,4 @@ int main()
 
     Test::conclude();
 }
+ */

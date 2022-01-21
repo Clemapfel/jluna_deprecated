@@ -11,9 +11,7 @@ extern "C"
     {
         void initialize()
         {
-            if (not jl_is_initialized())
-                jl_init();
-
+            jl_init();
             _functions = {};
 
             jl_eval_string(cppcall_module);

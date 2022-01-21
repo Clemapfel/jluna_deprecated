@@ -10,7 +10,7 @@ module _cppcall
 
     mutable struct State
         _arguments::Tuple
-        _result::Any
+_result::Any
 
         State() = new((), nothing)
     end

@@ -21,7 +21,6 @@ namespace jluna::detail
             include("../.src/julia/exception_handler.jl")
             include("../.src/julia/memory_handler.jl")
             include("../.src/julia/introspection.jl")
-            include("../.src/julia/cpp_call.jl")
      end
     )";
 }

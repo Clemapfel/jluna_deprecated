@@ -13,7 +13,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
 
 ### JLUNA ###
 
-add_library(jluna_common SHARED
+add_library(jluna SHARED
 
     jluna.hpp
 
@@ -52,32 +52,34 @@ add_library(jluna_common SHARED
 
     include/cppcall.hpp)
 
-set_target_properties(jluna_common
+set_target_properties(jluna
     PROPERTIES LINKER_LANGUAGE C
-    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(jluna_common ${JULIA_DIR}/lib/libjulia.so)
-
-include_directories("./include")
-include_directories("./")
 
 # c adapter
 add_library(jluna_c_adapter SHARED
-        .c_wrapper/c_adapter.cpp
-        .c_wrapper/c_adapter.hpp
+    .c_wrapper/c_adapter.cpp
+    .c_wrapper/c_adapter.hpp
 )
 
 set_target_properties(jluna_c_adapter PROPERTIES
     LINKER_LANGUAGE C
-    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    #LIBRARY_OUTPUT_NAME jluna_c_adapter
 )
 
-target_link_libraries(jluna_c_adapter jluna_common ${JULIA_DIR}/lib/libjulia.so)
+# link
+
+include_directories("./include")
+include_directories("./")
+
+target_link_libraries(jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
+target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
 
 ### EXECUTABLES ###
 
 add_executable(JLUNA_TEST .test/main.cpp .test/test.hpp)
-target_link_libraries(JLUNA_TEST jluna_common jluna_c_adapter)
+target_link_libraries(JLUNA_TEST jluna jluna_c_adapter)
+
+add_executable(C_TEST .c_wrapper/main.c)
+target_link_libraries(C_TEST jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
 
 
