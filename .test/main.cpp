@@ -15,20 +15,19 @@ int main()
 {
     State::initialize();
 
-    State::register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
+    register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
 
-        TODO: default all symbols in proxies
-        generic unbox to ctor-possible types
-
+        /*
         std::cout << "cpp called." << std::endl;
         Vector<size_t> as_vector = in;
         for (auto e : as_vector)
             e = ((size_t)) e + 1
 
         return as_vector;
+         */
     });
 
-    jl_eval_string("println(cppcall(:print_symbol, :test))");
+    State::safe_script("println(cppcall(:print_symbol, :test))");
     return 0;
 }
 

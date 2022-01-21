@@ -36,12 +36,20 @@ extern "C"
 
         /// @brief remove lambda from function register
         void unregister_function(const std::string& name);
+
+        /// @brief check if function is registered
+        bool is_registered(size_t id);
+
+        /// @brief c++ side exception from julia
+        void throw_undefined_symbol(const char*);
     }
 }
 
-#else
+#else // anything below is exposed to juila
 
 void initialize();
 void call_function(size_t);
+bool is_registered(size_t);
+void throw_undefined_symbol(const char*);
 
 #endif

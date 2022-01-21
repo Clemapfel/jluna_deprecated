@@ -10,12 +10,23 @@ module _cppcall
 
     mutable struct State
         _arguments::Tuple
-_result::Any
+        _result::Any
 
         State() = new((), nothing)
     end
 
+    const _library_name = "./libjluna_c_adapter.so"
     _state = Base.Ref{_cppcall.State}(State())
+
+    """
+    an exception thrown when trying to invoke cppcall with a function name that
+    has not yet been registered via jluna::register_function
+    """
+    mutable struct UnregisteredFunctionNameException <: Exception
+
+        _function_name::Symbol
+    end
+    Base.showerror(io::IO, e::UnregisteredFunctionNameException) = print(io, "UnregisteredFunctionNameException: no C++ function with name :" * string(e._function_name) * " registered")
 
     """
     `set_result(::Any) -> Nothing`
@@ -90,10 +101,17 @@ After the C++-side function returns, return the resulting object
 """
 function cppcall(function_name::Symbol, xs...) ::Any
 
+    id = hash(function_name)
+
+    if (!ccall((:is_registered, _cppcall._library_name), Bool, (Csize_t,), id))
+        throw(_cppcall.UnregisteredFunctionNameException(function_name))
+        #ccall((:throw_undefined_symbol, _cppcall._library_name), Cvoid, (Cstring,), string(function_name))
+    end
+
     _cppcall.set_arguments(xs...)
     _cppcall.set_result(nothing)
 
-    ccall((:call_function, "./libjluna_c_adapter.so"), Cvoid, (Csize_t,), hash(function_name))
+    ccall((:call_function, _cppcall._library_name), Cvoid, (Csize_t,), id)
 
     return _cppcall.get_result()
 end

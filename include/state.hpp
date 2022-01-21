@@ -79,12 +79,6 @@ namespace jluna
             /// @brief activate/deactivate garbage collector
             static void set_garbage_collector_enabled(bool);
 
-            template<typename Lambda_t>
-            static void register_function(const std::string& name, Lambda_t&& lambda);
-
-            /// @brief TODO
-            static void call_function(size_t hash);
-
         protected:
             /// @brief call julia function without exception forwarding
             /// @param function

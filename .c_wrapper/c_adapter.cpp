@@ -41,6 +41,19 @@ extern "C"
         {
             _functions.insert({hash(name), lambda});
         }
+
+        bool is_registered(size_t id)
+        {
+            auto it = _functions.find(id);
+            return it != _functions.end();
+        }
+
+        void throw_undefined_symbol(const char* str)
+        {
+            std::string msg = str;
+            msg = "[JULIA][EXCEPTION] in julia-side cppcall: no function with symbol :" + msg + " registered";
+            throw std::invalid_argument(msg);
+        }
     }
 }
 
