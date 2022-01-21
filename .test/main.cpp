@@ -6,20 +6,23 @@
 #include <julia.h>
 #include ".c_wrapper/c_adapter.hpp"
 #include <state.hpp>
+#include <cppcall.hpp>
+#include <jluna.hpp>
+#include <array_proxy.hpp>
 
 using namespace jluna;
 int main()
 {
     State::initialize();
 
-    c_adapter::register_function("new_function", [](jl_value_t* _) -> jl_value_t* {
+    register_function("print_symbol", [](jl_value_t* array) -> jl_value_t* {
 
-        std::cout << "new_function called" << std::endl;
-        return jl_nothing;
+        Symbol vec = array;
+        std::cout << vec.operator std::string() << std::endl;
+        return vec;
     });
 
-    jl_eval_string("println(cppcall(:new_function, 1, 2, 3))");
-
+    jl_eval_string("println(cppcall(:print_symbol, :test))");
     return 0;
 }
 

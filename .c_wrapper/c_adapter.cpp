@@ -24,6 +24,10 @@ extern "C"
             jl_value_t* tuple = jl_call0(get_args);
 
             jl_value_t* res = _functions.at(id)(tuple);
+
+            if (res == nullptr) // catch returning nullptr
+                res = jl_nothing;
+
             jl_call1(set_result, res);
         }
 

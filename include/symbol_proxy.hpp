@@ -23,7 +23,7 @@ namespace jluna
             /// @brief bind already existing symbol
             /// @param value
             /// @param symbol of the variable
-            Symbol(jl_value_t* value, jl_sym_t*);
+            Symbol(jl_value_t* value, jl_sym_t* = nullptr);
 
             /// @brief convert to string
             /// @returns string
