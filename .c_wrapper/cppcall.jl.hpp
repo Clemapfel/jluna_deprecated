@@ -1,6 +1,6 @@
 #pragma once
 
-namespace c_adapter
+namespace jluna::c_adapter
 {
     const char* cppcall_module = R"(
 """
@@ -57,6 +57,26 @@ _result::Any
     function get_arguments() ::Tuple
 
         return _cppcall._state[]._arguments
+    end
+
+    """
+    `verify_library() -> Bool`
+
+    check if c_adapter library is available
+    """
+    function verify_library() ::Bool
+
+        for name in readdir()
+            if name == "libjluna_c_adapter.so"
+                return true
+            end
+        end
+
+        message = "when trying to initialize jluna.cppcall: "
+        message *= "cannot find \"libjluna_c_adapter.so\" in executable directory " * string(pwd())
+
+        println(sprint(Base.showerror, AssertionError(message), backtrace()))
+        return false
     end
 end
 

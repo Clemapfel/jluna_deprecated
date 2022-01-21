@@ -72,14 +72,11 @@ include_directories("./include")
 include_directories("./")
 
 target_link_libraries(jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
-target_link_libraries(jluna ${JULIA_DIR}/lib/libjulia.so)
+target_link_libraries(jluna jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
 
 ### EXECUTABLES ###
 
 add_executable(JLUNA_TEST .test/main.cpp .test/test.hpp)
-target_link_libraries(JLUNA_TEST jluna jluna_c_adapter)
-
-add_executable(C_TEST .c_wrapper/main.c)
-target_link_libraries(C_TEST jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
+target_link_libraries(JLUNA_TEST jluna)
 
 

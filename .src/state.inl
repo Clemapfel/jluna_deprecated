@@ -31,13 +31,13 @@ namespace jluna
         else
             jl_init_with_image(path.c_str(), NULL);
 
-        c_adapter::initialize();
+        auto c_adapter = c_adapter::initialize();
 
         jl_eval_string(detail::include);
         forward_last_exception();
 
         jl_eval_string(R"(
-            if isdefined(Main, :jluna)
+            if isdefined(Main, :jluna) && _cppcall.verify_library()
                 print("[JULIA][LOG] ")
                 Base.printstyled("initialization successfull.\n"; color = :green)
             else

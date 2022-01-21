@@ -7,24 +7,14 @@
 
 extern "C"
 {
-    namespace c_adapter
+    namespace jluna::c_adapter
     {
-        void initialize()
+        bool initialize()
         {
             jl_init();
             _functions = {};
 
             jl_eval_string(cppcall_module);
-            std::cout << "[C][LOG] c_adapter initialized" << std::endl;
-
-            register_function("test_function", [](jl_value_t* tuple_in) -> jl_value_t* {
-
-                static jl_function_t* println = jl_get_function(jl_base_module, "println");
-                jl_call1(println, tuple_in);
-
-                static jl_function_t* string = jl_get_function(jl_base_module, "string");
-                return jl_call1(string, (jl_value_t*) jl_symbol("success"));
-            });
         }
 
         void call_function(size_t id)
@@ -46,7 +36,6 @@ extern "C"
         void register_function(const std::string& name, std::function<jl_value_t*(jl_value_t*)>&& lambda)
         {
             _functions.insert({hash(name), lambda});
-            std::cout << "[C][LOG] " << name << " registered" << std::endl;
         }
     }
 }

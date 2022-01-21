@@ -16,14 +16,14 @@
 
 extern "C"
 {
-    namespace c_adapter
+    namespace jluna::c_adapter
     {
         /// @brief holds lambda registers via jluna
         static std::map<size_t, std::function<jl_value_t*(jl_value_t*)>> _functions;
 
         /// @brief initialize c-adapter
         /// @note call from julia using: ccall((:initialize, "./libjluna_c_adapter.so"), Cvoid, ())
-        void initialize();
+        bool initialize();
 
         /// @brief hash lambda-side
         size_t hash(const std::string&);
@@ -33,11 +33,15 @@ extern "C"
 
         /// @brief call lambda by id
         void call_function(size_t);
+
+        /// @brief remove lambda from function register
+        void unregister_function(const std::string& name);
     }
 }
 
 #else
 
 void initialize();
+void call_function(size_t);
 
 #endif
