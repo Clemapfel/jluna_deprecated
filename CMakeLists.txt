@@ -50,7 +50,7 @@ add_library(jluna SHARED
     .src/box_any.inl
     .src/unbox_any.inl
 
-    include/cppcall.hpp)
+    include/cppcall.hpp .src/cppcall.inl)
 
 set_target_properties(jluna
     PROPERTIES LINKER_LANGUAGE C

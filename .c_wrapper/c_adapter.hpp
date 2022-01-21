@@ -16,6 +16,7 @@
 
 extern "C"
 {
+    /// @brief c-compatible interface, only intended for internal use
     namespace jluna::c_adapter
     {
         /// @brief holds lambda registers via jluna
@@ -45,7 +46,7 @@ extern "C"
     }
 }
 
-#else // anything below is exposed to juila
+#else // exposed to juila as pure C header:
 
 void initialize();
 void call_function(size_t);

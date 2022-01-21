@@ -92,12 +92,13 @@ module _cppcall
 end
 
 """
-`cppcall(::Symbol, ::Any...) -> Any`
+`cppall(::Symbol, ::Any...) -> Any`
 
-Call a lambda registered via `jluna::State::register_function`
-and forward the `xs...` to it.
+Call a lambda registered via `jluna::State::register_function` using `xs...` as arguments.
 After the C++-side function returns, return the resulting object
 (or `nothing` if the C++ function returns `void`)
+
+This function is not thread-safe and should not be used in a parallel context
 """
 function cppcall(function_name::Symbol, xs...) ::Any
 

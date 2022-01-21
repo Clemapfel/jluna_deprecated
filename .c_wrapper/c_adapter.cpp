@@ -58,5 +58,3 @@ extern "C"
 }
 
 #endif
-
-// g++ -fpic -shared cpplibrary.cpp -o -libcpplibrary
