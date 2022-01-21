@@ -59,17 +59,23 @@ auto println = State::script("return Base.println");
 println(Main["instance"]);
 
 // call c++-side functions julia-side arguments
-State::register_function("cpp_print", [](auto first, auto second) -> jl_value_t* {
+State::register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
    
-    std::cout << "cpp prints: " << jl_to_string(first) << " " << jl_to_string(second) << std::endl;
-    return nullptr;
+    std::cout << "cpp called." << std::endl;
+    Vector<size_t> as_vector = in;
+    for (auto e : as_vector)
+        e = ((size_t)) e + 1
+                
+    return as_vector;
 });
 
-State::safe_script("cppcall(:cpp_print, [1, 2, 3, 4], Main");
+State::safe_script("println(cppcall(:cpp_print, [1, 2, 3, 4]))");
 ```
 ```
 Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27], ["string", "string", "string"])
-cpp prints: [1, 2, 3, 4] Main
+
+cpp called.
+[2, 3, 4, 5]
 ```
 ---
 
@@ -78,19 +84,19 @@ Some advantages `jluna` has over the C-API include:
 
 + automatically detects and links Julia during make
 + expressive generic syntax
-+ Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
++ call C++ functions from julia, including argument and return value forwarding
 + assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
 + verbose exceptions, including exception forwarding from Julia
-+ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objec1ts and types
++ wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ std objects and types
 + multi-dimensional, iterable array interface with Julia-Style indexing
 + `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
++ Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
 + mixing the C-API and `jluna` works out-of-the-box
 + And more!
 
 ### Planned (but not yet implemented):
 In order of priority, highest first:
 + expression proxy, access to meta features via C++
-+ Julia-side wrapper for C++ Functions, similar to `@ccall`
 + creating new modules and datatypes completely C++-Side
 + save-states, restoring a previous Julia state
 + clang support
