@@ -5,16 +5,22 @@
 
 #begin # included in module jluna
 
-    module _CppCall
+    module cpp_call
 
         mutable struct State
+            _id::UInt64
             _arguments::Tuple
             _result::Any
 
-            State() = new((), nothing)
+            State() = new(0, (nothing,), nothing)
         end
 
-        _state = Base.RefValue(State());
+        _state = cpp_call.State();
+
+        function set_result(x::Any) ::Nothing
+
+            global cpp_call._state._result = x;
+        end
     end
 
     """
@@ -27,9 +33,13 @@
     """
     function cppcall(function_name::Symbol, xs...) ::Any
 
-        _CppCall._state[]._arguments = xs;
-        ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c.so"), Nothing, (UInt64,), hash(function_name));
-        return _CppCall._state[]._result;
+        global cpp_call._state._arguments = tuple(xs...);
+        global cpp_call._state._id = hash(function_name);
+        global cpp_call._state._result = nothing
+
+        ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c_adapter.so"), Cvoid, ())
+        #ccall((:call_cpp, "/home/clem/Workspace/jluna/libjluna_c.so"), Cvoid, (Csize_t,), UInt64(32));
+        return cpp_call._state._result;
     end
     export cppcall
 #end

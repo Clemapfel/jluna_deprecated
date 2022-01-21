@@ -2,16 +2,17 @@
 
 #ifdef __cplusplus
 
-#include <iostream>
 #include <jluna.hpp>
+#include <include/cppcall.hpp>
+#include <iostream>
 
 extern "C"
 {
-    auto test = std::make_unique<std::set<size_t>>();
-
-    void call_cpp(long unsigned int id)
+    void call_cpp(size_t id)
     {
-        jluna::State::call_function(id);
+        std::cout << jluna::cppcall::_functions.size()+1 << std::endl;
+
+        //jluna::cppcall::call_from_julia(id);
     }
 }
 

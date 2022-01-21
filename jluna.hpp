@@ -16,4 +16,5 @@
 #include <include/type_proxy.hpp>
 
 #include <include/exceptions.hpp>
+#include <include/cppcall.hpp>
 // order matters

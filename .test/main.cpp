@@ -26,16 +26,61 @@ using namespace jluna;
 int main()
 {
     State::initialize();
+    size_t i = 0;
+
+    cppcall::register_function("test_function", [](jl_value_t* in) -> jl_value_t* {
+        std::cout << "cpp prints:" << jl_to_string(in) << std::endl;
+        return in;
+    });
+
+    jl_eval_string(R"(
+        jluna.cppcall(:test_function, 123)
+    )");
+    forward_last_exception();
+
+    //cppcall::call_from_julia(cppcall::jl_hash("test_function"));
+
+    //jl_eval_string("jlune.cppcall(:test_function, 456)");
+    //jl_eval_string("println(jluna.cpp_call._state._arguments)");
+
+    return 0;
+
+    State::safe_script(R"(jluna.cpp_call(:test_function, [1, 2, 3, 4]))");
 
     {
-        auto lambda = [](jl_value_t*) -> void {
-            std::cout << "done" << std::endl;
-        };
+        cppcall::register_function("voidvoid", []() -> void {
+        });
 
-        std::cout << std::is_invocable<decltype(lambda)>::value << std::endl;
-        std::cout << std::is_same_v<std::invoke_result<decltype(lambda)>::type, void> << std::endl;
-        //cppcall::register_function("name", );
+        cppcall::register_function("voidval", []() -> jl_value_t* {
+            return (jl_value_t*) jl_base_module;
+        });
+
+        cppcall::register_function("valvoid", [](jl_value_t* v) -> void {
+            std::cout << jl_to_string(v) << std::endl;
+        });
+
+        cppcall::register_function("valval", [](jl_value_t* v) -> jl_value_t* {
+            std::cout << jl_to_string(v) << std::endl;
+            return (jl_value_t*) jl_base_module;
+        });
+
+        cppcall::register_function("valvalvoid", [](jl_value_t* v1, jl_value_t* v2) -> void {
+            std::cout << jl_to_string(v1) << jl_to_string(v2) << std::endl;
+        });
+
+        cppcall::register_function("valvalval", [](jl_value_t* v1, jl_value_t* v2) -> jl_value_t* {
+            std::cout << jl_to_string(v1) << jl_to_string(v2) << std::endl;
+            return (jl_value_t*) jl_base_module;
+        });
     }
+
+    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("voidvoid")) << std::endl;
+    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("voidval")) << std::endl;
+    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvoid", jl_nothing)) << std::endl;
+        std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valval", jl_nothing)) << std::endl;
+    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvalvoid", jl_nothing, jl_nothing)) << std::endl;
+    std::cout << "res: " << jl_to_string(cppcall::call_from_cpp("valvalval", jl_nothing, jl_nothing)) << std::endl;
+
     //std::cout << jl_to_string(_functions.at("name")(std::vector<jl_value_t*>{})) << std::endl;
 
     return 0;

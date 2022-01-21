@@ -259,7 +259,7 @@ Stacktrace:
    @ ./math.jl:567 [inlined]
  [3] sqrt(x::Int32)
    @ Base.Math ./math.jl:1221
- [4] invoke(x::Function, args::Int32)
+ [4] invoke_lambda(x::Function, args::Int32)
    @ Main.jluna ~/Workspace/jluna/.src/julia/common.jl:99
  [5] safe_call(::Function, ::Function, ::Int32)
    @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:80
@@ -633,7 +633,7 @@ this string was boxed manually
 but we can also leave it out because it happens implicitly
 ```
 
-Indeed, the call operator of both functions will try their hardest to box whatever to hand them so it is usually unnecessary to manually call `box<T>` on each argument unless you want to invoke a specific method:
+Indeed, the call operator of both functions will try their hardest to box whatever to hand them so it is usually unnecessary to manually call `box<T>` on each argument unless you want to invoke_lambda a specific method:
 
 ```cpp
 State::safe_script(R"(

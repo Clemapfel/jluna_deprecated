@@ -47,6 +47,13 @@ extern "C"
     {
         return jl_eval_string("return undef");
     }
+
+    /// @brief const char* to julia-side string
+    jl_value_t* jl_string(const char* str)
+    {
+        static jl_function_t* string = jl_get_function(jl_base_module, "string");
+        return jl_call1(string, (jl_value_t*) jl_symbol(str));
+    }
 }
 
 

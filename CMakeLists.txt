@@ -50,8 +50,7 @@ add_library(jluna_common STATIC
     .src/box_any.inl
     .src/unbox_any.inl
 
-    include/cpp_call.hpp
-        .c_wrapper/cppcall.hpp)
+    include/cppcall.hpp)
 
 set_target_properties(jluna_common PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(jluna_common ${JULIA_DIR}/lib/libjulia.so)
@@ -66,12 +65,12 @@ add_library(jluna_c_adapter SHARED
 )
 
 set_target_properties(jluna_c_adapter PROPERTIES
-    LINKER_LANGUAGE C
+    LINKER_LANGUAGE CXX
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    LIBRARY_OUTPUT_NAME jluna_c
+    LIBRARY_OUTPUT_NAME jluna_c_adapter
 )
 
-target_link_libraries(jluna_c_adapter jluna_common ${JULIA_DIR}/lib/libjulia.so)
+target_link_libraries(jluna_c_adapter jluna_common)
 
 ### EXECUTABLES ###
 

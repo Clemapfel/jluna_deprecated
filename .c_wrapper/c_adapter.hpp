@@ -5,12 +5,17 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 
 extern "C"
 {
-    /// @brief adapter function for jluna::cppcall
-    void call_cpp(long unsigned int);
+    void call_cpp(size_t);
 }
+
+#elif
+
+void call_cpp(size_t);
 
 #endif
