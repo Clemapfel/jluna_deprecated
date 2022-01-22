@@ -10,33 +10,26 @@
 #include <jluna.hpp>
 #include <array_proxy.hpp>
 
-
 using namespace jluna;
+
+template<typename T>
+decltype(auto) fancy_non_lambda_func(T&& t)
+{
+    do_something_with(t);
+    return std::forward<T>(t);
+}
+
 int main()
 {
     State::initialize();
 
-    struct Object
-{
-    void operator()()   // not const
-    {
-        _field = 456;
-        std::cout << "object called " << _field << std::endl;
-    }
+    State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
+    auto array = Main["array"].as<Array<Int64, 3>>();
 
-    size_t _field = 123;
-};
+    for (size_t e : array)
+        std::cout << e << std::endl;
 
-Object instance;
 
-// wrap instance in reference and hand it to lambda via capture
-register_function("call_object", [instance_ref = std::ref(instance)]() -> void
-{
-    instance_ref.operator()();
-});
-
-State::script("cppcall(:call_object)");
-    State::safe_script("cppcall(:call_object)");
     return 0;
 }
 
