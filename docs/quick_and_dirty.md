@@ -1,6 +1,8 @@
 # jluna: Quick & Dirty
 
-This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorials on [~~jluna::Proxy~~]() at some point.
+This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorial on [~~jluna::Proxy~~]() at some point as the intricacies of its functionality are hard to compress into a 10-line code snippet.
+
+Please navigate to the appropriate section by clicking the links below:
 
 ## Table Of Contents
 
@@ -20,7 +22,9 @@ This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relev
    6.1 [Accessing Julia Functions from C++](#accessing-julia-functions)<br>
    6.2 [Calling Julia Functions from C++](#calling-julia-functions)<br>
    6.3 [Accessing C++ Functions from Julia](#registering-functions)<br>
-   6.2 [Calling C++ Functions from Julia](#calling-c-functions-from-julia)<br>
+   6.4 [Calling C++ Functions from Julia](#calling-c-functions-from-julia)<br>
+   6.5 [Allowed Function Signatures](#possible-signatures)<br>
+   6.6 [Using arbitrary Objects in Julia Functions](#using-non-julia-objects-in-functions)<br>
 7. [Arrays](#arrays)<br>
   7.1 [Multi-Dimensional Arrays](#multi-dimensional-arrays)<br>
   7.2 [Vectors](#vectors)<br>
@@ -42,7 +46,7 @@ This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relev
     
 
 
-## Initialization 
+## Initialization
 
 ```cpp
 #include <jluna.hpp>
@@ -292,6 +296,34 @@ The following signatures for functions to be bound via `register_function` are a
 (jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
 (jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
 (jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> jl_value_t*
+```
+
+#### Using Non-Julia Objects in Functions
+
+```cpp
+struct Object
+{
+    void operator()() // not const
+    {
+        _field = 456;
+        std::cout << "object called " << _field << std::endl;
+    }
+
+    size_t _field = 123;
+};
+
+Object instance;
+
+// wrap instance in mutable std::ref and hand it to lambda via capture
+register_function("call_object", [instance_ref = std::ref(instance)]() -> void 
+{
+    instance_ref.operator()();
+});
+
+State::script("cppcall(:call_object)");
+```
+```
+object called 456
 ```
 
 ## Arrays

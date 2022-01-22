@@ -10,21 +10,33 @@
 #include <jluna.hpp>
 #include <array_proxy.hpp>
 
+
 using namespace jluna;
 int main()
 {
     State::initialize();
 
-    register_function("print_vector", [](jl_value_t* in) -> jl_value_t* {
+    struct Object
+{
+    void operator()()   // not const
+    {
+        _field = 456;
+        std::cout << "object called " << _field << std::endl;
+    }
 
-        auto as_vector = unbox<Vector<size_t>>(in);
-        for (auto e : as_vector)
-            std::cout << (size_t) e << std::endl;
+    size_t _field = 123;
+};
 
-        return as_vector;
-    });
+Object instance;
 
-    State::safe_script("println(cppcall(:print_vector, ([1, 2, 3, 4], 1)))");
+// wrap instance in reference and hand it to lambda via capture
+register_function("call_object", [instance_ref = std::ref(instance)]() -> void
+{
+    instance_ref.operator()();
+});
+
+State::script("cppcall(:call_object)");
+    State::safe_script("cppcall(:call_object)");
     return 0;
 }
 
