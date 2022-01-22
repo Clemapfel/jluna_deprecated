@@ -231,7 +231,7 @@ namespace jluna
     auto Proxy<State_t>::call(Args_t&&... args)
     {
         static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
-        static jl_function_t* invoke = jl_get_function(jluna_module, "invoke_lambda");
+        static jl_function_t* invoke = jl_get_function(jluna_module, "invoke");
 
         return Proxy<State>(State_t::call(invoke, _content->value(), std::forward<Args_t>(args)...), nullptr);
     }
@@ -241,7 +241,7 @@ namespace jluna
     auto Proxy<State_t>::safe_call(Args_t&&... args)
     {
         static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return jluna");
-        static jl_function_t* invoke = jl_get_function(jluna_module, "invoke_lambda");
+        static jl_function_t* invoke = jl_get_function(jluna_module, "invoke");
 
         return Proxy<State>(State_t::safe_call(invoke, _content->value(), std::forward<Args_t>(args)...), nullptr);
     }

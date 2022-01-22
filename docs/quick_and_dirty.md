@@ -1,6 +1,6 @@
 # jluna: Quick & Dirty
 
-This page will give a fly-by, cheat-sheet-like overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it is still recommended that you read the tutorial on [~~jluna::Proxy~~]() at some point as the intricacies of its functionality are hard to compress into a 10-line code snippet.
+This page will give a fly-by, abbriviated overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it should not be considered proper documentation and it is thus recommended that you read the tutorial on [~~jluna::Proxy~~]() at some point.
 
 Please navigate to the appropriate section by clicking the links below:
 
@@ -501,23 +501,35 @@ Where `jluna::Vector` inherits from `jluna::Array` and is thus functionally equi
 
 ### Multi-Dimensional Arrays
 
+#### CTORs
+
 We can create an array proxy like so:
 
 ```cpp
 State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
 
-jluna::Array<Int64, 3> array = Main["array"];
+// unnamed:
+jluna::Array<Int64, 3> by_value = State::script("return array");
+auto by_value = State::script("return array").as<Array<Int64, 3>>();
 
-// or, equivalently
+// named:
+jluna::Array<Int64, 3> array = Main["array"];
 auto array = Main["array"].as<Array<Int64, 3>>();
 ```
+Where, just as before, only named proxies will mutate julia-side variables.
 
+#### Indexing
 
+There are two way to index a multi-dimensional array:
+
++ *linear* indexing treats the array as 1-dimensional and returns the n-th value in column-major order (this is the same as in Julia)
++ *multi-dimensional* indexing requires one index per dimension
+
+To keep with C-convention, indices in `jluna` are 0-based.
 
 ```cpp
-
-
 jluna::Array<Int64, 3> array = Main["array"];
+Main["println"]("before ", array);
 
 // 0-based linear indexing
 array[12] = 9999;
@@ -525,13 +537,21 @@ array[12] = 9999;
 // 0-based multi-dimensional indexing
 array.at(0, 1, 2) = 9999;
 
-// column-major order iterable
-for (Int64 i : array)
-    std::cout << i << " ";
+Main["println"]("after ", array);
 ```
 ```
-1 2 3 4 5 6 7 8 9 10 11 12 9999 14 15 16 17 18 19 20 21 9999 23 24 25 26 27 
+before [1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 22 25; 20 23 26; 21 24 27]
+after [1 4 7; 2 5 8; 3 6 9;;; 10 9999 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 ```
+
+To closer illustrate the relationship between indexing in `jluna` and indexing in Julia, consider the following table (where `M` is an n-dimensional array)
+
+| Rank | Julia |jluna |
+|------|-------|--------------------------|
+| 1    | `M[1]`| `M.at(0)` or `M[0]`|
+| 2    | `M[1, 2]`  | `M.at(0, 1)`|
+| 3    | `M[1, 2, 3]`  | `M.at(0, 1)`|
+
 
 ### Vectors
 
