@@ -23,6 +23,9 @@ int main()
 {
     State::initialize();
 
+    Main["instance._field"];
+
+
     State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
 
    Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
