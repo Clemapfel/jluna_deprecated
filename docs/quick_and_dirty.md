@@ -499,9 +499,7 @@ Julia array types and `jluna` array types correspond to each other like so:
 
 Where `jluna::Vector` inherits from `jluna::Array` and is thus functionally equivalent, but furthermore includes all additional functionality inherent to Julia `Vector{T}`
 
-### Multi-Dimensional Arrays
-
-#### CTORs
+### CTORs
 
 We can create an array proxy like so:
 
@@ -518,7 +516,7 @@ auto array = Main["array"].as<Array<Int64, 3>>();
 ```
 Where, just as before, only named proxies will mutate julia-side variables.
 
-#### Indexing
+### Indexing
 
 There are two way to index a multi-dimensional array:
 
@@ -544,16 +542,55 @@ before [1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 22 25; 20 23 2
 after [1 4 7; 2 5 8; 3 6 9;;; 10 9999 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 ```
 
-To closer illustrate the relationship between indexing in `jluna` and indexing in Julia, consider the following table (where `M` is an n-dimensional array)
+While `jluna` cannot offer list comprehension, `jluna::Array` does allow for Julia-style indexing using a collection:
 
-| Rank | Julia |jluna |
+```cpp
+auto sub_array = array.at({2, 13, 1}); // any iterable collection can be used
+```
+
+To closer illustrate the relationship between indexing in `jluna` and indexing in Julia, consider the following table (where `M` is a N-dimensional array)
+
+| N | Julia |jluna |
 |------|-------|--------------------------|
 | 1    | `M[1]`| `M.at(0)` or `M[0]`|
 | 2    | `M[1, 2]`  | `M.at(0, 1)`|
 | 3    | `M[1, 2, 3]`  | `M.at(0, 1)`|
+|      |       | |
+| Any  | `M[ [1, 13, 7] ]`| `M[ {0, 12, 6} ]` |
+
+### Iterating
+
+In `jluna`, arrays of any dimensionality are iterable. They iterate in the column-major order (same as in Julia):
+
+```cpp
+Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
+Base["println"](array);
+
+for (size_t i : array)
+  std::cout << i << std::endl;
+```
+```
+[1 3 5; 2 4 6]
+1
+2
+3
+4
+5
+6
+```
+
+We can create an assignable iterator by doing the following (note the use of `auto` instead of `auto&`)
+
+```cpp
+for (auto it : array)
+    it = static_cast<size_t>(it) + 1
+            
+Base["println"](array);
 
 
 ### Vectors
+
+Vector are just arrays, however similarly to `Vector{T}` in Julia, their 1-dimensionality gives them access to additional functions:
 
 ```cpp
 State::safe_script("vector = collect(1:10)");
@@ -565,7 +602,7 @@ vector.insert(12, 0);
 vector.erase(12);
 
 for (auto e : vector)
-    e = static_cast<size_t>(e) + 1; // array iterator assignable
+    e = static_cast<size_t>(e) + 1;
 
 Base["println"](vector);
 ```

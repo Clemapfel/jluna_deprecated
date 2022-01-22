@@ -39,6 +39,15 @@ namespace jluna
             /// @returns assignable iterator to element
             auto operator[](size_t);
 
+            /// @brief linear indexing with list comprehension
+            /// @param range: iterable range with indices
+            /// @returns new array result of Julia-side getindex(this, range)
+            template<Iterable Range_t>
+            auto operator[](const Range_t& range);
+
+            template<Boxable T>
+            auto operator[](std::initializer_list<T>&&);
+
             /// @brief linear indexing, no bounds checking
             /// @tparam return type
             /// @param index, 0-based
@@ -143,13 +152,13 @@ namespace jluna
                     template<Unboxable T = Value_t>
                     T operator*() const;
 
-                    /// @brief decay into proxy
+                    /// @brief forward to self
                     auto operator*();
 
                     /// @brief decay into unboxed value
                     /// @tparam value-type, not necessarily the same as declared in the array type
-                    template<Unboxable T = Value_t>
-                    operator T() const;
+                    template<Unboxable T = Value_t, std::enable_if_t<not std::is_same_v<T, Proxy<State>>, bool> = true>
+                    explicit operator T() const;
 
                     /// @brief decay into proxy
                     explicit operator Proxy<State>();

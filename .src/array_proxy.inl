@@ -95,6 +95,30 @@ namespace jluna
     }
 
     template<Boxable V, size_t R>
+    template<Iterable Range_t>
+    auto Array<V, R>::operator[](const Range_t& range)
+    {
+        static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
+        static jl_function_t* make_vector = jl_get_function((jl_module_t*) jl_eval_string("return jluna"), "make_vector");
+
+        std::vector<jl_value_t*> args;
+
+        for (auto e : range)
+            args.push_back(box(e + 1));
+
+        return Vector<V>(jl_call2(getindex, _content->value(), jl_call(make_vector, args.data(), args.size())), nullptr);
+    }
+
+    template<Boxable V, size_t R>
+    template<Boxable T>
+    auto Array<V, R>::operator[](std::initializer_list<T>&& list)
+    {
+        return operator[](std::vector<T>(list));
+    }
+
+
+
+    template<Boxable V, size_t R>
     template<Unboxable T, typename... Args, std::enable_if_t<sizeof...(Args) == R and (std::is_integral_v<Args> and ...), bool>>
     T Array<V, R>::at(Args... in) const
     {

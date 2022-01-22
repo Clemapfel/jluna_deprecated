@@ -24,16 +24,14 @@ int main()
     State::initialize();
 
     State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
-    jluna::Array<Int64, 3> array = Main["array"];
-Base["println"]("before ", array);
 
-// 0-based linear indexing
-array[12] = 9999;
+   Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
+Base["println"](array);
 
-// 0-based multi-dimensional indexing
-array.at(0, 1, 2) = 9999;
+for (auto it : array)
+    it = 1;
 
-Base["println"]("after ", array);
+Base["println"](array);
     return 0;
 }
 

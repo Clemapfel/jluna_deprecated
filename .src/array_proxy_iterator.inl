@@ -56,14 +56,14 @@ namespace jluna
     template<Unboxable T>
     T Array<V, R>::ConstIterator::operator*() const
     {
-        return _owner->operator[]<T>(_index);
+        static jl_function_t* getindex = jl_get_function(jl_base_module, "getindex");
+        return unbox<T>(jl_call2(getindex, _owner->operator jl_value_t *(), box(_index + 1)));
     }
 
     template<Boxable V, size_t R>
     auto Array<V, R>::ConstIterator::operator*()
     {
-        auto res = operator Proxy();
-        return res;
+        return *this;
     }
 
     template<Boxable V, size_t R>
@@ -77,7 +77,7 @@ namespace jluna
     }
 
     template<Boxable V, size_t R>
-    template<Unboxable T>
+    template<Unboxable T, std::enable_if_t<not std::is_same_v<T, Proxy<State>>, bool>>
     Array<V, R>::ConstIterator::operator T() const
     {
         return operator*<T>();
