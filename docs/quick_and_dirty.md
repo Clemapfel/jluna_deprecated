@@ -12,7 +12,7 @@ Please navigate to the appropriate section by clicking the links below:
   3.1 [Enabling/Disabling GC](#enablingdisabling-gc)<br>
   3.2 [Manual Collection](#manually-triggering-gc)<br>
 4. [Boxing / Unboxing](#boxing--unboxing)<br>
-  4.1 [Manual](#manual)<br>
+  4.1 [Manual](#manuall-unboxing)<br>
   4.2 [(Un)Boxable as Concepts](#concepts)<br>
   4.3 [List of (Un)Boxables](#list-of-unboxables)<br>
 5. [Accessing Variable](#accessing-variables)<br>
@@ -26,10 +26,12 @@ Please navigate to the appropriate section by clicking the links below:
    6.5 [Allowed Function Signatures](#possible-signatures)<br>
    6.6 [Using arbitrary Objects in Julia Functions](#using-non-julia-objects-in-functions)<br>
 7. [Arrays](#arrays)<br>
-  7.1 [Multi-Dimensional Arrays](#multi-dimensional-arrays)<br>
-  7.2 [Vectors](#vectors)<br>
-8. [~~Expressions~~]()<br>
-9. [~~Usertypes~~]()<br>
+  7.1 [Constructing Arrays](#ctors)<br>
+  7.2 [Indexing](#indexing)<br>
+  7.3 [Iterating](#iterating)<br>
+  7.4 [Vectors](#vectors)
+8. [~~Expressions~~](#expressions)<br>
+9. [~~Usertypes~~](#usertypes)<br>
 10. [C-API](#c-api)<br>
   10.1 [Meaning of C-Types](#meaning-of-c-types)<br>
   10.2 [Executing Code](#executing-code)<br>
@@ -43,8 +45,6 @@ Please navigate to the appropriate section by clicking the links below:
   10.6.2 [Mutating Arrays](#mutating-arrays-in-c)<br>
   10.7 [Strings](#accessing-strings-in-c)<br>
   10.8 [Initialization & Shutdown](#initialization--shutdown-in-c)
-    
-
 
 ## Initialization
 
@@ -620,6 +620,14 @@ Base["println"](vector);
 ```
 
 Note that `Array<T, R>::operator[](Range_t&&)` (linear indexing with a range) always returns a vector of the corresponding value type.
+
+## Expressions
+
+(this feature is not yet implemented)
+
+## Usertypes
+
+(this feature is not yet implemented)
 
 ## C-API
 
