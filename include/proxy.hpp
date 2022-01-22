@@ -137,6 +137,10 @@ namespace jluna
             template<Boxable T>
             auto& operator=(T);
 
+            /// @brief create a new unnamed proxy that holds the same value
+            /// @returns decltype(this)
+            auto value() const;
+
         protected:
             class ProxyValue
             {

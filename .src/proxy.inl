@@ -298,6 +298,12 @@ namespace jluna
     }
 
     template<typename State_t>
+    auto Proxy<State_t>::value() const
+    {
+        return Proxy<State_t>(_content->value(), nullptr);
+    }
+
+    template<typename State_t>
     template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
