@@ -63,7 +63,7 @@ namespace jluna
     template<Boxable V, size_t R>
     auto Array<V, R>::ConstIterator::operator*()
     {
-        return *this;
+        return Iterator(_index, _owner);
     }
 
     template<Boxable V, size_t R>
@@ -92,12 +92,11 @@ namespace jluna
     template<Boxable T>
     auto& Array<V, R>::Iterator::operator=(T value)
     {
-        if (_index == _owner->get_n_elements())
+        if (_index >= _owner->get_n_elements())
             throw std::out_of_range("In: jluna::Array::ConstIterator::operator=(): trying to assign value to past-the-end iterator");
 
-        jl_value_t* boxed = box(value);
-        jl_arrayset((jl_array_t*) _owner->operator jl_value_t*(), box<V>(value), _index);
-
+        static jl_function_t* setindex = jl_get_function(jl_base_module, "setindex!");
+        jl_call3(setindex, _owner->operator jl_value_t *(), box(value), box(_index + 1));
         return *this;
     }
 }

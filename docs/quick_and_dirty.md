@@ -582,11 +582,20 @@ for (size_t i : array)
 We can create an assignable iterator by doing the following (note the use of `auto` instead of `auto&`)
 
 ```cpp
-for (auto it : array)
-    it = static_cast<size_t>(it) + 1
-            
+Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
 Base["println"](array);
 
+for (auto it : array)
+    it = static_cast<size_t>(it) + 1;
+
+Base["println"](array);
+```
+```
+[1 3 5; 2 4 6]
+[2 4 6; 3 5 7]
+```
+
+Here, auto is deduced to a special iterator type that basically acts like a regular `jluna::Proxy` (for example, we need to manually cast it to `size_t` in the above example) but with faster, no-overhead access to the array data via the iterator.
 
 ### Vectors
 
@@ -609,6 +618,8 @@ Base["println"](vector);
 ```
 [10000, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10000]
 ```
+
+Note that `Array<T, R>::operator[](Range_t&&)` (linear indexing with a range) always returns a vector of the corresponding value type.
 
 ## C-API
 

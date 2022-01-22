@@ -29,7 +29,7 @@ int main()
 Base["println"](array);
 
 for (auto it : array)
-    it = 1;
+    it = static_cast<size_t>(it) + 1;
 
 Base["println"](array);
     return 0;
