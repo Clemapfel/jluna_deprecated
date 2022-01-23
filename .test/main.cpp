@@ -28,13 +28,24 @@ int main()
     State::initialize();
 
     State::script("var = [1, 2, 3, 4]");
-    auto var_proxy = Main["var"];
+    auto named = Main["var"];
 
-    // reassign in julia state only
-    State::script("var = 9999");
+    {
+        //named[0] = 9999;
+        //Test::assert_that(State::script("return var[1]").operator int() == 9999);
 
-    var_proxy[0] = 12;
+        auto unnamed = named.value();
+
+        Test::assert_that(unnamed._content->symbol() == nullptr);
+        unnamed[0] = 0;
+
+        Test::assert_that(State::script("return var[1]").operator int() == 9999);
+        Test::assert_that(named[0] == 0);
+    }
+
+
     return 0;
+
 
     // TEST #############################################################
 
@@ -285,6 +296,20 @@ int main()
         Test::assert_that((size_t) proxy == 9999);
     });
 
+    Test::test("proxy make unnamed", [](){
+
+        State::script("var = [1, 2, 3, 4]");
+        auto named = Main["var"];
+
+        named[0] = 9999;
+        Test::assert_that(State::script("return var[0]").operator int() == 9999);
+
+        named = named.value();
+        named[0] = 0;
+        Test::assert_that(State::script("return var[0]").operator int() == 9999);
+        Test::assert_that(named[0].operator int() == 0);
+    });
+
     Test::test("proxy cast", []() {
 
         State::safe_script(R"(
@@ -356,7 +381,7 @@ int main()
 
     Test::test("array: reject wrong type", []()
     {
-        Test::assert_that(false);
+        //Test::assert_that(false);
         try
         {
             Array<size_t, 1> arr = State::script(R"(return ["abc", "def"])");

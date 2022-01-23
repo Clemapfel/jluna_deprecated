@@ -281,43 +281,6 @@ cpp  : 789
 
 Mutating a **named** proxy also mutates the corresponding Julia-side variable (of the same name). We can verify whether a proxy has this behavior using the member function `is_mutating()`.
 
-#### Named and Unnamed Proxies
-
-To reiterate because it is important to be aware of this at all times:
-
-+ `State::script` returns an *unnamed* proxy that does not mutate
-+ `operator[] returns a *named* proxy 
-that does mutate
-
-We can check a proxies name using `.get_name()`
-
-```cpp
-std::cout << by_value.get_name() << std::endl;
-std::cout << by_name.get_name() << std::endl;
-```
-```
-                // empty string
-Main.variable
-```
-An unnamed proxies name will be an empty string (or `Symbol("")`)) Julia-side.<br><br>
-While we cannot delete a proxies name, it is possible to create a new proxy using only the named proxies value. `jluna` offers a convenient member function for this: `Proxy::value() const`
-
-```cpp
-State::script("variable = 123");
-
-auto named = Main["variable"];
-std::cout << named.get_name();
-
-auto as_value = named.value();
-std::cout << as_value.get_name() << std::endl;
-```
-```
-Main.variable
-              // empty string
-```
-
-Note that both of these proxies point to the exact same memory Julia-side, that is, Julias operator `(===)` would return true.
-
 ### Accessing Fields
 
 Using `operator[](std::string)`, we can access both names in a module (including `Main`, like above) and fields of a structtype:
@@ -354,6 +317,44 @@ Stacktrace:
   (...)
 ```
 It is good practice to never use the character `.` anywhere in the string that is `operator[]`s argument.
+
+### Named and Unnamed Proxies
+
+To reiterate because it is important to be aware of this at all times:
+
++ `State::script` returns an *unnamed* proxy that does not mutate
++ `operator[] returns a *named* proxy 
+that does mutate
+
+We can check a proxies name using `.get_name()`
+
+```cpp
+std::cout << by_value.get_name() << std::endl;
+std::cout << by_name.get_name() << std::endl;
+```
+```
+                // empty string
+Main.variable
+```
+An unnamed proxies name will be an empty string (or `Symbol("")`) Julia-side.<br>
+<br>
+While we cannot delete a proxies name, it is possible to create a new proxy using only the named proxies value. `jluna` offers a convenient member function for this: `Proxy::value() const`
+
+```cpp
+State::script("variable = 123");
+
+auto named = Main["variable"];
+std::cout << named.get_name();
+
+auto as_value = named.value();
+std::cout << as_value.get_name() << std::endl;
+```
+```
+Main.variable
+              // empty string
+```
+
+Note that both of these proxies point to the exact same memory Julia-side, that is, Julias operator `(===)` would return true.
 
 ### Detached Proxies
 
