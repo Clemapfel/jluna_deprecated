@@ -27,6 +27,15 @@ int main()
 {
     State::initialize();
 
+    State::script("var = [1, 2, 3, 4]");
+    auto var_proxy = Main["var"];
+
+    // reassign in julia state only
+    State::script("var = 9999");
+
+    var_proxy[0] = 12;
+    return 0;
+
     // TEST #############################################################
 
     Test::initialize();
@@ -251,6 +260,29 @@ int main()
 
         Test::assert_that(non_mutating_proxy.operator Int64() == 8888);
         Test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
+    });
+
+    Test::test("proxy detach update", []()
+    {
+        State::safe_script(R"(
+
+        mutable struct Detach
+
+            _field::Int64
+        end
+
+        instance = Detach(123);
+        )");
+
+        auto proxy = Main["instance"];
+
+        State::script("instance = 9999");
+
+        Test::assert_that((size_t) proxy["_field"] == 123);
+
+        proxy.update();
+
+        Test::assert_that((size_t) proxy == 9999);
     });
 
     Test::test("proxy cast", []() {

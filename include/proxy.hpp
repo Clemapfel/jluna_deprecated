@@ -141,6 +141,9 @@ namespace jluna
             /// @returns decltype(this)
             auto value() const;
 
+            /// @brief update value if proxy symbol was reassigned outside of operator=
+            void update();
+
         protected:
             class ProxyValue
             {

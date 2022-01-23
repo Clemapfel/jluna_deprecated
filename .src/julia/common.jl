@@ -225,9 +225,21 @@ begin
     function assemble_assign(new_value::T, names::Symbol...) ::T where T
 
         name = assemble_name(names...)
-        Main.eval(Expr(:(=), Meta.parse(name), new_value))
+        expression = Expr(:(=), Meta.parse(name), new_value)
+        Main.eval(expression)
 
         return new_value
+    end
+
+    """
+    assemble_eval(::Symbol...) -> Any
+
+    used by jluna::Proxy to evaluate the value of it's variable
+    """
+    function assemble_eval(names::Symbol...) ::Any
+
+        name = assemble_name(names...)
+        return Main.eval(Meta.parse(name));
     end
 
     """

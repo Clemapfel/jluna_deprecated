@@ -310,4 +310,22 @@ namespace jluna
     {
         return this->operator=(box<T>(value));
     }
+
+    template<typename State_t>
+    void Proxy<State_t>::update()
+    {
+        static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return Main.jluna");
+        static jl_module_t* exception_module = (jl_module_t*) jl_eval_string("return Main.jluna.exception_handler");
+        static jl_function_t* safe_call = jl_get_function(exception_module, "safe_call");
+        static jl_function_t* assemble_eval = jl_get_function(jluna_module, "assemble_eval");
+
+        auto name = assemble_name();
+        std::vector<jl_value_t*> args = {(jl_value_t*) assemble_eval};
+
+        for (auto* n : name)
+            args.push_back((jl_value_t*) n);
+
+        jl_value_t* new_value = jl_call(safe_call, args.data(), args.size());
+        _content.reset(new ProxyValue(new_value, _content->_owner, (jl_sym_t*) _content->symbol()));
+    }
 }

@@ -15,9 +15,11 @@ Please navigate to the appropriate section by clicking the links below:
   4.1 [Manual](#manual-unboxing)<br>
   4.2 [(Un)Boxable as Concepts](#concepts)<br>
   4.3 [List of (Un)Boxables](#list-of-unboxables)<br>
-5. [Accessing Variable](#accessing-variables)<br>
+5. [Accessing Variables through Proxies](#accessing-variables)<br>
   5.1 [Mutating Variables](#mutating-variables)<br>
   5.2 [Accessing Fields](#accessing-fields)<br>
+  5.3 [Named & Unnamed Proxies](#named-and-unnamed-proxies)<br>
+  5.3 [Detached Proxies](#detached-proxies)<br>
 6. [Functions](#functions)<br>
    6.1 [Accessing Julia Functions from C++](#accessing-julia-functions)<br>
    6.2 [Calling Julia Functions from C++](#calling-julia-functions)<br>
@@ -352,6 +354,86 @@ Stacktrace:
   (...)
 ```
 It is good practice to never use the character `.` anywhere in the string that is `operator[]`s argument.
+
+### Detached Proxies
+
+Consider the following code:
+
+```cpp
+State::script("var = [1, 2, 3, 4]");
+auto var_proxy = Main["var"];
+
+// reassign in julia state only
+State::script("var = 9999");
+
+std::cout << var_proxy.operator std::string() << std::endl;
+```
+What will this print? `proxy` is a named proxy, so it should correspond to the julia-side `var`, however we reassigned `var` with a completely different value.
+
+The answer is that the proxy will keep its value and print `[1, 2, 3, 4]`, however it is now in a state called *detached*. It has it's old value but it still has it's name `Main.var` which is now variable that doesn't point to a vector. Reading from the proxy is fine, it just returns the vector but what if we assign it?
+
+```cpp
+var_proxy[0] = 12
+```
+
+It will attempt to mutate `var` using `Main.eval(:(Main.var[0] = 12))`. Of course `var` is now no longer a vector so we get an exception:
+
+```
+terminate called after throwing an instance of 'jluna::JuliaException'
+  what():  MethodError: no method matching setindex!(::Int64, ::Int32, ::Int64)
+Stacktrace:
+ [1] assemble_assign(::Int32, ::Symbol, ::Vararg{Symbol})
+   @ Main.jluna ~/Workspace/jluna/.src/julia/common.jl:233
+ [2] safe_call(::Function, ::Int32, ::Symbol, ::Vararg{Symbol})
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:80
+  (...)
+```
+
+There are 3 ways to fix this: For one, we could just not reassign variables bound to proxies outside C++. Of course this is not always possible, so instead `jluna` offers two ways of making the proxy "stable" again:
+
+```cpp
+State::script("var = [1, 2, 3, 4]");
+auto var_proxy = Main["var"];
+State::script("var = 9999");
+
+// update value
+var_proxy.update();
+
+var_proxy = 12; // works and modifies var
+
+std::cout << proxy.get_name() << std::endl;
+std::cout << "cpp  : " << var_proxy.operator int() << std::endl;
+Base["println"]("julia: ", Main["var"]);
+```
+```
+Main.var
+cpp  : 12
+julia: 12
+```
+By calling `update`, the proxy evaluates its own name and assigns the resulting value to itself. Now the value of the proxy corresponds to the value of the variable in julia and everything works like expected again.<br>
+However, this also means that `var_proxy` no longer points to `[1, 2, 3, 4]` (though it may be kept in memory by other proxies that need it). If we want the proxy to *keep* the value, we instead make it an unnamed proxy:
+
+```cpp
+State::script("var = [1, 2, 3, 4]");
+auto var_proxy = Main["var"];
+State::script("var = 9999");
+
+// make unnamed
+var_proxy = var_proxy.value();
+
+var_proxy[0] = 777; // works and modifies [1, 2, 3, 4]
+
+std::cout << proxy.get_name() << std::endl;
+std::cout << "cpp  : " << var_proxy.operator int() << std::endl;
+Base["println"]("julia: ", Main["var"]);
+```
+```
+                        // empty string
+cpp  : [777, 2, 3, 4]
+julia: 9999
+```
+
+Now the proxy is a simple unnamed proxy that keeps the prior value `[1, 2, 3, 4]` (now: `[777, 2, 3, 4]` in memory while not interfering with the newly assigned julia variable `var` at all.
 
 ## Functions
 
