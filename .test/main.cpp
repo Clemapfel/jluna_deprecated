@@ -1,44 +1,7 @@
-// 
+//
 // Copyright 2021 Clemens Cords
 // Created on 17.12.21 by clem (mail@clemens-cords.com)
 //
-
-#include <julia.h>
-#include ".c_wrapper/c_adapter.hpp"
-#include <state.hpp>
-#include <cppcall.hpp>
-#include <jluna.hpp>
-#include <array_proxy.hpp>
-
-using namespace jluna;
-
-template<typename T>
-decltype(auto) fancy_non_lambda_func(T&& t)
-{
-    do_something_with(t);
-    return std::forward<T>(t);
-}
-
-int main()
-{
-    State::initialize();
-
-    Main["instance._field"];
-
-
-    State::safe_script("array = Array{Int64, 3}(reshape(collect(1:(3*3*3)), 3, 3, 3))");
-
-   Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
-Base["println"](array);
-
-for (auto it : array)
-    it = static_cast<size_t>(it) + 1;
-
-Base["println"](array);
-    return 0;
-}
-
-/*
 
 #include <iostream>
 #include <jluna.hpp>
@@ -62,15 +25,17 @@ using namespace jluna;
 
 int main()
 {
-    jl_init();
+    State::initialize();
 
-    jl_eval_string(R"(ccall((:initialize, "./libjluna_c_adapter.so"), Cvoid, ()))");
-    jl_eval_string("println(cppcall(:test_function, 1, 2, 3))");
-    return 0;
+    State::script(R"(vec = ["abc", "def", "efg"])");
+    Vector<size_t> a = Main["vec"];
+    std::cout << (int) a.at(0) << std::endl;
 
     // TEST #############################################################
 
     Test::initialize();
+
+    /*
     Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
@@ -342,21 +307,20 @@ int main()
     test_box_unbox_iterable("Dict", std::unordered_map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Set", std::set<size_t>{1, 2, 3, 4});
 
-    Test::test("vector: ctor", [](){
+     */
+    Test::test("array: ctor", [](){
+
+        State::safe_script("vector = [999, 2, 3, 4, 5]");
+        Vector<int> vec = Main["vector"];
+
+        Test::assert_that(vec.at(0).operator int() == 999);
+    });
+
+    Test::test("array: reject wrong type", []()
+    {
 
     });
 
-    Test::test("vector: insert", [](){
-
-    });
-
-    Test::test("vector: erase", [](){
-
-    });
-
-    Test::test("vector: append", [](){
-
-    });
 
     Test::test("array: Nd at", [](){
 
@@ -382,11 +346,118 @@ int main()
         // check unboxing call corresponds to value_t
     });
 
-     Test::test("array_iterator: cast to proxy", [](){
+    Test::test("array_iterator: cast to proxy", [](){
 
          // check name and assignment behavior
     });
 
+    Test::test("vector: insert", [](){
+
+    });
+
+    Test::test("vector: erase", [](){
+
+    });
+
+    Test::test("vector: append", [](){
+
+    });
+
+    /*
+    Test::test("C: initialize adapter", []()
+    {
+        try
+        {
+            jluna::c_adapter::initialize();
+        }
+        catch(...)
+        {
+            Test::assert_that(false);
+        }
+    });
+
+    Test::test("C: hash", [](){
+
+        const std::string str = "(±)☻aödunÖAOA12891283912";
+
+        size_t a = jluna::c_adapter::hash(str);
+        size_t b = jl_unbox_uint64(jl_call1(jl_get_function(jl_base_module, "hash"), (jl_value_t*) jl_symbol(str.data())));
+
+        Test::assert_that(a == b);
+    });
+
+    Test::test("C: register/unregister", [](){
+
+        std::string name = "test";
+        size_t id = c_adapter::hash(name);
+        register_function(name, []() -> void {});
+        Test::assert_that(c_adapter::is_registered(id));
+
+        c_adapter::unregister_function(name);
+        Test::assert_that(not c_adapter::is_registered(id));
+    });
+
+    Test::test("C: reject name", [](){
+
+        try
+        {
+            register_function(".", []() -> void {});
+            Test::assert_that(false);
+        }
+        catch (...)
+        {}
+    });
+
+    Test::test("C: undefined symbol", [](){
+
+        try
+        {
+            c_adapter::throw_undefined_symbol("name");
+            Test::assert_that(false);
+        }
+        catch (...)
+        {}
+    });
+
+    Test::test("C: call success", [](){
+
+        register_function("test", [](jl_value_t* in) -> jl_value_t* {
+
+            auto as_int = jl_unbox_int64(in);
+            as_int += 11;
+            return jl_box_int64(as_int);
+        });
+
+        State::safe_script("@assert cppcall(:test, 100) == 111");
+    });
+
+    Test::test("C: not registered", [](){
+
+        try
+        {
+            State::safe_script("cppcall(:unnamed)");
+            Test::assert_that(false);
+        }
+        catch (...)
+        {}
+    });
+
+    Test::test("C: forward exception", [](){
+
+        register_function("test", []() -> void {
+
+            throw std::out_of_range("123");
+        });
+
+        try
+        {
+            State::safe_script("cppcall(:test)");
+            Test::assert_that(false);   // should throw
+        }
+        catch (...)
+        {}
+    });
+     */
+
     Test::conclude();
 }
- */

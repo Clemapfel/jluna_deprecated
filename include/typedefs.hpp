@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <julia.h>
 #include <complex>
 
 namespace jluna
@@ -26,4 +27,6 @@ namespace jluna
 
     using Float32 = float;
     using Float64 = double;
+
+    using Any = jl_value_t*;
 }

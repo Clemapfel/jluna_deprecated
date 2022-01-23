@@ -2,29 +2,8 @@
 
 Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented.
 
-Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully replace the official Julia C-API in usage in C++ projects and makes accessing Julias unique strengths through C++ safe and hassle-free.
+Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully wrap the official Julia C-API and replace it in usage in C++ projects by making accessing Julias unique strengths through C++ safe, hassle-free and just as beautiful.
 
----
-
-### Table of Contents
-
-0. [Introduction](./README.md)
-1. [Showcase](#showcase)<br>
-2. [Features](#features)<br>
-3. [Planned Features](#planned-but-not-yet-implemented)<br>
-4. [Documentation](#documentation)<br>
-    4.1 [Manual](./docs/proxies.md)<br>
-    4.2 [Quick & Dirty Overview](#documentation)<br>
-5. [Dependencies](#dependencies)<br>
-   5.1 [Julia 1.7.0+](#dependencies)<br>
-   5.2 [g++10](#dependencies)<br>
-   5.3 [cmake 3.19+](#dependencies)<br>
-   5.4 [Linux / Mac OS](#dependencies)
-6. [Installation](#installation)<br>
-  6.1 [Single Application](#jluna-only-application)<br>
-  6.2 [As a Library](#adding-jluna-to-your-existing-library)<br>
-  6.3 [Troubleshooting](#troubleshooting)<br>
-   
 ---
 
 ## Showcase
@@ -51,7 +30,7 @@ State::safe_script(R"(
 Array<Int64, 3> array = Main["instance"]["_array_field"];
 array.at(0, 1, 2) = 9999;
 
-// std:: object are supported out-of-the-box
+// std:: objects are supported out-of-the-box
 Main["instance"]["_vector_field"] = std::vector<std::string>{"string", "string", "string"};
 
 // call julia-side functions with C++-side arguments
@@ -70,6 +49,8 @@ State::register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
                 
     return as_vector;
 });
+
+// called by julia:
 State::safe_script("println(cppcall(:cpp_print, [1, 2, 3, 4]))");
 ```
 ```
@@ -80,34 +61,55 @@ cpp called
 ```
 ---
 
+### Table of Contents
+
+0. [Introduction](./README.md)
+1. [Showcase](#showcase)<br>
+2. [Features](#features)<br>
+3. [Planned Features](#planned-but-not-yet-implemented)<br>
+4. [Documentation](#documentation)<br>
+    4.1 [Manual](./docs/proxies.md)<br>
+    4.2 [Quick & Dirty Overview](#documentation)<br>
+5. [Dependencies](#dependencies)<br>
+   5.1 [Julia 1.7.0+](#dependencies)<br>
+   5.2 [g++10](#dependencies)<br>
+   5.3 [cmake 3.19+](#dependencies)<br>
+   5.4 [Linux / Mac OS](#dependencies)
+6. [Installation](#installation)<br>
+  6.1 [Single Application](#jluna-only-application)<br>
+  6.2 [As a Library](#adding-jluna-to-your-existing-library)<br>
+  6.3 [Troubleshooting](#troubleshooting)<br>
+   
+---
+
 ### Features
-Some of the many advantages `jluna` has over the C-API include:
+Some of the many advantages `jluna` has over the C-API:
 
 + automatically detects and links Julia during make
 + expressive generic syntax
-+ call C++ functions from julia using arbitrary argument- and return types
++ call C++ functions from julia using any julia-type
 + assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
 + Julia-side values, including temporaries, are kept safe from the garbage collector while they are in use C++-side
-+ verbose exceptions, including exception forwarding from Julia
++ verbose exception forwarding from Julia, compile-time assertions
 + wraps [most](./docs/quick_and_dirty.md#list-of-unboxables) of the relevant C++ `std` objects and types
-+ multi-dimensional, iterable array interface with Julia-style indexing
-+ `jluna` is fully documented, including tutorials and inline documentation for IDEs for both C++ and Julia code
++ multidimensional, iterable array interface with Julia-style indexing
++ fully documented, including inline documentation for IDEs for both C++ and Julia code
 + mixing the C-API and `jluna` works no problem
 + And more!
 
 ### Planned (but not yet implemented):
 In order of priority, highest first:
-+ expression proxy, access to meta features via C++
-+ creating new modules and datatypes including member-access completely C++-Side
-+ save-states, restoring a previous Julia state
-+ clang support
-+ Julia-side macro-expansion aided computation during C++ compile time 
 
++ `v0.6`: expression proxy, access to meta features via C++
++ `v0.7`: creating new modules and datatypes with member-access completely C++-Side
++ `v0.8`: thread-safe `cppcall` and proxy-data read/write
++ `v0.9`: No-Overhead performance version of proxies and `cppcall`
++ `v1.0`: save-states, restoring a previous Julia state
 ---
 
 ## Documentation
 
-The manual is not yet complete, consider visiting the already completed [overview cheat-sheet](./docs/quick_and_dirty.md) instead. Furthermore, inline-documentation inside the headers is already available through any IDE.
+A fly-by overview of all of the relevant features is available [here](./docs/quick_and_dirty.md). Innline-documentation inside the headers is already available through any IDE. A more in-depth manual intended for people developing `jluna` itself is in the works.
 
 ---
 
@@ -143,19 +145,21 @@ cd build
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
 make
 ```
-If errors appear, make sure [all the dependencies](#dependencies) are met. You can verify everything works by calling:
+If errors appear, make sure [all the dependencies](#dependencies) are met and check the [troubleshooting sections](#troubleshooting) for FAQs. 
+
+You can verify everything works by calling:
 
 ```bash
-#still in jluna/build
+# still in jluna/build
 ./JLUNA_TEST
 ```
 
-At the very end of the programs output it should show:
+At the very end of the programs console output it should show:
 ```
 Number of tests unsuccessful: 0
 ```
 
-Great! You can now create your application, first create a main file `my_main.cpp`:
+You can now create your application, first create a main file `my_main.cpp`:
 ```
 #include <jluna.h>
 
@@ -167,7 +171,7 @@ int main()
 }
 ```
 
-Then add the following lines to the end of `jluna/CmakeLists.txt`
+Then add the following lines to the end of `jluna/CmakeLists.txt`:
 
 ```cmake
 add_executable(MY_EXECUTABLE path/to/.../my_main.cpp)   # modify this as needed
@@ -189,15 +193,17 @@ Your executable can now be run via `./MY_EXECUTABLE`:
 
 Alternatively you can run `jluna/CmakeLists.txt` from within your own `CMakeLists.txt` using [include](https://cmake.org/cmake/help/latest/command/include.html).
 
+If you are using a cmake-based IDE like [CLion](https://www.jetbrains.com/clion/) or [Atom](https://atom.io/), it may be enough to simply create a new project and open `jluna/CMakeLists.txt`. Make sure to set your compiler to G++10, though.
+
 ### Adding jluna to your existing Library
 
-First, add jluna as a submodule to your git repository:
+First, add `jluna` as a submodule to your git repository:
 
 ```
 git submodule add https://github.com/Clemapfel/jluna.git
 ```
 
-Add the header include path to your CMakeLists.txt and link your library like so:
+Add the header include path to your `CMakeLists.txt` and link your library like so:
 
 ```cmake
 include_directories("/path/to/.../jluna/")
@@ -265,21 +271,10 @@ cd ..
 rm -r temp
 ```
 
-This will leave a shiny new `jluna/libjluna_c_adapter.so` in your folder that should now allow julia to interface with C++  through the jluna C library.
+This will leave a shiny new `jluna/libjluna_c_adapter.so` in your folder that should now allow julia to interface with C++ through the jluna C library.
 
 ---
 
 ## License
 
 `jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](https://www.clemens-cords.com/contact).
-
-
-
-
-
-
-
-
-
-
-

@@ -23,8 +23,9 @@ Please navigate to the appropriate section by clicking the links below:
    6.2 [Calling Julia Functions from C++](#calling-julia-functions)<br>
    6.3 [Accessing C++ Functions from Julia](#registering-functions)<br>
    6.4 [Calling C++ Functions from Julia](#calling-c-functions-from-julia)<br>
-   6.5 [Allowed Function Signatures](#possible-signatures)<br>
-   6.6 [Using arbitrary Objects in Julia Functions](#using-non-julia-objects-in-functions)<br>
+   6.5 [Allowed Function Names](#allowed-function-names)<br>
+   6.6 [Allowed Function Signatures](#possible-signatures)<br>
+   6.7 [Using arbitrary Objects in Julia Functions](#using-non-julia-objects-in-functions)<br>
 7. [Arrays](#arrays)<br>
   7.1 [Constructing Arrays](#ctors)<br>
   7.2 [Indexing](#indexing)<br>
@@ -417,7 +418,24 @@ register_function("print_vector", [](jl_value_t* in) -> jl_value_t* {
 });
 ```
 
-Note the explicit trailing return type `-> jl_value_t*`. It is recommended to always specify it when using `register_function`. 
+Note the explicit trailing return type `-> jl_value_t*`. It is recommended to always specify it when using `register_function`.<br>
+
+#### Allowed Function Names
+
+While arbitrary julia-valid characters (except `.`) in the functions name are allowed, it is recommended to stick to C++ style convention when naming functions. However, do feel free to specifically use postfix `!` for mutating functions, as it is customary in julia. 
+
+```julia
+# good:
+"print_vector", "add", "(=>)", "modify!"
+
+# discouraged but allowed:
+"h!e!l!p!", "get_∅", "écoltäpfel", "(☻)"
+
+# illegal:
+"anything.withadot", "(..)", "0012", "help?"
+```
+
+See the [julia manual entry on variable names](https://docs.julialang.org/en/v1/manual/variables/#man-allowed-variable-names) for more information about strictly illegal names.
 
 #### Calling Functions
 
@@ -682,7 +700,7 @@ Base["println"](vector);
 Note that `Array<T, R>::operator[](Range_t&&)` (linear indexing with a range) always returns a vector of the corresponding value type, regardless of the original arrays dimensionality.
 
 ## Matrices
-(this feature is not yet implemented)
+(this feature is not yet implemented, simply use `Array<T, 2>` until then)
 
 ## Expressions
 

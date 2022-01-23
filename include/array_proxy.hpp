@@ -189,6 +189,11 @@ namespace jluna
             };
     };
 
+    /// typedefs of vectors that can attach to anything
+    using Array1d = Array<Any, 1>;
+    using Array2d = Array<Any, 2>;
+    using Array3d = Array<Any, 3>;
+
     /// @brief vector typedef
     template<Boxable Value_t>
     struct Vector : public Array<Value_t, 1>
