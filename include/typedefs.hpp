@@ -29,4 +29,5 @@ namespace jluna
     using Float64 = double;
 
     using Any = jl_value_t*;
+    using Symbol_t = jl_value_t*;
 }

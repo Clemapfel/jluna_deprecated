@@ -78,6 +78,7 @@ namespace jluna
             /// @brief get number of elements, equal to Base.length
             /// @returns length
             size_t get_n_elements() const;
+            inline size_t size() { return get_n_elements(); };
 
             /// @brief get iterator to 0-indexed element
             /// @returns assignable iterator
@@ -105,7 +106,7 @@ namespace jluna
             T front() const;
 
             /// @brief get last valid element
-            /// @returns unboxed value
+            /// @returns assignable iterator
             auto back();
 
             /// @brief get last valid element
@@ -113,10 +114,16 @@ namespace jluna
             template<Unboxable T = Value_t>
             T back() const;
 
+            /// @brief is empty
+            /// @returns true if 0 element, false otherwise
+            bool empty() const;
+
+        protected:
+            using Proxy<State>::_content;
+
         private:
             void throw_if_index_out_of_range(int index, size_t dimension);
             size_t get_dimension(int);
-            using Proxy<State>::_content;
 
             class ConstIterator
             {
@@ -158,10 +165,10 @@ namespace jluna
                     /// @brief decay into unboxed value
                     /// @tparam value-type, not necessarily the same as declared in the array type
                     template<Unboxable T = Value_t, std::enable_if_t<not std::is_same_v<T, Proxy<State>>, bool> = true>
-                    explicit operator T() const;
+                    operator T() const;
 
                     /// @brief decay into proxy
-                    explicit operator Proxy<State>();
+                    operator Proxy<State>();
 
                 protected:
                     Array<Value_t, Rank>* _owner;
@@ -196,39 +203,43 @@ namespace jluna
 
     /// @brief vector typedef
     template<Boxable Value_t>
-    struct Vector : public Array<Value_t, 1>
+    class Vector : public Array<Value_t, 1>
     {
-        /// @brief ctor
-        /// @param value
-        /// @param owner
-        /// @param symbol
-        Vector(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
+        public:
+            /// @brief ctor
+            /// @param value
+            /// @param owner
+            /// @param symbol
+            Vector(jl_value_t* value, std::shared_ptr<typename Proxy<State>::ProxyValue>&, jl_sym_t*);
 
-        /// @brief ctor
-        /// @param value
-        /// @param symbol
-        Vector(jl_value_t* value, jl_sym_t* = nullptr);
+            /// @brief ctor
+            /// @param value
+            /// @param symbol
+            Vector(jl_value_t* value, jl_sym_t* = nullptr);
 
-        /// @brief insert
-        /// @param linear index, 0-based
-        /// @param value
-        void insert(size_t pos, Value_t value);
+            /// @brief insert
+            /// @param linear index, 0-based
+            /// @param value
+            void insert(size_t pos, Value_t value);
 
-        /// @brief erase
-        /// @param linear index, 0-based
-        void erase(size_t pos);
+            /// @brief erase
+            /// @param linear index, 0-based
+            void erase(size_t pos);
 
-        /// @brief add to front
-        /// @tparam type of value, not necessarily the same as the declared array type
-        /// @param value
-        template<Boxable T = Value_t>
-        void push_front(T value);
+            /// @brief add to front
+            /// @tparam type of value, not necessarily the same as the declared array type
+            /// @param value
+            template<Boxable T = Value_t>
+            void push_front(T value);
 
-        /// @brief add to back
-        /// @tparam type of value, not necessarily the same as the declared array type
-        /// @param value
-        template<Boxable T = Value_t>
-        void push_back(T value);
+            /// @brief add to back
+            /// @tparam type of value, not necessarily the same as the declared array type
+            /// @param value
+            template<Boxable T = Value_t>
+            void push_back(T value);
+
+        protected:
+            using Array<Value_t, 1>::_content;
     };
 }
 

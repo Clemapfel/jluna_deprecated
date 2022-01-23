@@ -99,11 +99,11 @@ namespace jluna
             /// @brief get variable name, if any
             std::string get_name() const;
 
-            /// @brief get field names
+            /// @brief if proxy is a value, get fieldnames of typeof(value), if proxy is a type, get fieldnames of itself
             /// @returns vector of strings
             std::vector<std::string> get_field_names() const;
 
-            /// @brief get type as unnamed proxy
+            /// @brief get type
             /// @returns proxy to singleton type
             auto get_type() const;
 

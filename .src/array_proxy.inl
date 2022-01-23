@@ -10,6 +10,11 @@ namespace jluna
         : Proxy<State>(value, owner, symbol)
     {
         assert_type(value, "Array");
+
+        if (not empty())
+        {
+
+        }
     }
 
     template<Boxable V, size_t R>
@@ -116,8 +121,6 @@ namespace jluna
         return operator[](std::vector<T>(list));
     }
 
-
-
     template<Boxable V, size_t R>
     template<Unboxable T, typename... Args, std::enable_if_t<sizeof...(Args) == R and (std::is_integral_v<Args> and ...), bool>>
     T Array<V, R>::at(Args... in) const
@@ -213,7 +216,7 @@ namespace jluna
     auto Array<V, R>::back()
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return operator[](jl_unbox_uint64(jl_call1(length, _content->value())));
+        return operator[](jl_unbox_uint64(jl_call1(length, _content->value())) - 1);
     }
 
     template<Boxable V, size_t R>
@@ -221,7 +224,7 @@ namespace jluna
     T Array<V, R>::back() const
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
-        return operator[]<T>(jl_unbox_uint64(jl_call1(length, _content->value())));
+        return operator[]<T>(jl_unbox_uint64(jl_call1(length, _content->value())) - 1);
     }
 
     template<Boxable V, size_t R>
@@ -229,6 +232,13 @@ namespace jluna
     {
         static jl_function_t* length = jl_get_function(jl_base_module, "length");
         return jl_unbox_uint64(jl_call1(length, _content->value()));
+    }
+
+    template<Boxable V, size_t R>
+    bool Array<V, R>::empty() const
+    {
+        static jl_function_t* isempty = jl_get_function(jl_base_module, "isempty");
+        return jl_unbox_bool(jl_call1(isempty, _content->value()));
     }
 
     // ###
@@ -251,7 +261,7 @@ namespace jluna
     void Vector<V>::insert(size_t pos, V value)
     {
         static jl_value_t* insert = jl_get_function(jl_base_module, "insert!");
-        jl_call3(insert, Array<V, 1>::value(), jl_box_uint64(pos), box(value));
+        jl_call3(insert, _content->value(), jl_box_uint64(pos + 1), box(value));
         forward_last_exception();
     }
 
@@ -259,7 +269,7 @@ namespace jluna
     void Vector<V>::erase(size_t pos)
     {
         static jl_value_t* deleteat = jl_get_function(jl_base_module, "deleteat!");
-        jl_call2(deleteat, Array<V, 1>::value(), jl_box_uint64(pos));
+        jl_call2(deleteat, _content->value(), jl_box_uint64(pos + 1));
         forward_last_exception();
     }
 
@@ -268,7 +278,7 @@ namespace jluna
     void Vector<V>::push_front(T value)
     {
         static jl_value_t* pushfirst = jl_get_function(jl_base_module, "pushfirst!");
-        jl_call2(pushfirst, Array<V, 1>::value(), box(value));
+        jl_call2(pushfirst, _content->value(), box(value));
         forward_last_exception();
     }
 
@@ -277,7 +287,7 @@ namespace jluna
     void Vector<V>::push_back(T value)
     {
         static jl_value_t* push = jl_get_function(jl_base_module, "push!");
-        jl_call2(push, Array<V, 1>::value(), box(value));
+        jl_call2(push, _content->value(), box(value));
         forward_last_exception();
     }
 }

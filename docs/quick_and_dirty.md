@@ -170,7 +170,7 @@ The following types are both boxable and unboxable out-of-the-box.
 ```cpp
 // cpp type              // Julia-side type after boxing
 
-jl_value_t*              -> /* type deduced during runtime */
+jl_value_t*              -> Any
 jl_module_t*             -> Module
 jl_function_t*           -> Function
 jl_sym_t*                -> Symbol
@@ -188,7 +188,8 @@ uint64_t                 -> UInt64
 float                    -> Float32
 double                   -> Float64
 
-jluna::Proxy<State>      -> /* type deduced during runtime */
+jluna::Any               -> Any
+jluna::Proxy<State>      -> /* value-type deduced during runtime */
 jluna::Symbol            -> Symbol
 jluna::Type              -> Type
 jluna::Array<T, R>       -> Array{T, R}     *
@@ -588,6 +589,17 @@ jluna::Array<Int64, 3> array = Main["array"];
 auto array = Main["array"].as<Array<Int64, 3>>();
 ```
 Where, just as before, only named proxies will mutate Julia-side variables.
+
+We can use the generic value type `Any` to make it possible for the array proxy to attach any julia-side array, regardless of value type. `jluna` provides 3 convenient typedefs for this:
+
+```
+using Array1d = Array<Any, 1>;
+using Array2d = Array<Any, 2>;
+using Array3d = Array<Any, 3>;
+```
+
+This is useful when the value type of the array is not know at the point of proxy declaration.
+
 
 ### Indexing
 

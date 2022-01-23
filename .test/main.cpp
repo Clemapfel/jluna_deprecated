@@ -27,15 +27,10 @@ int main()
 {
     State::initialize();
 
-    State::script(R"(vec = ["abc", "def", "efg"])");
-    Vector<size_t> a = Main["vec"];
-    std::cout << (int) a.at(0) << std::endl;
-
     // TEST #############################################################
 
     Test::initialize();
 
-    /*
     Test::test("safe_script: exception forwarding", [](){
 
         bool thrown = false;
@@ -223,8 +218,20 @@ int main()
 
     Test::test("proxy fieldnames", [](){
 
-        Test::assert_that(false);
-     });
+        State::safe_script(R"(
+
+            struct FieldStruct
+                _a
+                _b
+                _☻
+            end
+        )");
+
+        auto proxy = State::safe_script("return FieldStruct");
+        auto names = proxy.get_field_names();
+
+        Test::assert_that(names.at(0) == "_a" and names.at(1) == "_b" and names.at(2) == "_☻");
+    });
 
     Test::test("proxy mutation", [](){
 
@@ -307,7 +314,6 @@ int main()
     test_box_unbox_iterable("Dict", std::unordered_map<size_t, std::string>{{12, "abc"}});
     test_box_unbox_iterable("Set", std::set<size_t>{1, 2, 3, 4});
 
-     */
     Test::test("array: ctor", [](){
 
         State::safe_script("vector = [999, 2, 3, 4, 5]");
@@ -318,52 +324,193 @@ int main()
 
     Test::test("array: reject wrong type", []()
     {
-
+        Test::assert_that(false);
+        try
+        {
+            Array<size_t, 1> arr = State::script(R"(return ["abc", "def"])");
+            arr.at(0) = "string";
+        }
+        catch(...)
+        {}
     });
 
+    Test::test("array: front/back", []()
+    {
+        State::safe_script("vector = [999, 2, 3, 4, 666]");
+        Array1d vec = Main["vector"];
+        Test::assert_that(vec.front().operator int() == 999 and vec.back().operator int() == 666);
+    });
+
+    Test::test("array: empty", []()
+    {
+        State::safe_script("vector = []");
+        Array1d vec = Main["vector"];
+        Test::assert_that(vec.empty());
+    });
 
     Test::test("array: Nd at", [](){
 
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d vec = Main["array"];
+
+        static auto getindex = [&](size_t a, size_t b, size_t c) -> size_t
+        {
+            jl_function_t* _getindex = jl_get_function(jl_base_module, "getindex");
+            std::vector<jl_value_t*> args;
+            args.push_back((jl_value_t*) vec);
+            args.push_back(jl_box_uint64(a));
+            args.push_back(jl_box_uint64(b));
+            args.push_back(jl_box_uint64(c));
+
+            return jl_unbox_int64(jl_call(_getindex, args.data(), args.size()));
+        };
+
+        Test::assert_that(getindex(1, 2, 3) == (size_t) vec.at(0, 1, 2));
+        Test::assert_that(getindex(3, 3, 3) == (size_t) vec.at(2, 2, 2));
     });
 
     Test::test("array: out of range", [](){
-        // check ouf of range in all dimensions
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d arr = Main["array"];
+
+        static auto test = [&](size_t a, size_t b, size_t c) -> bool
+        {
+            try
+            {
+                arr.at(a, b, c);
+            }
+            catch (...)
+            {
+                return true;
+            }
+
+            return false;
+        };
+
+        Test::assert_that(test(-1, 2, 2));
+        Test::assert_that(test(3, 2, 2));
+        Test::assert_that(test(2, 3, 2));
+        Test::assert_that(test(2, 2, 3));
     });
 
     Test::test("array_iterator: +/-", [](){
 
-        // check forward and backwards iteration
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d arr = Main["array"];
+
+        auto it = arr.begin();
+        it++;
+        Test::assert_that((int) it == 2);
+
+        it = arr.end();
+        it--;
+        Test::assert_that((int) it == 27);
     });
 
     Test::test("array_iterator: on owner reassignment", [](){
 
         // check behavior if owner proxy gets reassigned during iteration
         // unlike proxy, should segfault
+
+        State::safe_script("vec =[1:20]");
+        Array3d arr = Main["vec"];
+
+        auto it = arr.begin();
+        {
+            size_t i = 0;
+            while (i < 10)
+            {
+                i++;
+            }
+        }
+
+        State::safe_script("vec = [1, 2, 3, 4, 5]");
+
+        bool thrown = false;
+        try
+        {
+            size_t as = *it;
+        }
+        catch(jluna::JuliaException& )
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
+    });
+
+    Test::test("array_iterator: comparison", []()
+    {
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d arr = Main["array"];
+
+        auto a = arr.begin();
+        auto b = arr.begin();
+        auto c = arr.end();
+
+        Test::assert_that(a == b and a != c);
+        b++;
+        Test::assert_that(a != b and b != c);
     });
 
     Test::test("array_iterator: cast to value", [](){
 
-        // check unboxing call corresponds to value_t
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d arr = Main["array"];
+
+        bool thrown = false;
+        try
+        {
+            arr.begin().operator std::vector<std::string>();
+        }
+        catch (...)
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
+
+        Test::assert_that(arr.begin().operator Int64() == 1);
     });
 
     Test::test("array_iterator: cast to proxy", [](){
 
-         // check name and assignment behavior
+        State::safe_script("array = reshape(collect(1:27), 3, 3, 3)");
+        Array3d arr = Main["array"];
+
+        auto it = arr.at(0, 0, 0);
+        Proxy<State> as_proxy = it;
+
+        Test::assert_that(as_proxy.get_name() == "array[1]");
     });
 
     Test::test("vector: insert", [](){
 
+        State::safe_script("vector = [1, 2, 3, 4]");
+        Vector<size_t> vec = Main["vector"];
+
+        vec.insert(0, 16);
+        Test::assert_that((int) vec.at(0) == 16);
     });
 
     Test::test("vector: erase", [](){
 
+        State::safe_script("vector = [1, 99, 3, 4]");
+        Vector<size_t> vec = Main["vector"];
+
+        vec.erase(0);
+        Test::assert_that((int) vec.at(0) == 99 and vec.size() == 3);
     });
 
     Test::test("vector: append", [](){
+        State::safe_script("vector = [1, 1, 1, 1]");
+        Vector<size_t> vec = Main["vector"];
 
+        vec.push_front(999);
+        vec.push_back(666);
+        Test::assert_that(vec.size() == 6 and vec.front<int>() == 999 and vec.back<int>() == 666);
     });
 
-    /*
     Test::test("C: initialize adapter", []()
     {
         try
@@ -399,24 +546,33 @@ int main()
 
     Test::test("C: reject name", [](){
 
+        bool thrown = false;
         try
         {
             register_function(".", []() -> void {});
-            Test::assert_that(false);
         }
         catch (...)
-        {}
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
     });
 
     Test::test("C: undefined symbol", [](){
 
+        bool thrown = false;
+
         try
         {
             c_adapter::throw_undefined_symbol("name");
-            Test::assert_that(false);
         }
         catch (...)
-        {}
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
     });
 
     Test::test("C: call success", [](){
@@ -433,13 +589,17 @@ int main()
 
     Test::test("C: not registered", [](){
 
+        bool thrown = false;
         try
         {
             State::safe_script("cppcall(:unnamed)");
-            Test::assert_that(false);
         }
         catch (...)
-        {}
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
     });
 
     Test::test("C: forward exception", [](){
@@ -449,15 +609,18 @@ int main()
             throw std::out_of_range("123");
         });
 
+        bool thrown = false;
+
         try
         {
             State::safe_script("cppcall(:test)");
-            Test::assert_that(false);   // should throw
         }
         catch (...)
-        {}
+        {
+            thrown = true;
+        }
     });
-     */
+
 
     Test::conclude();
 }

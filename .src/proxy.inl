@@ -212,7 +212,8 @@ namespace jluna
     template<typename State_t>
     std::vector<std::string> Proxy<State_t>::get_field_names() const
     {
-        auto* svec = jl_field_names((jl_datatype_t*) jl_typeof(_content->value()));
+
+        auto* svec = jl_field_names((jl_datatype_t*) (jl_isa(_content->value(), (jl_value_t*) jl_datatype_type) ? _content->value() : jl_typeof(_content->value())));
         std::vector<std::string> out;
         for (size_t i = 0; i < jl_svec_len(svec); ++i)
             out.push_back(std::string(jl_symbol_name((jl_sym_t*) jl_svecref(svec, i))));

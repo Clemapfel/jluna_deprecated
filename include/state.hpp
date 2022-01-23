@@ -19,11 +19,11 @@ namespace jluna
     template<typename>
     class Proxy;
 
-    /// @brief concept that describes types which can be directly cast to jl_value_t*
+    /// @brief concept that describes types which can be directly cast to Any
     template<typename T>
     concept Decayable = requires(T t)
     {
-        {t.operator jl_value_t*() || std::is_same_v<T, jl_value_t*>};
+        {t.operator Any() || std::is_same_v<T, Any>};
     };
 
     /// @brief static interface to the julia state
@@ -83,18 +83,18 @@ namespace jluna
             /// @brief call julia function without exception forwarding
             /// @param function
             /// @param arguments
-            /// @returns function result as jl_value_t*
+            /// @returns function result as Any
             template<typename... Args_t>
             static auto call(jl_function_t*, Args_t&&...);
 
             /// @brief call julia function with exception forwarding
             /// @param function
             /// @param arguments
-            /// @returns function result as jl_value_t*
+            /// @returns function result as Any
             template<typename... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
-            /// @overload safe_call for non-unboxable values that can still be cast to jl_value_t*
+            /// @overload safe_call for non-unboxable values that can still be cast to Any
             template<Decayable... Args_t>
             static auto safe_call(jl_function_t*, Args_t&&...);
 
@@ -105,14 +105,14 @@ namespace jluna
             /// @brief add a value to be safeguarded from the garbage collector
             /// @param pointer to value
             /// @note point is used as indexing, therefore it should never be reassigned or a dangling "reference" will be produced
-            static size_t create_reference(jl_value_t*);
+            static size_t create_reference(Any);
 
             /// @brief remove a value from the safeguard, after the call the garbage collector is free to collect it at any point
             /// @param pointer to value
             static void free_reference(size_t);
 
             /// @brief access reference for protected value
-            static jl_value_t* get_reference(size_t);
+            static Any get_reference(size_t);
 
         private:
             static inline jl_module_t* _jluna_module = nullptr;
@@ -126,7 +126,7 @@ namespace jluna
 
             // cppcall interface
             static inline jl_function_t* _hash = nullptr;
-            std::unordered_map<size_t, std::function<jl_value_t*()>> _functions;
+            std::unordered_map<size_t, std::function<Any()>> _functions;
     };
 }
 
