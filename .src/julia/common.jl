@@ -175,7 +175,7 @@ begin
     """
     function dot(x::Array, field_name::Symbol) ::Any
 
-        index_maybe = parse(Int, string(symbol));
+        index_maybe = parse(Int, string(field_name));
         @assert index_maybe isa Integer
         return x[index_maybe];
     end
@@ -225,16 +225,14 @@ begin
     function assemble_assign(new_value::T, names::Symbol...) ::T where T
 
         name = assemble_name(names...)
-        expression = Expr(:(=), Meta.parse(name), new_value)
-        Main.eval(expression)
-
+        Main.eval(:($name = $new_value))
         return new_value
     end
 
     """
     assemble_eval(::Symbol...) -> Any
 
-    used by jluna::Proxy to evaluate the value of it's variable
+    used by jluna::Proxy C++-side to evaluate the value of it's variable
     """
     function assemble_eval(names::Symbol...) ::Any
 

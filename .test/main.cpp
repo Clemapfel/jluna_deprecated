@@ -27,25 +27,23 @@ int main()
 {
     State::initialize();
 
-    State::script("var = [1, 2, 3, 4]");
-    auto named = Main["var"];
+    State::safe_script(R"(
 
-    {
-        //named[0] = 9999;
-        //Test::assert_that(State::script("return var[1]").operator int() == 9999);
+        mutable struct StructType
+            _field
+        end
 
-        auto unnamed = named.value();
+        instance = StructType(123)
+    )");
 
-        Test::assert_that(unnamed._content->symbol() == nullptr);
-        unnamed[0] = 0;
+    auto ttest = State::script("instance");
 
-        Test::assert_that(State::script("return var[1]").operator int() == 9999);
-        Test::assert_that(named[0] == 0);
-    }
+    ttest["_field"] = 12;
 
+    std::cout << ttest.operator std::string() << std::endl;
+    Base["println"](Main["instance"]);
 
     return 0;
-
 
     // TEST #############################################################
 

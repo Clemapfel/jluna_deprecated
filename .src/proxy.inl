@@ -111,7 +111,7 @@ namespace jluna
     Proxy<State_t> Proxy<State_t>::operator[](const std::string& field)
     {
         jl_sym_t* symbol = jl_symbol(field.c_str());
-        return Proxy<State_t>(_content.get()->get_field(symbol), _content, symbol);
+        return Proxy<State_t>(_content.get()->get_field(symbol), _content, _content->symbol() == nullptr ? nullptr : symbol);
     }
 
     template<typename State_t>
