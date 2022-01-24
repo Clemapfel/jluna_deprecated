@@ -13,6 +13,8 @@
 
 extern "C"
 {
+    const char jl_id_marker = '#';
+
     /// @brief unbox float16 by converting it to float32 first
     float jl_unbox_float16(jl_value_t* v)
     {

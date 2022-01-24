@@ -83,7 +83,7 @@ namespace jluna
 
             /// @brief implicitly convert to T via unboxing
             /// @returns value as T
-            template<Unboxable T>
+            template<Unboxable T, std::enable_if_t<not std::is_same_v<T, std::string>, bool> = true>
             operator T() const;
 
             /// @brief implicitly downcast to base
@@ -166,6 +166,8 @@ namespace jluna
 
                     const jl_value_t* value() const;
                     const jl_value_t* symbol() const;
+
+                    const bool _is_mutating = true;
 
                 private:
                     size_t _symbol_key;

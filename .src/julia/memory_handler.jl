@@ -15,51 +15,18 @@ begin # included into module jluna
         _current_id = UInt64(1);
         const _refs = Ref(Dict{UInt64, Base.RefValue{Any}}())
         const _ref_counter = Ref(IdDict{UInt64, UInt64}())
-        
+
+        const _ref_id_marker = Char(7)
+
         """
-        assign(::Module, ::Symbol, ::Any) -> Any
+        """
+        function assemble_assign(owner::U, new_value::T, names::Symbol...) ::T where {T, U}
 
-        reassign variable in global scope
-
-        Examples:
-            module MyModule
-                my_var = "abcd"
+            if owner isa Module
+                owner.eval();
             end
 
-            assign(MyModule, :my_var, 1234)
-            assign(:my_var, 1234) # if MyModule is submodule of main
-        """
-        function assign(m::Module, symbol::Symbol, v::T) ::Any where T
-
-            @assert isdefined(m, symbol)
-
-            if typeof(m.eval(symbol)) <: Ref
-                return m.eval(Meta.parse("global " * string(symbol) * "[] = " * string(v)))
-            else
-                return m.eval(Meta.parse("global " * string(symbol) * " = " * string(v)))
-            end
         end
-
-        assign(symbol::Symbol, v::T) where T = assign(Main, symbol, v)
-
-        """
-        assign(::Module, ::Symbol, ::String) -> Any
-
-        reassign variable in global scope
-        """
-        function assign(m::Module, symbol::Symbol, v::String) ::Any
-
-            @assert isdefined(m, symbol)
-            v = replace(v, "\"" => "\\\"", "\\" => "\\\\")
-
-            if typeof(m.eval(symbol)) <: Ref
-                return m.eval(Meta.parse("global " * string(symbol) * "[] = " * "\"" * v * "\""))
-            else
-                return m.eval(Meta.parse("global " * string(symbol) * " = " * "\"" * v * "\""))
-            end
-        end
-
-        assign(symbol::Symbol, v::String) = assign(Main, symbol, v)
 
         """
         create_reference(::UInt64, ::Any) -> UInt64
@@ -75,7 +42,7 @@ begin # included into module jluna
             global _current_id += 1;
             key = _current_id;
 
-            #println("[JULIA] allocated " * string(key) * " (" * Base.string(typeof(to_wrap)) * ")")
+            #println("[JULIA] allocated " * string(key) * " (" * Base.string(to_wrap) * ")")
 
             if (haskey(_refs[], key))
                 @assert _refs[][key].x == to_wrap && typeof(to_wrap) == typeof(_refs[][key].x)
@@ -89,15 +56,25 @@ begin # included into module jluna
         end
 
         """
+        set_reference(::UInt64, ::T) -> Nothing
+        """
+        function set_reference(key::UInt64, new_value::T) ::Base.RefValue{Any} where T
+
+            println("set: ", string(key), " -> ", string(new_value))
+            _refs[][key] = Base.RefValue{Any}(new_value)
+            return _refs[][key]
+        end
+
+        """
         get_reference(::Int64) -> Any
         """
         function get_reference(key::UInt64) ::Any
 
             if (key == 0)
-                return nothing;
+                return nothing
             end
 
-           return _refs[][key];
+           return _refs[][key]
         end
 
         """

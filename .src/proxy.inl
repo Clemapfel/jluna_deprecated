@@ -6,11 +6,13 @@
 #include <proxy.hpp>
 #include <sstream>
 #include <deque>
+#include <sstream>
 
 namespace jluna
 {
     template<typename State_t>
     Proxy<State_t>::ProxyValue::ProxyValue(jl_value_t* value, std::shared_ptr<ProxyValue>& owner, jl_sym_t* symbol)
+        : _is_mutating(symbol != nullptr)
     {
         if (value == nullptr)
             return;
@@ -19,19 +21,33 @@ namespace jluna
         _value_key = State_t::create_reference(value);
         _value_ref = State_t::get_reference(_value_key);
 
+        if (symbol == nullptr)
+        {
+            std::stringstream str;
+            str << jl_id_marker << _value_key << "[]";
+            symbol = jl_symbol(str.str().c_str());
+        }
+
         _symbol_key = State_t::create_reference((jl_value_t*) symbol);
         _symbol_ref = State_t::get_reference(_symbol_key);
     }
 
     template<typename State_t>
     Proxy<State_t>::ProxyValue::ProxyValue(jl_value_t* value, jl_sym_t* symbol)
-        : _owner(nullptr)
+        : _owner(nullptr), _is_mutating(symbol != nullptr)
     {
         if (value == nullptr)
             return;
 
         _value_key = State_t::create_reference(value);
         _value_ref = State_t::get_reference(_value_key);
+
+        if (symbol == nullptr)
+        {
+            std::stringstream str;
+            str << jl_id_marker << _value_key;
+            symbol = jl_symbol(str.str().c_str());
+        }
 
         _symbol_key = State_t::create_reference((jl_value_t*) symbol);
         _symbol_ref = State_t::get_reference(_symbol_key);
@@ -155,7 +171,7 @@ namespace jluna
     }
 
      template<typename State_t>
-    template<Unboxable T>
+     template<Unboxable T, std::enable_if_t<not std::is_same_v<T, std::string>, bool>>
     Proxy<State_t>::operator T() const
     {
         return unbox<T>(_content->value());
@@ -203,7 +219,10 @@ namespace jluna
             if (i != 0 and sname.at(0) != '[')
                 str << ".";
 
-            str << jl_symbol_name(name.at(i));
+            if (sname.at(0) == jl_id_marker)
+                str << "<unnamed proxy " << jl_symbol_name(name.at(i)) << ">";
+            else
+                str << jl_symbol_name(name.at(i));
         }
 
         return str.str();
@@ -257,25 +276,27 @@ namespace jluna
     template<typename State_t>
     bool Proxy<State_t>::is_mutating() const
     {
-        return _content->symbol() != nullptr;
+        return _content->_is_mutating;
     }
 
     template<typename State_t>
     auto & Proxy<State_t>::operator=(jl_value_t* new_value)
     {
+        static jl_function_t* safe_call = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.exception_handler"), "safe_call");
+        static jl_function_t* set_reference = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "set_reference");
+
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
-        if (_content->symbol() == nullptr)
+        //if (_content->_is_mutating)
         {
-            _content.reset(new ProxyValue(new_value, nullptr));
+            _content->_value_ref = jl_call3(safe_call, (jl_value_t*) set_reference, jl_box_uint64(_content->value_key()), new_value);
+            forward_last_exception();
         }
-        else
+        //else
         {
-            static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return Main.jluna");
-            static jl_module_t* exception_module = (jl_module_t*) jl_eval_string("return Main.jluna.exception_handler");
-            static jl_function_t* safe_call = jl_get_function(exception_module, "safe_call");
-            static jl_function_t* assemble_assign = jl_get_function(jluna_module, "assemble_assign");
+            /*
+            static jl_function_t* assemble_assign = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "assemble_assign");
 
             auto name = assemble_name();
             std::vector<jl_value_t*> args = {(jl_value_t*) assemble_assign, new_value};
@@ -292,6 +313,7 @@ namespace jluna
 
             _content->_value_key = State_t::create_reference(res);
             _content->_value_ref = State_t::get_reference(_content->value_key());
+             */
         }
 
         jl_gc_enable(before);

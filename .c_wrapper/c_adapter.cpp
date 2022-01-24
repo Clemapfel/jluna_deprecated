@@ -41,9 +41,9 @@ extern "C"
         void register_function(const std::string& name, std::function<jl_value_t*(jl_value_t*)>&& lambda)
         {
             [[unlikely]]
-            if (name.find('.') != std::string::npos)
+            if (name.find('.') != std::string::npos or name.at(0) == '#')
             {
-                std::string str = "In register_function(\"" + name + "\"): function names cannot contain \".\", to register a function as a member of a module or struct, use jluna::State::script";
+                std::string str = "In register_function(\"" + name + "\"): function names cannot begin with \'#\' or contain \'.\' in any place";
                 throw std::invalid_argument(str.c_str());
             }
 

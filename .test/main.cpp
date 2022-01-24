@@ -27,21 +27,10 @@ int main()
 {
     State::initialize();
 
-    State::safe_script(R"(
+    auto vec = State::safe_script(R"(["abc", "def", "efg"])");
+    vec = std::vector<std::string>{"different", "value"};
 
-        mutable struct StructType
-            _field
-        end
-
-        instance = StructType(123)
-    )");
-
-    auto ttest = State::script("instance");
-
-    ttest["_field"] = 12;
-
-    std::cout << ttest.operator std::string() << std::endl;
-    Base["println"](Main["instance"]);
+    std::cout << vec.operator std::string() << std::endl;
 
     return 0;
 
