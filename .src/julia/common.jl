@@ -218,14 +218,29 @@ begin
     end
 
     """
-    assemble_name(::Any, ::Symbol...) -> Nothing
-
-    used by jluna::Proxy C++-side to mutate it's corresponding variable
+    abc
     """
-    function assemble_assign(new_value::T, names::Symbol...) ::T where T
+    function assemble_assign(owner::U, new_value::T, names::Symbol...) ::T where {T, U}
 
-        name = assemble_name(names...)
-        Main.eval(:($name = $new_value))
+        if owner isa Module
+            name = assemble_name(names...)
+            Owner.eval(:($(Meta.parse(name)) = $new_value))
+        else
+            # partial name available
+            str = ""
+
+            for n in names
+                if string(n)[1] != '['
+                    str *= "."
+                end
+                str *= string(n)
+            end
+
+            full = string(owner) * str * " = " * string(new_value)
+            println(full)
+            return Main.eval(Meta.parse(full))
+        end
+
         return new_value
     end
 
