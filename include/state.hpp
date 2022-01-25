@@ -73,6 +73,14 @@ namespace jluna
             /// @exceptions if an error occurs julia-side a JuliaException will be thrown
             static auto safe_script(const std::string& command, const std::string& module);
 
+            /// @brief access a value, equivalent to unbox<T>(jl_eval_string("return " + name))
+            /// @tparam T: type to be unboxed to
+            /// @param full name of the value, e.g. Main.variable._field[0]
+            /// @returns T
+            /// @exceptions if an error occurs julia-side, a JuliaException will be thrown
+            template<typename T>
+            static T safe_return(const std::string& full_name);
+
             /// @brief trigger the garbage collector
             static void collect_garbage();
 

@@ -27,8 +27,6 @@ int main()
 {
     State::initialize();
 
-    // TEST #############################################################
-
     Test::initialize();
 
     Test::test("safe_script: exception forwarding", [](){
@@ -308,11 +306,11 @@ int main()
         auto named = Main["var"];
 
         named[0] = 9999;
-        Test::assert_that(State::script("return var[0]").operator int() == 9999);
+        Test::assert_that(State::script("return var[1]").operator int() == 9999);
 
         named = named.value();
         named[0] = 0;
-        Test::assert_that(State::script("return var[0]").operator int() == 9999);
+        Test::assert_that(State::script("return var[1]").operator int() == 9999);
         Test::assert_that(named[0].operator int() == 0);
     });
 

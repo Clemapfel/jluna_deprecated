@@ -127,6 +127,14 @@ namespace jluna
         return Proxy<State>(result, nullptr);
     }
 
+    template<typename T>
+    T State::safe_return(const std::string& full_name)
+    {
+        auto* res = jl_eval_string(("return " + full_name).c_str());
+        forward_last_exception();
+        return unbox<T>(res);
+    }
+
     template<typename... Args_t>
     auto State::call(jl_function_t* function, Args_t&&... args)
     {
