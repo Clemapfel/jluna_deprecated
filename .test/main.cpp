@@ -27,9 +27,21 @@ int main()
 {
     State::initialize();
 
-    State::safe_script("variable = 123");
-    auto proxy = Main["variable"];
-    std::complex<double> as_what = proxy;
+    State::safe_script("var = 1234");
+
+    State::safe_script("var = 1234");
+
+auto named_proxy = State::script("return var");
+
+std::cout << "// before:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
+
+named_proxy = 5678; // assign
+
+std::cout << "// after:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
     return 0;
 
     auto unnamed = State::safe_script("return variable");

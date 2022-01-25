@@ -120,14 +120,18 @@ begin
     end
 
     """
-    convert(::Any, symbol::Symbol) -> T
+    convert(::T, symbol::Symbol) -> Any
 
-    convert value to type if possible
+    convert value type, declared via symbol
     """
-    function convert(x::Any, symbol::Symbol) ::Any
+    function convert(x::T, symbol::Symbol) ::Any where T
 
         type = Main.eval(symbol);
         @assert type isa Type
+
+        if T isa type
+            return T
+        end
 
         return Base.convert(type, x)
     end

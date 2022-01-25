@@ -77,11 +77,18 @@ begin # included into module jluna
 
             name = "";
 
+            in_main = false;
+
             for n in names
 
                 as_string = string(n);
                 if as_string[1] == _ref_id_marker
-                    name *= "jluna.memory_handler._refs[][" * chop(string(n), head = 1, tail = 0) * "][]"
+                    if as_string[2] == '1' && length(as_string) == 2 # main
+                        in_main = true
+                        continue
+                    else
+                        name *= "jluna.memory_handler._refs[][" * chop(string(n), head = 1, tail = 0) * "][]"
+                    end
                 elseif as_string[1] == '['
                     name *= string(n)
                 else
@@ -89,7 +96,10 @@ begin # included into module jluna
                 end
             end
 
-            println(string(name), " = ", string(new_value))
+            if in_main
+                name = chop(name, head = 1, tail = 0)   # remove first .
+            end
+
             Main.eval(:($(Meta.parse(name)) = $new_value));
             return new_value;
         end
