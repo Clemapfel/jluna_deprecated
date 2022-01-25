@@ -220,7 +220,10 @@ namespace jluna
                 str << ".";
 
             if (sname.at(0) == jl_id_marker)
-                str << "<unnamed proxy " << jl_symbol_name(name.at(i)) << ">";
+                if (sname.at(1) == '1')
+                    str << "Main";
+                else
+                    str << "<unnamed proxy " << jl_symbol_name(name.at(i)) << ">";
             else
                 str << jl_symbol_name(name.at(i));
         }

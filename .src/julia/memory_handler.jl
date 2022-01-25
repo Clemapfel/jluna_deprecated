@@ -12,7 +12,7 @@ begin # included into module jluna
     """
     module memory_handler
 
-        _current_id = UInt64(1);
+        _current_id = UInt64(0);
         const _refs = Ref(Dict{UInt64, Base.RefValue{Any}}())
         const _ref_counter = Ref(IdDict{UInt64, UInt64}())
 
@@ -20,6 +20,8 @@ begin # included into module jluna
 
         """
         print_refs() -> Nothing
+
+        pretty print _ref state, for debugging
         """
         function print_refs() ::Nothing
 
@@ -58,6 +60,8 @@ begin # included into module jluna
 
         """
         set_reference(::UInt64, ::T) -> Nothing
+
+        update the value of a reference in _refs without adding a new entry or changing it's key, ref pointers C++ side stay valid
         """
         function set_reference(key::UInt64, new_value::T) ::Base.RefValue{Any} where T
 
