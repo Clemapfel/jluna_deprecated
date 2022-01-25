@@ -41,15 +41,14 @@ namespace jluna
 
     jl_value_t* box(char value)
     {
-        return jl_box_char(value);
+        static jl_function_t* to_char = jl_get_function(jl_base_module, "Char");
+        return jl_call1(to_char, jl_box_uint8(value));
     }
 
-    
     jl_value_t* box(int8_t value)
     {
         return jl_box_int8(value);
     }
-
     
     jl_value_t* box(int16_t value)
     {
