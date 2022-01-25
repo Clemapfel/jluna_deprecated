@@ -84,6 +84,13 @@ extern "C"
         static jl_function_t* type_of = jl_get_function(jl_base_module, "typeof");
         return jl_to_string(jl_call1(type_of, v));
     }
+
+    /// @brief invoke deepcopy
+    jl_value_t* jl_deepcopy(jl_value_t* in)
+    {
+        static jl_function_t* deepcopy = jl_get_function(jl_base_module, "deepcopy");
+        return jl_call1(deepcopy, in);
+    }
 }
 
 

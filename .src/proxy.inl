@@ -231,7 +231,6 @@ namespace jluna
     template<typename State_t>
     std::vector<std::string> Proxy<State_t>::get_field_names() const
     {
-
         auto* svec = jl_field_names((jl_datatype_t*) (jl_isa(_content->value(), (jl_value_t*) jl_datatype_type) ? _content->value() : jl_typeof(_content->value())));
         std::vector<std::string> out;
         for (size_t i = 0; i < jl_svec_len(svec); ++i)
@@ -288,32 +287,19 @@ namespace jluna
         auto before = jl_gc_is_enabled();
         jl_gc_enable(false);
 
-        //if (_content->_is_mutating)
+        _content->_value_ref = jl_call3(safe_call, (jl_value_t*) set_reference,
+                                        jl_box_uint64(_content->value_key()), new_value);
+        forward_last_exception();
+
+        if (_content->_is_mutating)
         {
-            _content->_value_ref = jl_call3(safe_call, (jl_value_t*) set_reference, jl_box_uint64(_content->value_key()), new_value);
-            forward_last_exception();
-        }
-        //else
-        {
-            /*
-            static jl_function_t* assemble_assign = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "assemble_assign");
+            static jl_function_t* assign = get_function("Main.jluna.memory_handler", "assign");
+            auto name_q = assemble_name();
+            std::vector<jl_value_t*> params = {assign, new_value};
+            for (auto* s : name_q)
+                params.push_back((jl_value_t*) s);
 
-            auto name = assemble_name();
-            std::vector<jl_value_t*> args = {(jl_value_t*) assemble_assign, new_value};
-
-            for (auto* n : name)
-                args.push_back((jl_value_t*) n);
-
-            // assign
-            jl_value_t* res = jl_call(safe_call, args.data(), args.size());
-            forward_last_exception();
-
-            // update value
-            State_t::free_reference(_content->value_key());
-
-            _content->_value_key = State_t::create_reference(res);
-            _content->_value_ref = State_t::get_reference(_content->value_key());
-             */
+            safe_call_params(params);
         }
 
         jl_gc_enable(before);
@@ -323,7 +309,7 @@ namespace jluna
     template<typename State_t>
     auto Proxy<State_t>::value() const
     {
-        return Proxy<State_t>(_content->value(), nullptr);
+        return Proxy<State_t>(jl_deepcopy(_content->value()), nullptr);
     }
 
     template<typename State_t>
@@ -336,10 +322,8 @@ namespace jluna
     template<typename State_t>
     void Proxy<State_t>::update()
     {
-        static jl_module_t* jluna_module = (jl_module_t*) jl_eval_string("return Main.jluna");
-        static jl_module_t* exception_module = (jl_module_t*) jl_eval_string("return Main.jluna.exception_handler");
-        static jl_function_t* safe_call = jl_get_function(exception_module, "safe_call");
-        static jl_function_t* assemble_eval = jl_get_function(jluna_module, "assemble_eval");
+        static jl_function_t* safe_call = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.exception_handler"), "safe_call");
+        static jl_function_t* assemble_eval = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "evaluate");
 
         auto name = assemble_name();
         std::vector<jl_value_t*> args = {(jl_value_t*) assemble_eval};
@@ -348,6 +332,7 @@ namespace jluna
             args.push_back((jl_value_t*) n);
 
         jl_value_t* new_value = jl_call(safe_call, args.data(), args.size());
-        _content.reset(new ProxyValue(new_value, _content->_owner, (jl_sym_t*) _content->symbol()));
+        forward_last_exception();
+        this->operator=(new_value);
     }
 }

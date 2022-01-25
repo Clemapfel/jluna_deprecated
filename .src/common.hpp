@@ -79,6 +79,18 @@ namespace jluna
         return result;
     }
 
+    static auto safe_call_params(std::vector<jl_value_t*> params)
+    {
+        THROW_IF_UNINITIALIZED;
+        static jl_function_t* tostring = jl_get_function(jl_base_module, "string");
+
+        static jl_function_t* safe_call = jl_get_function((jl_module_t*) jl_eval_string("return jluna.exception_handler"), "safe_call");
+        auto* result = jl_call(safe_call, params.data(), params.size());
+
+        forward_last_exception();
+        return result;
+    }
+
     // call any function without exception forwarding
     template<typename... Args_t>
     static auto call(jl_function_t* function, Args_t... args)

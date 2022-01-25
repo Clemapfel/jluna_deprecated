@@ -38,6 +38,7 @@ namespace jluna
         public: class ProxyValue;
 
         public:
+            Proxy() = default;
 
             /// @brief construct with no owner, reserved for global temporaries and main
             /// @param value

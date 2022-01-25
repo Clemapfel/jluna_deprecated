@@ -27,13 +27,6 @@ int main()
 {
     State::initialize();
 
-    auto vec = State::safe_script(R"(["abc", "def", "efg"])");
-    vec = std::vector<std::string>{"different", "value"};
-
-    std::cout << vec.operator std::string() << std::endl;
-
-    return 0;
-
     // TEST #############################################################
 
     Test::initialize();
@@ -77,8 +70,6 @@ int main()
         )");
 
         auto hold = Proxy<State>(jl_eval_string("return StructType([99, 2, 3, 4])"), nullptr);
-
-        State::script("jluna.exception_handler._refs[]");
         State::collect_garbage();
         Test::assert_that(((int) hold["any"][0]) == 99);
     });
@@ -234,7 +225,7 @@ int main()
             end
         )");
 
-        auto proxy = State::safe_script("return FieldStruct");
+        Proxy<State> proxy = State::safe_script("return FieldStruct");
         auto names = proxy.get_field_names();
 
         Test::assert_that(names.at(0) == "_a" and names.at(1) == "_b" and names.at(2) == "_☻");
@@ -258,6 +249,34 @@ int main()
 
         Test::assert_that(non_mutating_proxy.operator Int64() == 8888);
         Test::assert_that(jl_unbox_int64(jl_eval_string("variable[1]")) != 8888);
+    });
+
+    Test::test("proxy mutate unnamed member", [](){
+
+        State::safe_script(R"(
+
+            mutable struct UnnamedMemberStruct
+                _field::Vector{Any}
+            end
+
+            vector = [['a', 'b', 'c'], ['a', 'b', 'c'], ['a', 'b', 'c']]
+            instance = UnnamedMemberStruct([1, 2, 3, 4])
+        )");
+
+        auto unnamed_vector = State::safe_script("return vector");
+        auto uv_a = unnamed_vector[0];
+        auto uv_b = uv_a[0];
+        uv_b = '?';
+
+        Test::assert_that((char) unnamed_vector[0][0] == '?');
+
+
+        auto unnamed_instance = State::safe_script("return instance");
+        auto ui_a = unnamed_instance["_field"];
+        auto ui_b = ui_a[0];
+        ui_b = 999;
+
+        Test::assert_that((int) unnamed_instance["_field"][0] == 999);
     });
 
     Test::test("proxy detach update", []()
@@ -295,6 +314,55 @@ int main()
         named[0] = 0;
         Test::assert_that(State::script("return var[0]").operator int() == 9999);
         Test::assert_that(named[0].operator int() == 0);
+    });
+
+    Test::test("proxy reject immutable", [](){
+
+        auto string_proxy = State::script("return \"string\"");
+        auto first = string_proxy[0];
+
+        Test::assert_that((char) first == 's');
+
+        bool thrown = false;
+        try
+        {
+            first = 'b';
+        }
+        catch (JuliaException& e)
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
+
+        State::safe_script(R"(
+
+            struct ImmutableStructType
+                _field;
+
+                ImmutableStructType() = new(123)
+            end
+
+            instance = ImmutableStructType();
+        )");
+
+        auto struct_proxy = Main["instance"];
+        auto field = struct_proxy["_field"];
+
+        Test::assert_that(field.operator int() == 123);
+
+        thrown = false;
+        try
+        {
+            field = 456;
+        }
+        catch (JuliaException& e)
+        {
+            thrown = true;
+        }
+
+        Test::assert_that(thrown);
+
     });
 
     Test::test("proxy cast", []() {
