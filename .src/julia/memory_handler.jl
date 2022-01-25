@@ -16,16 +16,17 @@ begin # included into module jluna
         const _refs = Ref(Dict{UInt64, Base.RefValue{Any}}())
         const _ref_counter = Ref(IdDict{UInt64, UInt64}())
 
-        const _ref_id_marker = Char(7)
+        const _ref_id_marker = '#'
 
         """
+        print_refs() -> Nothing
         """
-        function assemble_assign(owner::U, new_value::T, names::Symbol...) ::T where {T, U}
+        function print_refs() ::Nothing
 
-            if owner isa Module
-                owner.eval();
+            println("jluna.memory_handler._refs: ");
+            for e in _refs[]
+                println("\t", Int64(e.first), " => ", e.second[], " (", typeof(e.second[]), ")")
             end
-
         end
 
         """
@@ -60,9 +61,54 @@ begin # included into module jluna
         """
         function set_reference(key::UInt64, new_value::T) ::Base.RefValue{Any} where T
 
-            println("set: ", string(key), " -> ", string(new_value))
             _refs[][key] = Base.RefValue{Any}(new_value)
             return _refs[][key]
+        end
+
+        """
+        """
+        function assign(new_value::T, names::Symbol...) ::T where T
+
+            unnamed_to_index(s::Symbol) = tryparse(UInt64, chop(string(s), head = 1, tail = 0))
+
+            name = "";
+
+            for n in names
+
+                as_string = string(n);
+                if as_string[1] == _ref_id_marker
+                    name *= "jluna.memory_handler._refs[][" * chop(string(n), head = 1, tail = 0) * "][]"
+                elseif as_string[1] == '['
+                    name *= string(n)
+                else
+                    name *= "." * string(n)
+                end
+            end
+
+            println(string(name), " = ", string(new_value))
+            Main.eval(:($(Meta.parse(name)) = $new_value));
+            return new_value;
+        end
+
+        """
+        """
+        function evaluate(names::Symbol...) ::Any
+
+            name = "";
+
+            for n in names
+
+                as_string = string(n);
+                if as_string[1] == _ref_id_marker
+                    name *= "jluna.memory_handler._refs[][" * chop(string(n), head = 1, tail = 0) * "][]"
+                elseif as_string[1] == '['
+                    name *= string(n)
+                else
+                    name *= "." * string(n)
+                end
+            end
+
+            return Main.eval(:($(Meta.parse(name))))
         end
 
         """
@@ -120,3 +166,66 @@ begin # included into module jluna
         end
     end
 end
+
+"""
+
+    \"""
+    assemble_name(::Symbol...) -> String
+
+    used by jluna::Proxy C++-side to generate it's own variable name
+    \"""
+    function assemble_name(names::Symbol...) ::String
+
+        assembled = ""
+
+        for (i, s) in enumerate(names)
+
+            as_string = string(s)
+            if i != 1 && as_string[1] != '['
+                assembled *= "."
+            end
+
+            assembled *= as_string
+        end
+
+        return assembled;
+    end
+
+    \"""
+    abc
+    \"""
+    function assemble_assign(owner::U, new_value::T, names::Symbol...) ::T where {T, U}
+
+        if owner isa Module
+            name = assemble_name(names...)
+            Owner.eval(:(.(Meta.parse(name)) = .new_value))
+        else
+            # partial name available
+            str = ""
+
+            for n in names
+                if string(n)[1] != '['
+                    str *= "."
+                end
+                str *= string(n)
+            end
+
+            full = string(owner) * str * " = " * string(new_value)
+            println(full)
+            return Main.eval(Meta.parse(full))
+        end
+
+        return new_value
+    end
+
+    \"""
+    assemble_eval(::Symbol...) -> Any
+
+    used by jluna::Proxy C++-side to evaluate the value of it's variable
+    \"""
+    function assemble_eval(names::Symbol...) ::Any
+
+        name = assemble_name(names...)
+        return Main.eval(Meta.parse(name));
+    end
+"""
