@@ -38,10 +38,10 @@ namespace jluna
     {
         static jl_function_t* convert = jl_get_function(jl_main_module, "convert");
 
-        if (jl_isa(value, (jl_value_t*) jl_char_type))
-                return jl_unbox_int8(value);
+        if (jl_isa(value, (jl_value_t*) jl_uint8_type))
+                return char(jl_unbox_uint8(value));
         else
-            return jl_unbox_int8(safe_call(convert, (jl_value_t*) jl_char_type, value));
+            return char(jl_unbox_uint8(safe_call(convert, (jl_value_t*) jl_uint8_type, value)));
     }
 
     template<typename T, std::enable_if_t<std::is_same_v<T, int8_t>, bool>>
