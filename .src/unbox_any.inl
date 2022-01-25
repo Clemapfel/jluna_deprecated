@@ -190,7 +190,7 @@ namespace jluna
     template<typename T, typename S, std::enable_if_t<std::is_same_v<T, std::complex<S>>, bool>>
     T unbox(jl_value_t* value)
     {
-        assert_type(value, "Complex");
+        try_convert(value, "Complex");
 
         auto* re = jl_get_nth_field(value, 0);
         auto* im = jl_get_nth_field(value, 1);

@@ -118,7 +118,7 @@ namespace jluna
 
     static jl_value_t* try_convert(jl_value_t* origin, const std::string& target_type)
     {
-        static jl_function_t* convert = get_function("jlune", "convert");
+        static jl_function_t* convert = get_function("jluna", "convert");
         return safe_call(convert, origin, jl_symbol(target_type.c_str()));
     }
 }

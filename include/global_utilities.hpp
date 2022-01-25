@@ -22,5 +22,8 @@ namespace jluna
 
     /// @brief singleton proxy of base module
     static inline Proxy<State> Core = Proxy<State>(nullptr, (jl_sym_t*) nullptr);
+
+    template<Decayable T>
+    T convert(const std::string& type_name, T);
 }
 

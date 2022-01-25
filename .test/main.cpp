@@ -27,6 +27,18 @@ int main()
 {
     State::initialize();
 
+    State::safe_script("variable = 123");
+    auto proxy = Main["variable"];
+    std::complex<double> as_what = proxy;
+    return 0;
+
+    auto unnamed = State::safe_script("return variable");
+    auto named = Main["variable"];
+
+    std::cout << "unnamed: " << unnamed.get_name() << std::endl;
+    std::cout << "named  : " << named.get_name() << std::endl;
+
+    return 0;
     Test::initialize();
 
     Test::test("safe_script: exception forwarding", [](){
@@ -89,7 +101,8 @@ int main()
             n = jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)"));
         }
 
-        Test::assert_that(n - jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)")) == 1);
+        Test::assert_that(n - jl_unbox_int64(jl_eval_string("return length(jluna.memory_handler._refs.x)")) == 2);
+        // 2 bc symbol and value are registered, even for unnamed
     });
 
     Test::test("proxy inheritance dtor", [](){
@@ -591,7 +604,7 @@ int main()
         auto it = arr.at(0, 0, 0);
         Proxy<State> as_proxy = it;
 
-        Test::assert_that(as_proxy.get_name() == "array[1]");
+        Test::assert_that(as_proxy.get_name() == "Main.array[1]");
     });
 
     Test::test("vector: insert", [](){
