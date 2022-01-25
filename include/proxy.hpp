@@ -148,7 +148,7 @@ namespace jluna
         //protected:
             class ProxyValue
             {
-                friend auto& Proxy<State_t>::operator=(jl_value_t*);
+                friend class Proxy<State_t>;
 
                 public:
                     ProxyValue(jl_value_t*, jl_sym_t*);

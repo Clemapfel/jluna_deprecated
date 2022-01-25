@@ -21,13 +21,13 @@ Please navigate to the appropriate section by clicking the links below:
   5.3 [Named & Unnamed Proxies](#named-and-unnamed-proxies)<br>
   5.3 [Detached Proxies](#detached-proxies)<br>
 6. [Functions](#functions)<br>
-   6.1 [Accessing Julia Functions from C++](#accessing-julia-functions)<br>
-   6.2 [Calling Julia Functions from C++](#calling-julia-functions)<br>
-   6.3 [Accessing C++ Functions from Julia](#registering-functions)<br>
-   6.4 [Calling C++ Functions from Julia](#calling-c-functions-from-julia)<br>
+   6.1 [Accessing julia Functions from C++](#accessing-julia-functions)<br>
+   6.2 [Calling julia Functions from C++](#calling-julia-functions)<br>
+   6.3 [Accessing C++ Functions from julia](#registering-functions)<br>
+   6.4 [Calling C++ Functions from julia](#calling-c-functions-from-julia)<br>
    6.5 [Allowed Function Names](#allowed-function-names)<br>
    6.6 [Allowed Function Signatures](#possible-signatures)<br>
-   6.7 [Using arbitrary Objects in Julia Functions](#using-non-julia-objects-in-functions)<br>
+   6.7 [Using arbitrary Objects in julia Functions](#using-non-julia-objects-in-functions)<br>
 7. [Arrays](#arrays)<br>
   7.1 [Constructing Arrays](#ctors)<br>
   7.2 [Indexing](#indexing)<br>
@@ -51,7 +51,7 @@ Please navigate to the appropriate section by clicking the links below:
 
 ## Initialization
 
-Before any interaction with `jluna` or Julia can take place, the Julia state needs to be initialized:
+Before any interaction with `jluna` or julia can take place, the julia state needs to be initialized:
 
 ```cpp
 #include <jluna.hpp>
@@ -67,7 +67,7 @@ int main()
 }
 ```
 
-When a program exists regularly, all Julia-side values allocated through `jluna` are safely deallocated, however on an exit code other than `0`, it is recommended to manually call `State::shutdown()`.
+When a program exists regularly, all julia-side values allocated through `jluna` are safely deallocated, however on an exit code other than `0`, it is recommended to manually call `State::shutdown()`.
 
 ## Executing Code
 
@@ -95,7 +95,7 @@ State::safe_script(R"(
 
 ## Garbage Collector (GC)
 
-The Julia-side garbage collector operates completely independently, just like it would in a pure Julia program. However, sometimes it is necessary to disable or control its behavior manually. To do this, `jluna::State` offers the following member functions:
+The julia-side garbage collector operates completely independently, just like it would in a pure julia program. However, sometimes it is necessary to disable or control its behavior manually. To do this, `jluna::State` offers the following member functions:
 
 #### Enabling/Disabling GC
 ```cpp
@@ -112,9 +112,9 @@ We can access whether the GC is currently enabled using `State::is_garbage_colle
 
 ## Boxing / Unboxing
 
-Julia and C++ do not share any memory, often objects that have conceptually the same type have wildly different memory layouts. Because of this, we need to not only transfer memory from one language's state to the others but convert them to a memory layout understandable at the destination.
+julia and C++ do not share any memory, often objects that have conceptually the same type have wildly different memory layouts. Because of this, we need to not only transfer memory from one language's state to the others but convert them to a memory layout understandable at the destination.
 
-Converting, then sending a value from C++ to Julia is called *boxing*. Similarly, converting then sending a value from Julia to C++ is called *unboxing*. Any value needs to be (un)boxed, there are no exceptions. We can do so using the following functions:
+Converting, then sending a value from C++ to julia is called *boxing*. Similarly, converting then sending a value from julia to C++ is called *unboxing*. Any value needs to be (un)boxed, there are no exceptions. We can do so using the following functions:
 
 ```cpp
 template<typename T>
@@ -124,7 +124,7 @@ template<typename T>
 T unbox(jl_value_t*);
 ```
 
-where `jl_value_t*` is an address of Julia-side memory.
+where `jl_value_t*` is an address of julia-side memory.
 
 The property of being (un)boxable is represented in C++ as two concepts:
 
@@ -150,10 +150,10 @@ Given this, we can box/unbox any object that fulfills the above requirements lik
 ```cpp
 size_t cpp_side = 1001;
 
-// C++ -> Julia: boxing
+// C++ -> julia: boxing
 jl_value_t* jl_side = box(cpp_side);
 
-// Julia -> C++: unboxing
+// julia -> C++: unboxing
 size_t back_cpp_side = unbox<size_t>(jl_side);
 
 // verify nothing was lost in the conversion
@@ -163,14 +163,14 @@ std::cout << back_cpp_side << std::endl;
 1001
 ```
 
-Any type fulfilling the above requirements is accepted by most `jluna` functions. Usually these functions will implicitly (un)box their arguments and return types so most of the time, we don't have to worry about manually calling `box`/`unbox<T>`.
+Any type fulfilling the above requirements is accepted by most `jluna` functions. Usually these functions will implicitly (un)box their arguments and return types so most of the time, we don't have to worry about manually calling `box`/`unbox<T>`. This also means any user can define `box`/`unbox<T>` for their 3rd party class and it will work with all the `jluna` functions. We will learn more about this in the [section on usertypes](#usertypes).
 
 ### List of (Un)Boxables
 
 The following types are both boxable and unboxable out-of-the-box. 
 
 ```cpp
-// cpp type              // Julia-side type after boxing
+// cpp type              // julia-side type after boxing
 
 jl_value_t*              -> Any
 jl_module_t*             -> Module
@@ -212,74 +212,88 @@ std::set<T>              -> Set{T, U}       *
 ```
 ## Accessing Variables
 
-Instead of passing around unsafe pointers to Julia-side memory, it is instead managed C++-side by `jluna::Proxy`. Each proxy holds exactly one pointer and (optionally) a symbol, it's *name*. A proxy with a symbol is called a *named proxy*, a proxy who's symbol is `nullptr` is called an *unnamed proxy*.<br>
+Let's say we create a variable `var` julia-side:
 
-The main advantage of proxies is that the memory they point to is safe from the Julia garbage collector, as long as a proxy that needs the memory to stay valid is in scope C++-side, the memory is safe.
-Multiple proxies can take ownership of the same Julia-side value, its memory will only be freed once there are exactly 0 proxies pointing to it.
+```cpp
+State::script("var = 1234")
+```
+
+To access the value of that variable, we can use `State::safe_return<T>`:
+```cpp
+// access as int
+auto as_int = State::safe_return<int>("var");
+std::cout << as_int << std::endl;
+```
+```
+1234
+```
+
+Here, we can use any T such that `convert(T, typeof(var))` does not fail julia-side. <br>
+
+We only accessed `var` *value* here, however. Often we don't want to have to transfer the entire value from julia to C++ and back. With the julia C-API we would have to juggle unsafe, raw c-pointers. Instead, `jluna` offers a much safer and more convenient way to manage julia-side variables `jluna::Proxy`.<br>
+
+
 
 ### Mutating Variables
 
-We can access Julia-side variables as proxies in two distinct ways:
+We can access julia-side variables as proxies in two distinct ways:
 
 #### By Value
 
-To access a variable *by value*, use `script("return variable")`
-
 ```cpp
-State::safe_script("variable = 123"); // access
+State::safe_script("variable = 123");
 
-auto by_value = State::safe_script("return variable");
+auto by_value = State::safe_script("return variable"); // access
 
 std::cout << "before assignment:" << std::endl;
-State::safe_script("println(\"Julia: \", variable)");
+State::safe_script("println(\"julia: \", variable)");
 std::cout << "cpp  : " << (Int64) by_value << std::endl;
 
-by_value = 456; // assign proxy
+by_value = 456; // assign
 
 std::cout << "after assignment:" << std::endl;
-State::safe_script("println(\"Julia: \", variable)");
+State::safe_script("println(\"julia: \", variable)");
 std::cout << "cpp  : " << (Int64) by_value << std::endl;
 ```
 ```
 before assignment:
-Julia: 123
+julia: 123
 cpp  : 123
 
 after assignment:
-Julia: 123
+julia: 123
 cpp  : 456
 ```
 
-While mutating a C++-side proxy assigns it a new value, it **does not** mutate the original Julia-side variable. The proxy holds no information about where its value came from because it is unnamed. 
-
 #### By Name
 
-To access a variable *by name*, use `operator["variable"]`:
+To access a variable *by name*, we use `operator["variable"]`:
 
 ```cpp
+State::safe_script("variable = 123");
+
 auto by_name = Main["variable"]; // access
 
 std::cout << "before assignment:" << std::endl;
-State::safe_script("println(\"Julia: \", variable)");
+State::safe_script("println(\"julia: \", variable)");
 std::cout << "cpp  : " << (Int64) by_name << std::endl;
 
 by_name = 789;  // assign
 
 std::cout << "after assignment:" << std::endl;
-State::safe_script("println(\"Julia: \", variable)");
+State::safe_script("println(\"julia: \", variable)");
 std::cout << "cpp  : " << (Int64) by_name << std::endl;
 ```
 ```
 before assignment:
-Julia: 123
+julia: 123
 cpp  : 123
 
 after assignment:
-Julia: 789
+julia: 789
 cpp  : 789
 ```
 
-Mutating a **named** proxy also mutates the corresponding Julia-side variable (of the same name). We can verify whether a proxy has this behavior using the member function `is_mutating()`.
 
 ### Accessing Fields
 
@@ -303,20 +317,20 @@ State::safe_script("println(Main.instance._field)");
 321
 ```
 
-Because the proxies were created by `operator[]`, they are named and mutate it's corresponding variable (the field of the specific instance). If the structtype is not mutable, a Julia-side exception will be thrown on assignment.
+Because the proxies were created by `operator[]`, they are named and mutate it's corresponding variable (the field of the specific instance). If the structtype is not mutable, a julia-side exception will be thrown on assignment.
 <br>
-`jluna`s `operator[]` is designed to be equivalent to Julias dot-operator, however we cannot mix the two:
+`jluna`s `operator[]` is designed to be equivalent to julias dot-operator, however we cannot mix the two:
 
 ```cpp
 Main["instance._field"];
 ```
 ```
-terminate called after throwing an instance of 'jluna::JuliaException'
+terminate called after throwing an instance of 'jluna::juliaException'
   what():  UndefVarError: instance._field not defined
 Stacktrace:
   (...)
 ```
-It is good practice to never use the character `.` anywhere in the string that is `operator[]`s argument.
+It is good practice to never use the character `.` anywhere in the string that is `operator[]`s argument. 
 
 ### Named and Unnamed Proxies
 
@@ -324,7 +338,7 @@ To reiterate because it is important to be aware of this at all times:
 
 + `State::script` returns an *unnamed* proxy that does not mutate
 + `operator[] returns a *named* proxy 
-that does mutate
+that does mutate the julia-side variable of the same name
 
 We can check a proxies name using `.get_name()`
 
@@ -336,7 +350,7 @@ std::cout << by_name.get_name() << std::endl;
                 // empty string
 Main.variable
 ```
-An unnamed proxies name will be an empty string (or `Symbol("")`) Julia-side.<br>
+An unnamed proxies name will be an empty string (or `Symbol("")`) julia-side.<br>
 <br>
 While we cannot delete a proxies name, it is possible to create a new proxy using only the named proxies value. `jluna` offers a convenient member function for this: `Proxy::value() const`
 
@@ -354,7 +368,7 @@ Main.variable
               // empty string
 ```
 
-Note that both of these proxies point to the exact same memory Julia-side, that is, Julias operator `(===)` would return true.
+Note that both of these proxies point to the exact same memory julia-side, that is, julias operator `(===)` would return true.
 
 ### Detached Proxies
 
@@ -371,7 +385,7 @@ std::cout << var_proxy.operator std::string() << std::endl;
 ```
 What will this print? `proxy` is a named proxy, so it should correspond to the julia-side `var`, however we reassigned `var` with a completely different value.
 
-The answer is that the proxy will keep its value and print `[1, 2, 3, 4]`, however it is now in a state called *detached*. It has it's old value but it still has it's name `Main.var` which is now variable that doesn't point to a vector. Reading from the proxy is fine, it just returns the vector but what if we assign it?
+The answer is, that the proxy will keep its value and print `[1, 2, 3, 4]`, however it is now in a state called *detached*. It maintains its old value, but it still has it's name `Main.var` which is now variable that doesn't point to a vector. Reading from the proxy is fine, it just returns the vector but what if we assign it?
 
 ```cpp
 var_proxy[0] = 12
@@ -438,8 +452,8 @@ Now the proxy is a simple unnamed proxy that keeps the prior value `[1, 2, 3, 4]
 
 ## Functions
 
-### Calling Julia Functions from C++
-#### Accessing Julia Functions
+### Calling julia Functions from C++
+#### Accessing julia Functions
 
 Proxies can point to any value and this includes functions.
 We can obtain such a proxy using:
@@ -456,7 +470,7 @@ auto unnamed_f = State::safe_script("return f");
 
 
 
-#### Calling Julia Functions
+#### Calling julia Functions
 
 If the proxy is a function, it will be callable via `operator()`, `.call` and `.safe_call`, where `operator()` simply forwards the arguments to `.safe_call`:
 
@@ -479,8 +493,8 @@ Set{IdDict{UInt64, Pair{UInt64, Vector{Int32}}}}
 
 As mentioned before, any boxable type including proxies themself can be used as arguments directly, without manually having to call `box` or `unbox<T>`.
 
-### Calling C++ Functions from Julia
-The previous section dealt with calling Julia-side functions from C++. Now we will learn how to call C++-side functions from Julia.<br>
+### Calling C++ Functions from julia
+The previous section dealt with calling julia-side functions from C++. Now we will learn how to call C++-side functions from julia.<br>
 We first need *register* a function. Only lambdas can be registered:
 
 #### Registering Functions
@@ -497,7 +511,7 @@ register_function("print_vector", [](jl_value_t* in) -> jl_value_t* {
         e = (int e) + 10;
     }
 
-    // return as jluna object or boxed, both will be forwarded to Julia
+    // return as jluna object or boxed, both will be forwarded to julia
     return as_vector;
 });
 ```
@@ -523,19 +537,19 @@ See the [julia manual entry on variable names](https://docs.julialang.org/en/v1/
 
 #### Calling Functions
 
-After having registered a function, we then call the function (from within Julia) using `cppcall`. Instead of a string we're using a `Symbol` that has the exact same contents as the string name used C++-side. `cppcall` has the following signature:
+After having registered a function, we then call the function (from within julia) using `cppcall`. Instead of a string we're using a `Symbol` that has the exact same contents as the string name used C++-side. `cppcall` has the following signature:
 
 ```julia
 cppcall(::Symbol, xs...) -> Any
 ```
 
-Unlike Julias `ccall` we do not supply anything but the functions name and the arguments to be forwarded. The return type and type of the arguments is deduced automatically and we can use any Julia type as arguments, not just C-friendly ones.<br> <br>
-Calling our `print_vector` which first prints the entire vector, then adds `10` to each element in Julia would look like this:
+Unlike julias `ccall` we do not supply anything but the functions name and the arguments to be forwarded. The return type and type of the arguments is deduced automatically and we can use any julia type as arguments, not just C-friendly ones.<br> <br>
+Calling our `print_vector` which first prints the entire vector, then adds `10` to each element in julia would look like this:
 
 ```julia
 # in julia
 result = cppcall(:print_vector, [1, 2, 3, 4])
-println("Julia prints: ", result)
+println("julia prints: ", result)
 ```
 ```
 cpp prints:
@@ -544,10 +558,10 @@ cpp prints:
 3 
 4
 
-Julia prints: [11, 12, 13, 14]
+julia prints: [11, 12, 13, 14]
 ```
 
-We see that we can use the result of the function directly, as if it was a regular Julia-side function.
+We see that we can use the result of the function directly, as if it was a regular julia-side function.
 
 #### Possible Signatures
 
@@ -573,12 +587,12 @@ Only the following signatures for lambdas to be bound via `register_function` ar
 
 Templated lambdas are not allowed. 
 
-#### Using Non-Julia Objects in Functions
+#### Using Non-julia Objects in Functions
 
 While this may seem limiting at first, it is not. For example we can forward any C++ objects as as arguments not through the lambdas actual arguments but it's capture:
 
 ```cpp
-// a C++-object, uncompatible with Julia
+// a C++-object, uncompatible with julia
 struct Object
 {
     void operator()() // not const
@@ -622,13 +636,13 @@ decltype(auto) fancy_non_lambda_func(const T& t)
 // ... can be passed by wrapping it like so:
 register_function("fancy_f_int32", [](jl_value_t* jl_int) -> jl_value_t* {
     
-    // convert from Julia-value to cpp int
+    // convert from julia-value to cpp int
     int as_int = unbox<int>(jl_int); 
     
     // call cpp function
     auto res = fancy_non_lambda_func<int>(as_int);
     
-    // then convert from cpp-value to Julia-value and return
+    // then convert from cpp-value to julia-value and return
     return box(res);
 });
 
@@ -639,15 +653,15 @@ register_function("fancy_f_string", [](jl_value_t* jl_string) -> jl_value_t* {
     return box(res);
 });
 ```
-Through tricks like this, any function and any object can be called from Julia, however if we want to directly transfer memory between the two states, we will need to call `box`/`unbox<T>`.
+Through tricks like this, any function and any object can be called from julia, however if we want to directly transfer memory between the two states, we will need to call `box`/`unbox<T>`.
 
 ## Arrays
 
-Julia-side objects of type `T <: AbstractArray` are represented C++-side by their own proxy type: `jluna::Array<T, R>`. Just like in Julia, `T` is the value_type and `R` the rank or dimensionality of the array. <br>
+julia-side objects of type `T <: AbstractArray` are represented C++-side by their own proxy type: `jluna::Array<T, R>`. Just like in julia, `T` is the value_type and `R` the rank or dimensionality of the array. <br>
 
-Julia array types and `jluna` array types correspond to each other like so:
+julia array types and `jluna` array types correspond to each other like so:
 
-| Julia          | jluna         |
+| julia          | jluna         |
 |----------------|---------------|
 | `Vector{T}`    | `Vector<T>`   |
 | `Matrix{T}`    | `Array<T, 2>` |
@@ -671,7 +685,7 @@ auto by_value = State::script("return array").as<Array<Int64, 3>>();
 jluna::Array<Int64, 3> array = Main["array"];
 auto array = Main["array"].as<Array<Int64, 3>>();
 ```
-Where, just as before, only named proxies will mutate Julia-side variables.
+Where, just as before, only named proxies will mutate julia-side variables.
 
 We can use the generic value type `Any` to make it possible for the array proxy to attach any julia-side array, regardless of value type. `jluna` provides 3 convenient typedefs for this:
 
@@ -691,7 +705,7 @@ There are two ways to index a multidimensional array:
 + *linear* indexing treats the array as 1-dimensional and returns the n-th value in column-major order
 + *multidimensional* indexing requires one index per dimension
 
-While both of these styles of indexing are available in Julia, to keep with C-convention, indices in `jluna` are 0-based instead of 1-based.
+While both of these styles of indexing are available in julia, to keep with C-convention, indices in `jluna` are 0-based instead of 1-based.
 
 ```cpp
 jluna::Array<Int64, 3> array = Main["array"];
@@ -710,7 +724,7 @@ before [1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 22 25; 20 23 2
 after [1 4 7; 2 5 8; 3 6 9;;; 10 9999 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23 26; 21 24 27]
 ```
 
-While `jluna` cannot offer list comprehension, `jluna::Array` does allow for Julia-style indexing using a collection:
+While `jluna` cannot offer list comprehension, `jluna::Array` does allow for julia-style indexing using a collection:
 
 ```cpp
 auto sub_array = array.at({2, 13, 1}); // any iterable collection can be used
@@ -720,9 +734,9 @@ Base["println"](sub_array)
 [3, 14, 2]
 ```
 
-To closer illustrate the relationship between indexing in `jluna` and indexing in Julia, consider the following table (where `M` is a N-dimensional array)
+To closer illustrate the relationship between indexing in `jluna` and indexing in julia, consider the following table (where `M` is a N-dimensional array)
 
-| N | Julia |jluna |
+| N | julia |jluna |
 |------|-------|--------------------------|
 | 1    | `M[1]`| `M.at(0)` or `M[0]`|
 | 2    | `M[1, 2]`  | `M.at(0, 1)`|
@@ -732,7 +746,7 @@ To closer illustrate the relationship between indexing in `jluna` and indexing i
 
 ### Iterating
 
-In `jluna`, arrays of any dimensionality are iterable in column-major order (just as in Julia):
+In `jluna`, arrays of any dimensionality are iterable in column-major order (just as in julia):
 
 ```cpp
 Array<size_t, 2> array = State::script("return [1:2 3:4 5:6]");
@@ -772,7 +786,7 @@ Here, `auto` is deduced to a special iterator type that basically acts like a re
 
 ### Vectors
 
-Vector are just arrays, however similarly to `Vector{T}` in Julia, their 1-dimensionality gives them access to additional functions:
+Vector are just arrays, however similarly to `Vector{T}` in julia, their 1-dimensionality gives them access to additional functions:
 
 ```cpp
 State::safe_script("vector = collect(1:10)");
@@ -810,19 +824,19 @@ Note that `Array<T, R>::operator[](Range_t&&)` (linear indexing with a range) al
 This section will focus on using the C-API in addition to jluna and from within C++
 
 ```cpp
-#include <Julia.h>
+#include <julia.h>
 ```
 
 ### Meaning of C-Types
 
-+ `jl_value_t*`: address Julia-side value of arbitrary type
-+ `jl_function_t*`: address of Julia-side function
-+ `jl_sym_t*`: address of Julia-side symbol
-+ `jl_module_t*`: address of Julia-side singleton module
++ `jl_value_t*`: address julia-side value of arbitrary type
++ `jl_function_t*`: address of julia-side function
++ `jl_sym_t*`: address of julia-side symbol
++ `jl_module_t*`: address of julia-side singleton module
     - `jl_main_module`: Main
     - `jl_base_module`: Base
     - `jl_core_module`: Core
-+ `jl_datatype_t*`: address of Julia-side singleton type
++ `jl_datatype_t*`: address of julia-side singleton type
     - `jl_any_type`: Any
     - `jl_type_type`: Type
     - `jl_module_type`: Module
@@ -851,7 +865,7 @@ jluna::forward_last_exception();
 // exception thrown
 ```
 ```
-terminate called after throwing an instance of 'jluna::JuliaException'
+terminate called after throwing an instance of 'jluna::juliaException'
   what():  DomainError(-1.0, "sqrt will only return a complex result if called with a complex argument. Try sqrt(Complex(x)).")
 Stacktrace: <no stacktrace available>
 ```
@@ -911,7 +925,7 @@ for (size_t i = 0; i < jl_array_len(array); ++i)    // 0-based
 jl_array_t* array = (jl_array_t*) jl_eval_string("return [1, 2, 3, 4]");
 
 jl_arrayset(array, box<Int64>(999), 0); 
-// box<T> with exact equivalent of T Julia
+// box<T> with exact equivalent of T julia
 // jluna does fuzzy conversion behind the scenes, C doesn't
 
 jl_function_t* println = jl_get_function(jl_base_module, "println");

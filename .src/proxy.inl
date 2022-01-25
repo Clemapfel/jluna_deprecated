@@ -327,6 +327,7 @@ namespace jluna
     {
         static jl_function_t* safe_call = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.exception_handler"), "safe_call");
         static jl_function_t* assemble_eval = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "evaluate");
+        static jl_function_t* set_reference = jl_get_function((jl_module_t*) jl_eval_string("return Main.jluna.memory_handler"), "set_reference");
 
         auto name = assemble_name();
         std::vector<jl_value_t*> args = {(jl_value_t*) assemble_eval};
@@ -336,6 +337,8 @@ namespace jluna
 
         jl_value_t* new_value = jl_call(safe_call, args.data(), args.size());
         forward_last_exception();
-        this->operator=(new_value);
+
+        _content->_value_ref = jl_call3(safe_call, (jl_value_t*) set_reference, jl_box_uint64(_content->value_key()), new_value);
+        forward_last_exception();
     }
 }
