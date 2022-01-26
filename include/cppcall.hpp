@@ -76,7 +76,6 @@ namespace jluna
     template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda);
 
-
     namespace detail
     {
         static inline size_t _internal_function_id_name = 0;

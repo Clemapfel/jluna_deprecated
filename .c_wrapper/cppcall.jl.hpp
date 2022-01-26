@@ -26,7 +26,19 @@ module _cppcall
 
         _function_name::Symbol
     end
-    Base.showerror(io::IO, e::UnregisteredFunctionNameException) = print(io, "UnregisteredFunctionNameException: no C++ function with name :" * string(e._function_name) * " registered")
+    Base.showerror(io::IO, e::UnregisteredFunctionNameException) = print(io, "cppcall.UnregisteredFunctionNameException: no C++ function with name :" * string(e._function_name) * " registered")
+
+    """
+    an exception thrown when the number of arguments does not match the number of arguments
+    expected by the registered lambda
+    """
+    mutable struct TupleSizeMismatchException <: Exception
+
+        _function_name::Symbol
+        _expected::Int64
+        _got::Int64
+    end
+    Base.showerror(io::IO, e::TupleSizeMismatchException) = print(io, "cppcall.TupleSizeMismatchException: C++ function with name :" * string(e._function_name) * " expects " * string(e._expected) * " arguments but was called with " * string(e._got))
 
     """
     `set_result(::Any) -> Nothing`
@@ -104,9 +116,13 @@ function cppcall(function_name::Symbol, xs...) ::Any
 
     id = hash(function_name)
 
-    if (!ccall((:is_registered, _cppcall._library_name), Bool, (Csize_t,), id))
+    if !ccall((:is_registered, _cppcall._library_name), Bool, (Csize_t,), id)
         throw(_cppcall.UnregisteredFunctionNameException(function_name))
-        #ccall((:throw_undefined_symbol, _cppcall._library_name), Cvoid, (Cstring,), string(function_name))
+    end
+
+    n_args_expected = ccall((:get_n_args, _cppcall._library_name), Csize_t, (Csize_t,), id)
+    if length(xs) != n_args_expected
+        throw(_cppcall.TupleSizeMismatchException(function_name, n_args_expected, length(xs)))
     end
 
     _cppcall.set_arguments(xs...)

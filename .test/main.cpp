@@ -27,15 +27,6 @@ int main()
 {
     State::initialize();
 
-    register_function("test", [](jl_value_t* a, jl_value_t* b) -> void
-    {
-        Base["println"](a);
-        Base["println"](b);
-    });
-
-    State::safe_script("cppcall(:test, 1, 2, 3)");
-
-    return 0;
 
     // #####################
     Test::initialize();
@@ -681,22 +672,6 @@ int main()
         Test::assert_that(thrown);
     });
 
-    Test::test("C: undefined symbol", [](){
-
-        bool thrown = false;
-
-        try
-        {
-            c_adapter::throw_undefined_symbol("name");
-        }
-        catch (...)
-        {
-            thrown = true;
-        }
-
-        Test::assert_that(thrown);
-    });
-
     Test::test("C: call success", [](){
 
         register_function("test", [](jl_value_t* in) -> jl_value_t* {
@@ -745,13 +720,30 @@ int main()
 
     Test::test("C: reject wrong-sized tuple", [](){
 
-        register_function("test", [](jl_value_t* a, jl_value_t* b) -> void
-        {
-            Base["println"](a);
-            Base["println"](b);
-        });
+        register_function("zero", []() -> void {});
+        register_function("one", [](jl_value_t*) -> void {});
+        register_function("two", [](jl_value_t*, jl_value_t*) -> void {});
+        register_function("three", [](jl_value_t*, jl_value_t*, jl_value_t*) -> void {});
+        register_function("four", [](jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> void {});
+        register_function("five", [](jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*) -> void {});
 
-        State::safe_script("cppcall(:test, 1)");
+        for (std::string e : {"one", "two", "three", "four", "five"})
+        {
+            bool thrown = false;
+            try
+            {
+                if (e == "zero")
+                    State::safe_script("cppcall(:" + e + ", 123)");
+                else
+                    State::safe_script("cppcall(:" + e + ")");
+            }
+            catch (JuliaException& e)
+            {
+                thrown = true;
+            }
+
+            Test::assert_that(thrown);
+        }
     });
 
 

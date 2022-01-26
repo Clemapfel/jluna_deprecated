@@ -24,7 +24,7 @@ extern "C"
             jl_value_t* tuple = jl_call0(get_args);
             jl_value_t* res;
 
-            res = _functions.at(id)(tuple);
+            res = _functions.at(id).first(tuple);
 
             if (res == nullptr) // catch returning nullptr
                 res = jl_nothing;
@@ -38,7 +38,7 @@ extern "C"
             return jl_unbox_uint64(jl_call1(hash, (jl_value_t*) jl_symbol(str.data())));
         }
 
-        void register_function(const std::string& name, std::function<jl_value_t*(jl_value_t*)>&& lambda)
+        void register_function(const std::string& name, size_t n_args, std::function<jl_value_t*(jl_value_t*)>&& lambda)
         {
             [[unlikely]]
             if (name.find('.') != std::string::npos or name.at(0) == '#')
@@ -47,7 +47,7 @@ extern "C"
                 throw std::invalid_argument(str.c_str());
             }
 
-            _functions.insert({hash(name), lambda});
+            _functions.insert({hash(name), std::make_pair(lambda, n_args)});
         }
 
         void unregister_function(const std::string& name)
@@ -61,11 +61,9 @@ extern "C"
             return it != _functions.end();
         }
 
-        void throw_undefined_symbol(const char* str)
+        size_t get_n_args(size_t id)
         {
-            std::string msg = str;
-            msg = "[JULIA][EXCEPTION] in julia-side cppcall: no function with symbol :" + msg + " registered";
-            throw std::invalid_argument(msg);
+            return _functions.at(id).second;
         }
     }
 }

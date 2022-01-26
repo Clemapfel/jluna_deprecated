@@ -20,7 +20,7 @@ extern "C"
     namespace jluna::c_adapter
     {
         /// @brief holds lambda registers via jluna
-        static std::map<size_t, std::function<jl_value_t*(jl_value_t*)>> _functions;
+        static std::map<size_t, std::pair<std::function<jl_value_t*(jl_value_t*)>, size_t>> _functions;
 
         /// @brief initialize c-adapter
         /// @note call from julia using: ccall((:initialize, "./libjluna_c_adapter.so"), Cvoid, ())
@@ -30,19 +30,19 @@ extern "C"
         size_t hash(const std::string&);
 
         /// @brief add lambda to function register
-        void register_function(const std::string& name, std::function<jl_value_t*(jl_value_t*)>&&);
+        void register_function(const std::string& name, size_t n_args, std::function<jl_value_t*(jl_value_t*)>&&);
 
         /// @brief call lambda by id
         void call_function(size_t);
+
+        /// @brief get number of tuples allowed for function with id
+        size_t get_n_args(size_t);
 
         /// @brief remove lambda from function register
         void unregister_function(const std::string& name);
 
         /// @brief check if function is registered
         bool is_registered(size_t id);
-
-        /// @brief c++ side exception from julia
-        void throw_undefined_symbol(const char*);
     }
 }
 
@@ -52,5 +52,6 @@ void initialize();
 void call_function(size_t);
 bool is_registered(size_t);
 void throw_undefined_symbol(const char*);
+size_t get_n_args(size_t);
 
 #endif
