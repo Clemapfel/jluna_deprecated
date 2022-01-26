@@ -40,6 +40,8 @@ auto instance_field = instance["_field"];
 
 instance_field = 5678;
 
+= jl_eval_string("return 1234");
+
 State::script("println(instance)");
 
 

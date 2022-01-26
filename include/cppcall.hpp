@@ -75,6 +75,13 @@ namespace jluna
     /// @param lambda
     template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda);
+
+
+    template<detail::LambdaType<> Lambda_t>
+    void assign_function(const std::string& name, Lambda_t&& lambda);
+
+    template<detail::LambdaType<jl_value_t*> Lambda_t>
+    void register_function(const std::string& name, Lambda_t&& lambda);
 }
 
 #include ".src/cppcall.inl"

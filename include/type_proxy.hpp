@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <proxy.hpp>
+
 namespace jluna
 {
     // this feature is not yet implemented
