@@ -1,10 +1,10 @@
-# jluna: Quick & Dirty
+# jluna: An Introduction
 
-This page will give a fly-by, abbreviated overview of all of `jluna`s relevant features and syntax. While it is useful for referencing back to, it should not be considered a proper manual. It is recommended that you read the tutorial on [~~jluna::Proxy~~]() at some point.
+This page will give an abbreviated overview of most of `jluna`s relevant features and syntax. While it is useful for referencing back to, and as an introduction to `jluna`, it should not be considered a proper manual. 
+
+### Table Of Contents
 
 Please navigate to the appropriate section by clicking the links below:
-
-## Table Of Contents
 
 1. [Initialization & Shutdown](#initialization)<br>
 2. [Executing Code](#executing-code)<br>
@@ -18,8 +18,10 @@ Please navigate to the appropriate section by clicking the links below:
 5. [Accessing Variables through Proxies](#accessing-variables)<br>
   5.1 [Mutating Variables](#mutating-variables)<br>
   5.2 [Accessing Fields](#accessing-fields)<br>
-  5.3 [Named & Unnamed Proxies](#named-and-unnamed-proxies)<br>
-  5.3 [Detached Proxies](#detached-proxies)<br>
+  5.3 [Named Proxies](#named-proxies)<br>
+  5.4 [Unnamed Proxies](#unnamed-proxy)<br>
+  5.5 [Detached Proxies](#detached-proxies)<br>
+  5.6 [Making a Named Proxy Unnamed](#making-a-named-proxy-unnamed)<br>
 6. [Functions](#functions)<br>
    6.1 [Accessing julia Functions from C++](#accessing-julia-functions)<br>
    6.2 [Calling julia Functions from C++](#calling-julia-functions)<br>
@@ -212,13 +214,27 @@ std::set<T>              -> Set{T, U}       *
 ```
 ## Accessing Variables
 
-Let's say we create a variable `var` julia-side:
+Let's say we have a variable `var` julia-side:
 
 ```cpp
 State::script("var = 1234")
 ```
 
-To access the value of that variable, we can use `State::safe_return<T>`:
+To access the value of this variable we can use the C-API to receive a pointer to the memory `var` holds, then unbox that pointer:
+
+```cpp
+// get raw address
+jl_value_t* var_ptr = jl_eval_string("return var");
+auto as_int = unbox<int>(var_ptr);
+
+std::cout << as_int << std::endl;
+```
+```
+1234
+```
+
+`State::safe_return<T>` essentially does the same except it will forward any exception thrown during `return var` (such as `UndefVarError`):
+
 ```cpp
 // access as int
 auto as_int = State::safe_return<int>("var");
@@ -228,227 +244,355 @@ std::cout << as_int << std::endl;
 1234
 ```
 
-Here, we can use any T such that `convert(T, typeof(var))` does not fail julia-side. <br>
+While both ways get us the desired value, neither is a good way to actually manage the variable itself. How do we reassign it? Can we dereference the c-pointer? Who has ownership of the memory? All these questions are hard to manage using the C-API, however `jluna` offers a one-stop-shop solution for all of these problems: `jluna::Proxy`.
 
-We only accessed `var` *value* here, however. Often we don't want to have to transfer the entire value from julia to C++ and back. With the julia C-API we would have to juggle unsafe, raw c-pointers. Instead, `jluna` offers a much safer and more convenient way to manage julia-side variables `jluna::Proxy`.<br>
+A proxy holds two things: the memory address of its value and a symbol. We'll get to the symbol later, for now let's focus on the memory:<br>
+Memory held by a proxy is safe from the julia garbage collector (GC) and assured to be valid. This means we don't have to worry about keeping a reference or pausing the GC when modifying the variable. Any memory, be it temporary or something explicitly referenced by a julia-side variable, is gaaranteed to be safe to access. 
 
-
-
-### Mutating Variables
-
-We can access julia-side variables as proxies in two distinct ways:
-
-#### By Value
+We rarely create a proxy ourself, most of the time it will be generated for use by `State::(safe_)script`:
 
 ```cpp
-State::safe_script("variable = 123");
-
-auto by_value = State::safe_script("return variable"); // access
-
-std::cout << "before assignment:" << std::endl;
-State::safe_script("println(\"julia: \", variable)");
-std::cout << "cpp  : " << (Int64) by_value << std::endl;
-
-by_value = 456; // assign
-
-std::cout << "after assignment:" << std::endl;
-State::safe_script("println(\"julia: \", variable)");
-std::cout << "cpp  : " << (Int64) by_value << std::endl;
+State::script("var = 1234")
+auto proxy = State::script("return var")
 ```
-```
-before assignment:
-julia: 123
-cpp  : 123
+Use of `auto` simplifies the declaration and is encouraged whenever possible.<br>
 
-after assignment:
-julia: 123
-cpp  : 456
-```
-
-#### By Name
-
-To access a variable *by name*, we use `operator["variable"]`:
+Now that we have the proxy, we need to convert it to a value. Unlike the C-APIs `jl_value_t*`, this is done implicitly or any of the following ways:
 
 ```cpp
-State::safe_script("variable = 123");
+// all following statements are exactly equivalent:
 
-auto by_name = Main["variable"]; // access
+int as_int = proxy;   // recommended
 
-std::cout << "before assignment:" << std::endl;
-State::safe_script("println(\"julia: \", variable)");
-std::cout << "cpp  : " << (Int64) by_name << std::endl;
+auto as_int = proxy.operator int();
 
-by_name = 789;  // assign
+auto as_int = static_cast<int>(proxy);
 
-std::cout << "after assignment:" << std::endl;
-State::safe_script("println(\"julia: \", variable)");
-std::cout << "cpp  : " << (Int64) by_name << std::endl;
-```
-```
-before assignment:
-julia: 123
-cpp  : 123
+auto as_int = (int) proxy;
 
-after assignment:
-julia: 789
-cpp  : 789
+auto as_int = unbox<int>(proxy) // discouraged
 ```
 
-
-### Accessing Fields
-
-Using `operator[](std::string)`, we can access both names in a module (including `Main`, like above) and fields of a structtype:
+Where the first version is encouraged for style reasons. `jluna` handles implicit conversion behind-the scene, this makes it so we don't have to worry what the actual type of the julia-value is. `jluna` will try it's hardest to make your declaration work:
 
 ```cpp
-State::safe_script(R"(
-    struct StructType
-        _field
-    end
+size_t as_size_t = proxy;
+std::string as_string = proxy;
+std::complex<double> as_complex = proxy;
 
-    instance = StructType(123);
-)");
-
-auto field_proxy = Main["instance"]["_field"];
-field_proxy = 321;
-
-State::safe_script("println(Main.instance._field)");
+std::cout << "size_t : " << as_size_t << std::endl;
+std::cout << "string : " << as_string << std::endl;
+std::cout << "complex: " << as_complex.real() << " | " << as_complex.imag() << std::endl;
 ```
 ```
-321
+1234
+"1234"
+1234 | 0
 ```
 
-Because the proxies were created by `operator[]`, they are named and mutate it's corresponding variable (the field of the specific instance). If the structtype is not mutable, a julia-side exception will be thrown on assignment.
-<br>
-`jluna`s `operator[]` is designed to be equivalent to julias dot-operator, however we cannot mix the two:
+Of course if the type of the julia variable cannot be converted to the target type, an exception is thrown:
 
 ```cpp
-Main["instance._field"];
+std::vector<double> as_vec = proxy;
 ```
 ```
-terminate called after throwing an instance of 'jluna::juliaException'
-  what():  UndefVarError: instance._field not defined
-Stacktrace:
+terminate called after throwing an instance of 'jluna::JuliaException'
+  what():  MethodError: Cannot `convert` an object of type Int64 to an object of type Vector
   (...)
 ```
-It is good practice to never use the character `.` anywhere in the string that is `operator[]`s argument. 
 
-### Named and Unnamed Proxies
+This is already much more convenient than manually unboxing c-pointers, however the true usefulness of proxies comes in their ability to *mutate* julia-side values.
 
-To reiterate because it is important to be aware of this at all times:
+## Mutating Variables
 
-+ `State::script` returns an *unnamed* proxy that does not mutate
-+ `operator[] returns a *named* proxy 
-that does mutate the julia-side variable of the same name
+As stated before, a proxies holds exactly one pointer to julia-side memory and exactly one symbol. There are two types of symbols:
 
-We can check a proxies name using `.get_name()`
++ a symbol starting with the character `#` is called an *internal id*
++ any other symbol is called a *name*
 
-```cpp
-std::cout << by_value.get_name() << std::endl;
-std::cout << by_name.get_name() << std::endl;
-```
-```
-                // empty string
-Main.variable
-```
-An unnamed proxies name will be an empty string (or `Symbol("")`) julia-side.<br>
-<br>
-While we cannot delete a proxies name, it is possible to create a new proxy using only the named proxies value. `jluna` offers a convenient member function for this: `Proxy::value() const`
+The behavior of proxies changes, depending on wether their symbol is a name or not. A proxies whos symbol is a name is called a **named proxy**, a proxy whos symbol is an internal id is called an **unnamed proxy**. 
+
+To generate an unnamed proxy, we use `State::(safe_)script`.<br> To generate a named proxy we use `Proxy::operator[]`.
 
 ```cpp
-State::script("variable = 123");
+State::safe_script("var = 1234");
 
-auto named = Main["variable"];
-std::cout << named.get_name();
-
-auto as_value = named.value();
-std::cout << as_value.get_name() << std::endl;
-```
-```
-Main.variable
-              // empty string
+auto unnamed_proxy = State::safe_script("return var");
+auto named_proxy = Main["var"];
 ```
 
-Note that both of these proxies point to the exact same memory julia-side, that is, julias operator `(===)` would return true.
+where `Main`, `Base`, `Core` are global, static, pre-initialized proxies holding the corresponding julia-side module.
+
+We can check a proxies name using `.get_name()`:
+
+```cpp
+std::cout << unnamed_proxy.get_name() << std::endl;
+std::cout << named_proxy.get_name() << std::endl;
+```
+```
+<unnamed proxy #9>
+Main.var
+```
+We see that `unnamed_proxy`s symbol is `#9`, while `named_proxy`s symbol is `Main.var`, the same name as the julia-side variable `var` that we used to create it.
+
+### Named Proxies
+
+Iff a proxy is named, assigning it will change the corresponding variable julia-side:
+
+```cpp
+State::safe_script("var = 1234")
+
+auto named_proxy = Main["var"];
+
+std::cout << "// before:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
+
+named_proxy = 5678; // assign
+
+std::cout << "// after:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
+```
+```
+// before:
+cpp   : 1234
+julia : 1234
+// after:
+cpp   : 5678
+julia : 5678
+```
+
+We see that after assignment, both the value `named_proxy` is pointing to, and the variable of the same name "`Main.var`" were affected by the assignment. This is somewhat atypical for julia but very familiar to C++-users. A named proxy acts like a reference to the julia-side variable. <br><br> Because of this behavior, it lets us do things like:
+
+```cpp
+State::safe_script("vector_var = [1, 2, 3, 4]")
+Main["vector_var"][0] = 999;   // indices are 0-based in C++
+Base["println"]("julia prints: ", Main["vector_var"]);
+```
+```
+julia prints: [999, 2, 3, 4]
+```
+
+Which is highly convenient. 
+
+### Unnamed Proxy
+
+Mutating an unnamed proxy will only mutate it's value, not the value of any julia-side variable:
+```cpp
+State::safe_script("var = 1234")
+auto unnamed_proxy = State::safe_script("return var");
+
+std::cout << "// before:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
+
+unnamed_proxy = 5678; // assign
+
+std::cout << "// after:" << std::endl;
+std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
+State::safe_script("println(\"julia : \", Main.var)");
+```
+```
+// before:
+cpp   : 1234
+julia : 1234
+// after:
+cpp   : 5678
+julia : 1234
+```
+
+We see that `unnamed_proxy` get assigned a new memory address pointing to the new value `5678`, but `Main.var` is completely unaffected by this change. This makes sense, if we check `unnamed_proxy`s symbol again:
+
+```cpp
+std::cout << unnamed_proxy.get_name() << std::endl;
+```
+```
+<unnamed proxy #9>
+```
+
+We see that is does not have a name, just an internal id. Therefore, it has no way to know where it's value came from and thus does not mutate anything but the C++ variable.
+
+When we called `return var`, julia did not return the variable itself but the value of said variable. An unnamed proxy thus behaves like a deepcopy of the value, **not** like a reference.
+
+#### In Summary
+
++ We create a **named proxy** using `Main["var"]`. Assigning a named proxy mutates its value and mutates the corresponding julia-side variable of the same name
++ We create an **unnamed proxy** using `State::(safe_)script("return var")`. Assigning an unnamed proxy mutates its value but does not mutate any julia-side variable
+
+This is important to realize and is the basis of much of `jluna`s syntax.
 
 ### Detached Proxies
 
 Consider the following code:
 
 ```cpp
-State::script("var = [1, 2, 3, 4]");
-auto var_proxy = Main["var"];
+State::safe_script("var = 1234");
+auto named_proxy = Main["var"];
 
-// reassign in julia state only
-State::script("var = 9999");
+State::safe_script(R"(var = ["abc", "def"])");
 
-std::cout << var_proxy.operator std::string() << std::endl;
-```
-What will this print? `proxy` is a named proxy, so it should correspond to the julia-side `var`, however we reassigned `var` with a completely different value.
-
-The answer is, that the proxy will keep its value and print `[1, 2, 3, 4]`, however it is now in a state called *detached*. It maintains its old value, but it still has it's name `Main.var` which is now variable that doesn't point to a vector. Reading from the proxy is fine, it just returns the vector but what if we assign it?
-
-```cpp
-var_proxy[0] = 12
+std::cout << named_proxy.operator std::string() << std::endl;
 ```
 
-It will attempt to mutate `var` using `Main.eval(:(Main.var[0] = 12))`. Of course `var` is now no longer a vector so we get an exception:
+What will this print? We know `named_proxy` is a named proxy so it should correspond to the variable `var`, however we reassigned `var` to a completely different value using only julia. `named_proxy` was never made aware of this, so it still currently points to its old value:
 
 ```
-terminate called after throwing an instance of 'jluna::JuliaException'
-  what():  MethodError: no method matching setindex!(::Int64, ::Int32, ::Int64)
-Stacktrace:
- [1] assemble_assign(::Int32, ::Symbol, ::Vararg{Symbol})
-   @ Main.jluna ~/Workspace/jluna/.src/julia/common.jl:233
- [2] safe_call(::Function, ::Int32, ::Symbol, ::Vararg{Symbol})
-   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:80
-  (...)
+std::cout << named_proxy.operator std::string() << std::endl;
+```
+```
+1234
 ```
 
-There are 3 ways to fix this: For one, we could just not reassign variables bound to proxies outside C++. Of course this is not always possible, so instead `jluna` offers two ways of making the proxy "stable" again:
+While still retaining its name:
 
-```cpp
-State::script("var = [1, 2, 3, 4]");
-auto var_proxy = Main["var"];
-State::script("var = 9999");
-
-// update value
-var_proxy.update();
-
-var_proxy = 12; // works and modifies var
-
-std::cout << proxy.get_name() << std::endl;
-std::cout << "cpp  : " << var_proxy.operator int() << std::endl;
-Base["println"]("julia: ", Main["var"]);
+```
+std::cout << named_proxy.get_name() << std::endl;
 ```
 ```
 Main.var
-cpp  : 12
-julia: 12
 ```
-By calling `update`, the proxy evaluates its own name and assigns the resulting value to itself. Now the value of the proxy corresponds to the value of the variable in julia and everything works like expected again.<br>
-However, this also means that `var_proxy` no longer points to `[1, 2, 3, 4]` (though it may be kept in memory by other proxies that need it). If we want the proxy to *keep* the value, we instead make it an unnamed proxy:
+
+This proxy is in what's called a *detached state*. Even though it is a named proxy, its current value does not correspond to the value of it's julia-side variable. This may have unforeseen consequences:
 
 ```cpp
-State::script("var = [1, 2, 3, 4]");
-auto var_proxy = Main["var"];
-State::script("var = 9999");
+State::safe_script("var = 1234");
+auto named_proxy = Main["var"];
+State::safe_script(R"(var = ["abc", "def"])");
 
-// make unnamed
-var_proxy = var_proxy.value();
-
-var_proxy[0] = 777; // works and modifies [1, 2, 3, 4]
-
-std::cout << proxy.get_name() << std::endl;
-std::cout << "cpp  : " << var_proxy.operator int() << std::endl;
-Base["println"]("julia: ", Main["var"]);
+std::cout << named_proxy[2].operator std::string() << std::endl;
 ```
 ```
-                        // empty string
-cpp  : [777, 2, 3, 4]
-julia: 9999
+terminate called after throwing an instance of 'jluna::JuliaException'
+  what():  BoundsError
+Stacktrace:
+ [1] getindex(x::Int64, i::UInt64)
+   @ Base ./number.jl:98
+ [2] safe_call(::Function, ::Int64, ::UInt64)
+   @ Main.jluna.exception_handler ~/Workspace/jluna/.src/julia/exception_handler.jl:80
+
+signal (6): Aborted
 ```
 
-Now the proxy is a simple unnamed proxy that keeps the prior value `[1, 2, 3, 4]` (now: `[777, 2, 3, 4]` in memory while not interfering with the newly assigned julia variable `var` at all.
+Even though `var` is a vector julia-side, accessing the second index of `named_proxy` throws a BoundsError because of course, `name_proxy`s value `Int64(1234)` does not have a second index.
+
+Assigning a detached proxy will still mutate the corresponding variable:
+
+```cpp
+State::safe_script("var = 1234");
+auto named_proxy = Main["var"];
+State::safe_script(R"(var = ["abc", "def"])");
+
+State::safe_script("println(\"before:\", var)");
+
+named_proxy = 5678;
+
+State::safe_script("println(\"after :\"var)");
+```
+```
+before: ["abc", "def"]
+after : 5678
+```
+
+While this behavior is internally consistent, it may cause unintentional bugs when reassign a variable frequently both in C++ and julia. To alleviate this, `jluna` offers a member function `.update` which evaluates the proxies names and replaces its value with value of the variable:
+
+```cpp
+State::safe_script("var = 1234");
+auto named_proxy = Main["var"];
+State::safe_script(R"(var = ["abc", "def"])");
+
+named_proxy.update();
+
+std::cout << named_proxy.operator std::string() << std::endl;
+```
+```
+["abc", "def"]
+```
+While not necessary to do everytime an assignment happens, it is a convenient way to fix a detached proxy.
+
+### Making a Named Proxy Unnamed
+
+Sometimes it is desirable to stop a proxy from mutating the variable, even though it is a named proxy. While we cannot change a proxies name, we can generate a new unnamed proxy using the member function `.value`. This functions returns an unnamed proxy pointing to a deepcopy of the value of the original proxy. 
+
+```cpp
+State::script("var = 1234");
+auto named_proxy = Main["var"];
+
+auto value = named_proxy.value();   // create nameless deepcopy
+
+// assigning either does not affect the other
+named_proxy = 4567;
+value = 9999;
+
+std::cout << "named: " << named_proxy.operator int() << std::end,
+std::cout << "value: " << named_proxy.operator int() << std::end,
+```
+```
+named: 4567
+value: 9999
+```
+
+Therefore, to make a proxy `proxy` unnamed, we can simply assign the value of it to itself:
+
+```cpp
+auto proxy = /*...*/
+proxy = proxy.value()
+```
+
+### Accessing Fields
+
+For a proxy whos value is a `structtype`, we can access any field using `operator[]`:
+
+```cpp
+State::safe_script(R"(
+    mutable struct StructType
+        _field
+    end
+    
+    instance = StructType(1234)
+)");
+
+auto instance = Main["instance"];
+
+std::cout << instance["_field"].operator int() << std::endl;
+```
+```
+1234
+```
+
+As before `operator[]` returns a named proxy and assigning a named proxy also assigns the corresponding variable. This means we can assign fields just like we assigned variables in module-scope:
+
+```cpp
+State::safe_script(R"(
+    mutable struct StructType
+        _field
+    end
+    
+    instance = StructType(1234)
+)");
+
+auto instance = Main["instance"];
+auto instance_field = instance["_field"];
+
+instance_field = 5678;
+
+State::script("println(instance)");
+```
+```
+StructType(5678)
+```
+
+Of course, we could also do the above inline:
+
+```cpp
+Main["instance"]["_field"] = 9999;
+State::script("println(instance)");
+```
+```
+StructType(5678)
+```
+
+Which is, again, highly convenient.
 
 ## Functions
 

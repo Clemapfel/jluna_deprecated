@@ -27,30 +27,25 @@ int main()
 {
     State::initialize();
 
-    State::safe_script("var = 1234");
+   State::safe_script(R"(
+    mutable struct StructType
+        _field
+    end
 
-    State::safe_script("var = 1234");
+    instance = StructType(1234)
+)");
 
-auto named_proxy = State::script("return var");
+auto instance = Main["instance"];
+auto instance_field = instance["_field"];
 
-std::cout << "// before:" << std::endl;
-std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
-State::safe_script("println(\"julia : \", Main.var)");
+instance_field = 5678;
 
-named_proxy = 5678; // assign
+State::script("println(instance)");
 
-std::cout << "// after:" << std::endl;
-std::cout << "cpp   : " << named_proxy.operator int() << std::endl;
-State::safe_script("println(\"julia : \", Main.var)");
-    return 0;
-
-    auto unnamed = State::safe_script("return variable");
-    auto named = Main["variable"];
-
-    std::cout << "unnamed: " << unnamed.get_name() << std::endl;
-    std::cout << "named  : " << named.get_name() << std::endl;
 
     return 0;
+
+    // #####################
     Test::initialize();
 
     Test::test("safe_script: exception forwarding", [](){
