@@ -178,68 +178,9 @@ begin # included into module jluna
 
             return nothing;
         end
+
+        """
+        """
+        function wrap_lambda() end
     end
 end
-
-"""
-
-    \"""
-    assemble_name(::Symbol...) -> String
-
-    used by jluna::Proxy C++-side to generate it's own variable name
-    \"""
-    function assemble_name(names::Symbol...) ::String
-
-        assembled = ""
-
-        for (i, s) in enumerate(names)
-
-            as_string = string(s)
-            if i != 1 && as_string[1] != '['
-                assembled *= "."
-            end
-
-            assembled *= as_string
-        end
-
-        return assembled;
-    end
-
-    \"""
-    abc
-    \"""
-    function assemble_assign(owner::U, new_value::T, names::Symbol...) ::T where {T, U}
-
-        if owner isa Module
-            name = assemble_name(names...)
-            Owner.eval(:(.(Meta.parse(name)) = .new_value))
-        else
-            # partial name available
-            str = ""
-
-            for n in names
-                if string(n)[1] != '['
-                    str *= "."
-                end
-                str *= string(n)
-            end
-
-            full = string(owner) * str * " = " * string(new_value)
-            println(full)
-            return Main.eval(Meta.parse(full))
-        end
-
-        return new_value
-    end
-
-    \"""
-    assemble_eval(::Symbol...) -> Any
-
-    used by jluna::Proxy C++-side to evaluate the value of it's variable
-    \"""
-    function assemble_eval(names::Symbol...) ::Any
-
-        name = assemble_name(names...)
-        return Main.eval(Meta.parse(name));
-    end
-"""

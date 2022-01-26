@@ -82,7 +82,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(jl_value_t*) or jl_value_t*(jl_value_t*)
     template<detail::LambdaType<jl_value_t*> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -97,7 +96,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(jl_value_t*, jl_value_t*) or jl_value_t*(jl_value_t*, jl_value_t*)
     template<detail::LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -111,7 +109,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(3x jl_value_t*) or jl_value_t*(3x jl_value_t*)
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -126,7 +123,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(4x jl_value_t*) or jl_value_t*(4x jl_value_t*)
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -142,7 +138,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(5x jl_value_t*) or jl_value_t*(5x jl_value_t*)
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -159,7 +154,6 @@ namespace jluna
         });
     }
 
-    /// @brief register lambda with signature void(std::vector<jl_value_t*>) or jl_value_t*(std::vector<jl_value_t*>)
     template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
     void register_function(const std::string& name, Lambda_t&& lambda)
     {
@@ -177,5 +171,14 @@ namespace jluna
                     &lambda, wrapped
             );
         });
+    }
+
+    template<detail::LambdaType<jl_value_t*> Lambda_t>
+    jl_value_t* box(Lambda_t && lambda)
+    {
+        std::string id = "#" + std::to_string(++detail::_internal_function_id_name);
+        register_function(id, lambda);
+
+
     }
 }

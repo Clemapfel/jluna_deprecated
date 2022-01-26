@@ -27,23 +27,13 @@ int main()
 {
     State::initialize();
 
-   State::safe_script(R"(
-    mutable struct StructType
-        _field
-    end
+    register_function("test", [](jl_value_t* a, jl_value_t* b) -> void
+    {
+        Base["println"](a);
+        Base["println"](b);
+    });
 
-    instance = StructType(1234)
-)");
-
-auto instance = Main["instance"];
-auto instance_field = instance["_field"];
-
-instance_field = 5678;
-
-= jl_eval_string("return 1234");
-
-State::script("println(instance)");
-
+    State::safe_script("cppcall(:test, 1, 2, 3)");
 
     return 0;
 
@@ -751,6 +741,17 @@ State::script("println(instance)");
         {
             thrown = true;
         }
+    });
+
+    Test::test("C: reject wrong-sized tuple", [](){
+
+        register_function("test", [](jl_value_t* a, jl_value_t* b) -> void
+        {
+            Base["println"](a);
+            Base["println"](b);
+        });
+
+        State::safe_script("cppcall(:test, 1)");
     });
 
 

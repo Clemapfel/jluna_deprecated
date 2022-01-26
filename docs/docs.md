@@ -694,7 +694,7 @@ Note the explicit trailing return type `-> jl_value_t*`. It is recommended to al
 
 #### Allowed Function Names
 
-While arbitrary julia-valid characters (except `.`) in the functions name are allowed, it is recommended to stick to C++ style convention when naming functions. However, do feel free to specifically use postfix `!` for mutating functions, as it is customary in julia. 
+While arbitrary julia-valid characters (except `.` and `#`) in the functions name are allowed, it is recommended to stick to C++ style convention when naming functions. However, do feel free to specifically use postfix `!` for mutating functions, as it is customary in julia. 
 
 ```julia
 # good:
@@ -704,7 +704,7 @@ While arbitrary julia-valid characters (except `.`) in the functions name are al
 "h!e!l!p!", "get_∅", "écoltäpfel", "(☻)"
 
 # illegal:
-"anything.withadot", "(..)", "0012", "help?"
+"anything.withadot", "(#)", "0012"
 ```
 
 See the [julia manual entry on variable names](https://docs.julialang.org/en/v1/manual/variables/#man-allowed-variable-names) for more information about strictly illegal names.
