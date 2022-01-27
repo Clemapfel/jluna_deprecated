@@ -89,17 +89,16 @@ module _cppcall
     """
     function verify_library() ::Bool
 
-        for name in readdir()
-            if name == "libjluna_c_adapter.so"
-                return true
-            end
+        if isfile(_cppcall._library_name)
+            return true
         end
 
         message = "when trying to initialize jluna.cppcall: "
-        message *= "cannot find \"libjluna_c_adapter.so\" in executable directory " * string(pwd())
+        message *= "cannot find _cppcall._library_file
 
         println(sprint(Base.showerror, AssertionError(message), backtrace()))
         return false
+    end
     end
 end
 
