@@ -27,7 +27,6 @@ int main()
 {
     State::initialize();
 
-
     // #####################
     Test::initialize();
 

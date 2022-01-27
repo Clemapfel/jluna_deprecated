@@ -1,8 +1,8 @@
 # jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
 
-Julia is a beautiful language, it is well-designed and well-documented. Julias C-API is also well-designed, less beautiful and much less... documented.
+Julia is a beautiful language, it is well-designed and well-documented. julia C-API is also well-designed, less beautiful and much less... documented.
 
-Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully wrap the official Julia C-API and replace it in usage in C++ projects by making accessing Julias unique strengths through C++ safe, hassle-free and just as beautiful.
+Heavily inspired in design and syntax by (but in no way affiliated with) the excellent Lua⭤C++ wrapper [**sol2**](https://github.com/ThePhD/sol2), `jluna` aims to fully wrap the official Julia C-API and replace it in usage in C++ projects by making accessing julia unique strengths through C++ safe, hassle-free and just as beautiful.
 
 ---
 
@@ -42,15 +42,12 @@ State::register_function("cpp_print", [](jl_value_t* in) -> jl_value_t* {
    
     std::cout << "cpp called" << std::endl;
     
-    // increment all elements in vector by one
     auto as_vector = unbox<jluna::Vector<size_t>>(in);
     for (auto e : as_vector)
         e = ((size_t)) e + 1
                 
     return as_vector;
 });
-
-// called by julia:
 State::safe_script("println(cppcall(:cpp_print, [1, 2, 3, 4]))");
 ```
 ```
@@ -84,9 +81,8 @@ cpp called
 ---
 
 ### Features
-Some of the many advantages `jluna` has over the C-API:
+Some of the many advantages `jluna` has over the C-API include:
 
-+ automatically detects and links Julia during make
 + expressive generic syntax
 + call C++ functions from julia using any julia-type
 + assigning C++-side proxies also mutates the corresponding variable with the same name Julia-side
@@ -106,17 +102,6 @@ In order of priority, highest first:
 + `v0.8`: thread-safe `cppcall` and proxy-data read/write
 + `v0.9`: No-Overhead performance version of proxies and `cppcall`
 + `v1.0`: save-states, restoring a previous Julia state
-
-### Philosophy in Design
-
-+ **Safety first**<br>
-    In `jluna`, the default way is the safe way. This means everything will be either enforced to be correct at compile-time or sanity-checked and enforced with descriptive exceptions at run-time, both julia- and C++-side. The reasoning for this is simple: the C-API is as fast as is possible by definition and is, of course, completely unsafe. If you want maximum speed, minimum safety: use the C-API. If you want slightly below optimal speed and maximum safety: use `jluna`. Of course you can mix the two freely so the decision is hardly difficult.
-  <br><br>
-+ **Elegance through Implicity**<br>
-    Behind the scenes, `jluna` employs a lot of implicit conversions, wrappers and template-magic for the sole reason of making syntax elegant, generic and simple. This shifts the complexity in implementation from the user to the developer, a balance that feels appropriate as, similarly, julia tries the same by offering veteran users many way to get the last bit of performance out of their programs while novice users can just not worry about that and it will still work.
-  
-In summary, the only reason `jluna` exists is because C and the julia C-API can be quite hard to use, is not really documented and makes for very hard-to-read code. All things `jluna` aims to address.
-
 ---
 
 ## Documentation
@@ -140,155 +125,230 @@ For `jluna` you'll need:
 
 Currently, only g++10 is supported, clang support is planned in the future.
 
-If you are curious, modernity is also a necessity: `jluna` makes extensive use of C++ concepts to allow for easy-to-understand compile-time errors when boxing and unboxing julia-side values into various C++ types. This requires specifically G++10 or higher due to [this bug in G++9](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79917). <br>
-For julia, `jluna` needs `get(::Tuple, ::Integer, default)` to forward generic function arguments to C++ during `cppcall` directly as a tuple which is [only available in v.1.7+](https://docs.julialang.org/en/v1/base/collections/#Base.get), though this is not the only 1.7+-only function used in `jluna`.
+---
+
+## License
+
+`jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](https://www.clemens-cords.com/contact).
 
 ---
 
 ## Installation
 
-### jluna-Only Application
+The following is a step-by-step guide to creating your own application using `jluna`.
 
-Go to your (empty) workspace folder and execute:
+First, we create our workspace directory. For the remainder of this section, this will be assumed to be `~/my_project`. We now execute:
 
 ```bash
+cd ~/my_project
 git clone https://github.com/Clemapfel/jluna.git
+```
+
+This adds the folder `jluna/` to our directory. We now need to recompile `jluna`:
+
+```bash
+# still in ~/my_project
 cd jluna
 mkdir build
 cd build
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
 make
 ```
-If errors appear, make sure [all the dependencies](#dependencies) are met and check the [troubleshooting sections](#troubleshooting) for FAQs. 
+If some dependencies are not met, this may throw errors. Make sure `g++-10`, `julia 1.7.0` (or higher) and `cmake 3.16` (or higher) are installed on a system level.
 
-You can verify everything works by calling:
+Some warnings will appear. This is due to julia official C header `julia.h` being slightly outdated and is nothing to worry about. `jluna` itself should show no warnings.
+
+We verify everything works by running the test executable we just compiled:
 
 ```bash
-# still in jluna/build
+# in ~/my_project/jluna/build
 ./JLUNA_TEST
 ```
 
-At the very end of the programs console output it should show:
+A lot of output will appear, at the very end it should show:
+
 ```
 Number of tests unsuccessful: 0
 ```
 
-You can now create your application, first create a main file `my_main.cpp`:
+If errors appear here, head to [troubleshooting](#troubleshooting).
+
+
+Moving on to creating our own application and linking it, we first create our own `main.cpp`:
+
+```bash
+cd ~/my_project
+gedit main.cpp
 ```
-#include <jluna.h>
+
+This opens a GUI text editor. Any other editor (`vim`, `nano`, `emacs`, etc.) can be substituted for `gedit`.
+
+We paste the following into our empty `my_project/main.cpp`:
+
+```cpp
+#include <jluna.hpp>
 
 using namespace jluna;
+
 int main()
 {
     State::initialize();
-    State::script(R"(println("hello world"))");
+    Base["println"]("hello julia");
+    State::shutdown();
 }
 ```
 
-Then add the following lines to the end of `jluna/CmakeLists.txt`:
+and save.
 
-```cmake
-add_executable(MY_EXECUTABLE path/to/.../my_main.cpp)   # modify this as needed
-target_link_libraries(MY_EXECUTABLE jluna)
+Of course we need a good way to compile it. To do this, we create our very own `CMakeLists.txt`:
+
+```bash
+# in ~/my_project
+gedit CMakeLists.txt
 ```
 
-Then, navigate again to `jluna/build` and execute:
+As a starting point, we paste the following into our `my_project/CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.16)
+
+# name of our project
+project(MyProject)
+
+# cmake and cpp settings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread -lGL -Wl,--export-dynamic")
+set(CMAKE_CXX_STANDARD 20)
+
+# build type
+set(CMAKE_BUILD_TYPE Debug)
+
+# include directories needed by jluna
+include_directories("./jluna/")
+include_directories("./jluna/include")
+
+# find julia
+set(JULIA_EXECUTABLE julia) # may need to be modified, c.f. Troubleshooting
+include(${CMAKE_SOURCE_DIR}/jluna/find_julia.cmake)
+include_directories(${JULIA_DIR}/include/julia)
+
+# find jluna and jluna_c_adapter
+find_library(jluna REQUIRED NAMES libjluna.so PATHS ${CMAKE_SOURCE_DIR}/jluna/)
+find_library(jluna_c_adapter REQUIRED NAMES libjluna_c_adapter.so PATHS ${CMAKE_SOURCE_DIR}/jluna/)
+
+# add our executable
+add_executable(MY_EXECUTABLE ./main.cpp)
+
+# link executable with jluna, jluna_c_adapter and julia
+target_link_libraries(MY_EXECUTABLE ${jluna} ${jluna_c_adapter} ${JULIA_DIR}/lib/libjulia.so)
+```
+
+Having created `CMakeLists.txt`, we now create our own build folder:
+
 ```bash
-cd path/to/.../jluna/build
+# in ~/my_project
+mkdir build 
+```
+
+We can now compile our project:
+
+```bash
+# in ~/my_project
+cd build
 cmake -D CMAKE_CXX_COMPILER=g++-10 ..
 make
 ```
 
-Your executable can now be run via `./MY_EXECUTABLE`:
+Warnings will again appear (due to the official julia header). 
+
+Our directory should now look like this:
 
 ```
-[JULIA] hello world
+my_project/
+    main.cpp
+    CMakeLists.txt
+    jluna/
+        jluna.hpp
+        libjluna.so
+        libjluna_c_adapter.so
+        build/
+            JLUNA_TEST
+            (...)
+        (...)
+    build/
+        MY_EXECUTABLE
+        (...)
 ```
+Where any name with the postfix `/` is a folder.
 
-Alternatively you can run `jluna/CmakeLists.txt` from within your own `CMakeLists.txt` using [include](https://cmake.org/cmake/help/latest/command/include.html).
+We execute our freshly compiled executable using:
 
-If you are using a cmake-based IDE like [CLion](https://www.jetbrains.com/clion/) or [Atom](https://atom.io/), it may be enough to simply create a new project and open `jluna/CMakeLists.txt`. Make sure to set your compiler to G++10, though.
-
-### Adding jluna to your existing Library
-
-First, add `jluna` as a submodule to your git repository:
-
+```bash
+./MY_EXECUTABLE
 ```
-git submodule add https://github.com/Clemapfel/jluna.git
 ```
-
-Add the header include path to your `CMakeLists.txt` and link your library like so:
-
-```cmake
-include_directories("/path/to/.../jluna/")
-target_link_libraries(YOUR_LIBRARY jluna)
+[JULIA][LOG] initialization successfull.
+hello julia
 ```
-
-Now simply add `#import <jluna.hpp>` to your headers and everything should work.
-
 ---
 
 ## Troubleshooting
 
 ### CMake cannot find Julia
 
-`jluna` detects your Julia version and build parameters using the `julia` command in bash, if this command is not available on a system level, you will need to manually supply the path for the Julia executable to `jluna`. To do this:
+`jluna` detects the julia version and build parameters using the `julia` command in bash. If this command is not available on a system level, we will need to manually supply the path for the julia executable to `jluna` and our own program. To do this:
 
-Open `jluna/CMakeLists.txt` in an editor and modify the following statement in line 10:
+We open `jluna/CMakeLists.txt` in an editor and modify the following statement in line 10
 
 ```cmake
 set(JULIA_EXECUTABLE julia)
 ```
-to:
+to
 ```cmake
-set(JULIA_EXECUTABLE /path/to/your/.../julia/bin/julia) # replace with the path to julia/bin/julia here
+set(JULIA_EXECUTABLE /path/to/our/.../julia/bin/julia) # replace with the path to julia/bin/julia here
 ```
 
-During make, `jluna` should now be able to determine all the information to build `jluna` and link Julia properly
+Furthermore, in our own `my_project/CMakeLists.txt` we modify:
 
-### jl_init() fails
+```cmake
+# find julia
+set(JULIA_EXECUTABLE julia)
+```
+to
+```cmake
+set(JULIA_EXECUTABLE /path/to/our/.../julia/bin/julia)
+```
 
-jluna assumes that `Julia` is installed on a system level. If this is not the case, you will need to manually specify the path to your image during the initialization step in C++. When calling `jluna::State::initialize()` at the start of your C++ main, instead of the no-argument call, use this overload and provide the full path to your Julia image like so:
+We then redo all steps except folder creation outlined in [installation](#installation).
+During make, `jluna` should now be able to determine all the information to build and link `jluna` itself and our own executable properly.
+
+### `jl_init()` fails
+
+`jluna` assumes that julia is installed on a system level. If this is not the case, we will need to manually specify the path to the julia image during the initialization step in C++. <br><br>
+When calling `jluna::State::initialize()` at the start of our C++ main `my_project/main.cpp` we replace
 
 ```cpp
-jluna::State::initialize("/path/to/your/.../Julia/bin");
+State::initialize();
+```
+with
+```cpp
+State::initialize("/path/to/our/.../Julia/bin");
 ```
 
 Make sure that the image is uncompressed, as `.zip` or `.tar` files cannot be used for initialization.
 
-### cppcall fails
+### Other Issues
 
-While jluna is header-only, julia needs a shared c library to interface with jluna in the julia -> C++ direction. This library is `libjluna_c_adapter.so` and comes precompiled with the github repo. If `cppcall` fails on your system (usually an assertion is triggered on `State::initialize`), we will need to recompile it.
+Please make sure that:
++ you are on a linux-based, 64-bit operating system
++ julia 1.7.0 (or higher) is installed
++ cmake 3.16 (or higher) is installed
++ g++-10 (exactly) and gcc-9 (or higher) are installed
++ `my_project/CMakeLists.txt` and `my_project/main.cpp` are identical to the code in [installation](#installation)
++ `State::initialize` and `set(JULIA_EXECUTABLE (...))` are modified as outlined above
++ `jluna` was freshly pulled from the git repo
++ `my_project/jluna/` contains `libjluna.so` and `libjluna_c_adapter.so`
++ `my_project/jluna/build/JLUNA_TEST` was ran
 
-First navigate to `jluna/`, then:
-
-```bash
-rm libjluna_c_adapter.so
-
-mkdir temp
-cd temp
-cmake -D CMAKE_CXX_COMPILER=g++-10 ..
-make
-```
-
-We just recompiled the library, we can now make sure everything works and nothing is corrupted:
-
-```bash
-# still in jluna/temp
-./JLUNA_TEST
-```
-
-If this executable reports no failed tests, we can remove the superfluous files:
-
-```bash
-cd ..
-rm -r temp
-```
-
-This will leave a shiny new `jluna/libjluna_c_adapter.so` in your folder that should now allow julia to interface with C++ through the jluna C library.
+If all of the above apply, please create an issue stating your operating system, the output of `JLUNA_TEST`, and your problem in the [issues tab](https://github.com/Clemapfel/jluna/issues).
 
 ---
-
-## License
-
-`jluna` is freely available for non-commercial and educational use. For use in for-profit commercial applications, please [contact the developer](https://www.clemens-cords.com/contact).
