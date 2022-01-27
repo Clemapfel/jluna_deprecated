@@ -1,5 +1,3 @@
-# file meant to be included from jluna/CMakeLists.txt
-
 # detect julia directory
 execute_process(
         COMMAND ${JULIA_EXECUTABLE} -e "print(joinpath(Sys.BINDIR, \"..\"))"

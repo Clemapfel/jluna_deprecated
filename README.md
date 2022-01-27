@@ -67,8 +67,9 @@ cpp called
 1. [Showcase](#showcase)<br>
 2. [Features](#features)<br>
 3. [Planned Features](#planned-but-not-yet-implemented)<br>
+4. [Philosophy in Design](#philosophy-in-design)
 4. [Documentation](#documentation)<br>
-    4.1 [Manual](./docs/proxies.md)<br>
+    4.1 [Manual](./docs/docs.md)<br>
     4.2 [Quick & Dirty Overview](#documentation)<br>
 5. [Dependencies](#dependencies)<br>
    5.1 [Julia 1.7.0+](#dependencies)<br>
@@ -105,11 +106,24 @@ In order of priority, highest first:
 + `v0.8`: thread-safe `cppcall` and proxy-data read/write
 + `v0.9`: No-Overhead performance version of proxies and `cppcall`
 + `v1.0`: save-states, restoring a previous Julia state
+
+### Philosophy in Design
+
++ **Safety first**<br>
+    In `jluna`, the default way is the safe way. This means everything will be either enforced to be correct at compile-time or sanity-checked and enforced with descriptive exceptions at run-time, both julia- and C++-side. The reasoning for this is simple: the C-API is as fast as is possible by definition and is, of course, completely unsafe. If you want maximum speed, minimum safety: use the C-API. If you want slightly below optimal speed and maximum safety: use `jluna`. Of course you can mix the two freely so the decision is hardly difficult.
+  <br><br>
++ **Elegance through Implicity**<br>
+    Behind the scenes, `jluna` employs a lot of implicit conversions, wrappers and template-magic for the sole reason of making syntax elegant, generic and simple. This shifts the complexity in implementation from the user to the developer, a balance that feels appropriate as, similarly, julia tries the same by offering veteran users many way to get the last bit of performance out of their programs while novice users can just not worry about that and it will still work.
+  
+In summary, the only reason `jluna` exists is because C and the julia C-API can be quite hard to use, is not really documented and makes for very hard-to-read code. All things `jluna` aims to address.
+
 ---
 
 ## Documentation
 
-A fly-by overview of all of the relevant features is available [here](./docs/quick_and_dirty.md). Innline-documentation inside the headers is already available through any IDE. A more in-depth manual intended for people developing `jluna` itself is in the works.
+A step-by-step introduction and reference guide intended for users is available [here](./docs/docs.md). Furthermore, all user-facing code has in-line documentation available through most IDEs (or the julia `help?` command). 
+
+Advanced users are encouraged to check the headers (available in `jluna/include`) for implementation details. They are formatted specifically to be easily understood by 3rd parties. 
 
 ---
 
@@ -133,7 +147,7 @@ For julia, `jluna` needs `get(::Tuple, ::Integer, default)` to forward generic f
 
 ## Installation
 
-### jluna-Only Application:
+### jluna-Only Application
 
 Go to your (empty) workspace folder and execute:
 

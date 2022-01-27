@@ -15,7 +15,7 @@ module _cppcall
         State() = new((), nothing)
     end
 
-    const _library_name = "./libjluna_c_adapter.so"
+    const _library_name = "@RESOURCE_PATH@/libjluna_c_adapter.so"
     _state = Base.Ref{_cppcall.State}(State())
 
     """

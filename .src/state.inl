@@ -10,7 +10,7 @@
 #include <box_any.hpp>
 #include <symbol_proxy.hpp>
 #include <global_utilities.hpp>
-#include <include.jl.hpp>
+#include <.src/include.jl.hpp>
 #include <.c_wrapper/c_adapter.hpp>
 
 namespace jluna

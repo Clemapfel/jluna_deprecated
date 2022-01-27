@@ -1,6 +1,6 @@
 # jluna: An Introduction
 
-This page will give an abbreviated overview of most of `jluna`s relevant features and syntax. While it is useful for referencing back to, and as an introduction to `jluna`, it should not be considered a proper manual. 
+This page will give an abbreviated overview of most of `jluna`s relevant features and syntax.
 
 ### Table Of Contents
 

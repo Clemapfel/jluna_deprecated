@@ -6,12 +6,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
-### DEPENDENCIES ###
+set(JLUNA_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+### JULIA ###
 
 set(JULIA_EXECUTABLE /home/clem/Applications/julia/bin/julia) # modify this if necessary
-include(${CMAKE_CURRENT_SOURCE_DIR}/.src/detect_julia.cmake)
+include(./find_julia.cmake)
 
 ### JLUNA ###
+
+set(RESOURCE_PATH ${CMAKE_SOURCE_DIR})
+configure_file(${CMAKE_SOURCE_DIR}/.src/include.jl.hpp.in ${CMAKE_SOURCE_DIR}/.src/include.jl.hpp @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/.c_wrapper/cppcall.jl.hpp.in ${CMAKE_SOURCE_DIR}/.c_wrapper/cppcall.jl.hpp @ONLY)
 
 add_library(jluna SHARED
 
@@ -19,6 +25,7 @@ add_library(jluna SHARED
 
     include/state.hpp
     .src/state.inl
+    .src/include.jl.hpp
 
     include/proxy.hpp
     .src/proxy.inl
@@ -50,10 +57,12 @@ add_library(jluna SHARED
     .src/box_any.inl
     .src/unbox_any.inl
 
-    include/cppcall.hpp .src/cppcall.inl)
+    include/cppcall.hpp
+    .src/cppcall.inl)
 
-set_target_properties(jluna
-    PROPERTIES LINKER_LANGUAGE C
+set_target_properties(jluna PROPERTIES
+    LINKER_LANGUAGE C
+    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # c adapter
@@ -64,15 +73,15 @@ add_library(jluna_c_adapter SHARED
 
 set_target_properties(jluna_c_adapter PROPERTIES
     LINKER_LANGUAGE C
+    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # link
-
-include_directories("./include")
-include_directories("./")
+include_directories("${JLUNA_DIR}/include")
+include_directories("${JLUNA_DIR}/")
 
 target_link_libraries(jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
-target_link_libraries(jluna jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
+target_link_libraries(jluna PUBLIC jluna_c_adapter ${JULIA_DIR}/lib/libjulia.so)
 
 ### EXECUTABLES ###
 
