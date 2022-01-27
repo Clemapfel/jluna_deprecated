@@ -1,3 +1,5 @@
+# this script is intended to be included in CMakeLists.txt to find, verify and include the julia header
+
 # detect julia directory
 execute_process(
         COMMAND ${JULIA_EXECUTABLE} -e "print(joinpath(Sys.BINDIR, \"..\"))"

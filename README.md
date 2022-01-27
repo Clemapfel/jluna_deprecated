@@ -6,6 +6,27 @@ Heavily inspired in design and syntax by (but in no way affiliated with) the exc
 
 ---
 
+### Table of Contents
+
+0. [Introduction](README.md)
+1. [Showcase](#showcase)<br>
+2. [Features](#features)<br>
+3. [Planned Features](#planned-but-not-yet-implemented)<br>
+4. [Documentation](#documentation)<br>
+    4.1 [Manual](./docs/docs.md)<br>
+    4.2 [Quick & Dirty Overview](#documentation)<br>
+5. [Dependencies](#dependencies)<br>
+   5.1 [Julia 1.7.0+](#dependencies)<br>
+   5.2 [g++10](#dependencies)<br>
+   5.3 [cmake 3.19+](#dependencies)<br>
+   5.4 [Linux / Mac OS](#dependencies)
+6. [License](#license)
+7. [Installation](#installation)<br>
+  7.1 [Step-by-Step Guide](#installation)<br>
+  7.2 [Troubleshooting](#troubleshooting)<br>
+   
+---
+
 ## Showcase
 
 ```cpp
@@ -56,28 +77,6 @@ Holder([1 4 7; 2 5 8; 3 6 9;;; 10 13 16; 11 14 17; 12 15 18;;; 19 9999 25; 20 23
 cpp called
 [2, 3, 4, 5]
 ```
----
-
-### Table of Contents
-
-0. [Introduction](./README.md)
-1. [Showcase](#showcase)<br>
-2. [Features](#features)<br>
-3. [Planned Features](#planned-but-not-yet-implemented)<br>
-4. [Philosophy in Design](#philosophy-in-design)
-4. [Documentation](#documentation)<br>
-    4.1 [Manual](./docs/docs.md)<br>
-    4.2 [Quick & Dirty Overview](#documentation)<br>
-5. [Dependencies](#dependencies)<br>
-   5.1 [Julia 1.7.0+](#dependencies)<br>
-   5.2 [g++10](#dependencies)<br>
-   5.3 [cmake 3.19+](#dependencies)<br>
-   5.4 [Linux / Mac OS](#dependencies)
-6. [Installation](#installation)<br>
-  6.1 [Single Application](#jluna-only-application)<br>
-  6.2 [As a Library](#adding-jluna-to-your-existing-library)<br>
-  6.3 [Troubleshooting](#troubleshooting)<br>
-   
 ---
 
 ### Features
@@ -229,7 +228,6 @@ include_directories("./jluna/include")
 # find julia
 set(JULIA_EXECUTABLE julia) # may need to be modified, c.f. Troubleshooting
 include(${CMAKE_SOURCE_DIR}/jluna/find_julia.cmake)
-include_directories(${JULIA_DIR}/include/julia)
 
 # find jluna and jluna_c_adapter
 find_library(jluna REQUIRED NAMES libjluna.so PATHS ${CMAKE_SOURCE_DIR}/jluna/)
