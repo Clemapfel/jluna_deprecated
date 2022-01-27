@@ -39,12 +39,15 @@ namespace jluna
             /// @returns assignable iterator to element
             auto operator[](size_t);
 
-            /// @brief linear indexing with list comprehension
+            /// @brief julia-style list indexing
             /// @param range: iterable range with indices
             /// @returns new array result of Julia-side getindex(this, range)
             template<Iterable Range_t>
             auto operator[](const Range_t& range);
 
+            /// @brief julia-style list indexing
+            /// @param initializer list with indices
+            /// @returns new array result of Julia-side getindex(this, range)
             template<Boxable T>
             auto operator[](std::initializer_list<T>&&);
 

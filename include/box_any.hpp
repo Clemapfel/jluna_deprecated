@@ -1,6 +1,6 @@
-/// @brief box to 
-/// @brief box to Copyright 2021 Clemens Cords
-/// @brief box to Created on 24.12.21 by clem (mail@clemens-cords.com)
+//
+// Copyright 2021 Clemens Cords
+// Created on 24.12.21 by clem (mail@clemens-cords.com)
 //
 
 #pragma once

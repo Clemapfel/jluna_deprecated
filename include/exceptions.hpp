@@ -40,43 +40,13 @@ namespace jluna
     /// @brief if julia exception occurred, forward it to C++
     extern void forward_last_exception();
 
-    /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
-    class AmbiguousCandidateException : public std::exception
-    {
-        public:
-            /// @brief ctor
-            AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidates);
-
-            /// @brief get description
-            /// @returns c-string
-            virtual const char* what() const noexcept override final;
-
-        private:
-            std::string message;
-    };
-
-    /// @brief exception raised if result of querying for a variable returned multiple ambiguous results
+    /// @brief exception raised when trying to mutate a proxy pointing to an immutable object
     class ImmutableVariableException : public std::exception
     {
         public:
             /// @brief ctor
-            /// @param symbol_name: name of the symbol for which multiple results exist
+            /// @param variable
             ImmutableVariableException(jl_value_t* variable);
-
-            /// @brief get description
-            /// @returns c-string
-            virtual const char* what() const noexcept override final;
-
-        private:
-            std::string message;
-    };
-
-    /// @brief exception raised if trying to declare a proxy holding a variable that does not have a name associated with it mutating
-    class UnnamedVariableException : public std::exception
-    {
-        public:
-            /// @brief ctor
-            UnnamedVariableException(jl_value_t* value);
 
             /// @brief get description
             /// @returns c-string

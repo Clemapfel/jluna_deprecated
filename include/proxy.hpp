@@ -34,8 +34,7 @@ namespace jluna
     class Proxy
     {
         friend union State;
-
-        public: class ProxyValue;
+        protected: class ProxyValue;
 
         public:
             Proxy() = default;
@@ -145,7 +144,7 @@ namespace jluna
             /// @brief update value if proxy symbol was reassigned outside of operator=
             void update();
 
-        //protected:
+        protected:
             class ProxyValue
             {
                 friend class Proxy<State_t>;

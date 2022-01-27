@@ -18,6 +18,7 @@ namespace jluna
     /// @brief unbox identity
     jl_value_t* unbox(jl_value_t* value);
 
+    /// @brief unbox to value proxy
     template<IsUnnamedProxy T>
     T unbox(jl_value_t* value)
     {

@@ -28,6 +28,7 @@ int main()
     State::initialize();
 
     // #####################
+
     Test::initialize();
 
     Test::test("safe_script: exception forwarding", [](){

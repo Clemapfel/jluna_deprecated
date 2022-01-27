@@ -31,7 +31,6 @@ namespace jluna
     {
         template<typename>
         friend class Proxy;
-
         friend class Test;
 
         public:
@@ -42,10 +41,8 @@ namespace jluna
             ~State() = delete;
 
             /// @brief init environment
+            /// @param optional path to image
             static void initialize(const std::string& = "");
-
-            /// @brief exit julia environment and deallocate all variables
-            static void shutdown();
 
             /// @brief execute line of code, evaluated in Main
             /// @param command

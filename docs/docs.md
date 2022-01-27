@@ -65,11 +65,11 @@ int main()
     
     // all your application here
     
-    State::shutdown();
+    return 0;
 }
 ```
 
-When a program exits regularly, all julia-side values allocated through `jluna` are safely deallocated. On an exit with a code other than `0`, it is recommended to manually call `State::shutdown()`.
+When a program exits regularly, all julia-side values allocated through `jluna` are safely deallocated automatically.
 
 ## Executing Code
 
