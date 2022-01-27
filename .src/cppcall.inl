@@ -4,7 +4,7 @@
 //
 
 #include <cppcall.hpp>
-#include <.c_wrapper/c_adapter.hpp>
+#include <.c_adapter/c_adapter.hpp>
 #include <typedefs.hpp>
 #include <exceptions.hpp>
 

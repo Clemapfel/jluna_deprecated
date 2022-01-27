@@ -6,18 +6,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs -fconcepts -pthread -lpthread
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Debug)
 
-set(JLUNA_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(JLUNA_DIR ${CMAKE_SOURCE_DIR})
 
 ### JULIA ###
 
 set(JULIA_EXECUTABLE /home/clem/Applications/julia/bin/julia) # modify this if necessary
-include(./find_julia.cmake)
+include(${CMAKE_SOURCE_DIR}/find_julia.cmake)
 
 ### JLUNA ###
 
 set(RESOURCE_PATH ${CMAKE_SOURCE_DIR})
 configure_file(${CMAKE_SOURCE_DIR}/.src/include.jl.hpp.in ${CMAKE_SOURCE_DIR}/.src/include.jl.hpp @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/.c_wrapper/cppcall.jl.hpp.in ${CMAKE_SOURCE_DIR}/.c_wrapper/cppcall.jl.hpp @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.jl.hpp.in ${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.jl.hpp @ONLY)
 
 add_library(jluna SHARED
 
@@ -62,18 +62,18 @@ add_library(jluna SHARED
 
 set_target_properties(jluna PROPERTIES
     LINKER_LANGUAGE C
-    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # c adapter
 add_library(jluna_c_adapter SHARED
-    .c_wrapper/c_adapter.cpp
-    .c_wrapper/c_adapter.hpp
+        .c_adapter/c_adapter.cpp
+        .c_adapter/c_adapter.hpp
 )
 
 set_target_properties(jluna_c_adapter PROPERTIES
     LINKER_LANGUAGE C
-    #LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 
 # link

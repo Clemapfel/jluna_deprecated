@@ -94,11 +94,10 @@ module _cppcall
         end
 
         message = "when trying to initialize jluna.cppcall: "
-        message *= "cannot find _cppcall._library_file
+        message *= "cannot find " * _cppcall._library_file
 
         println(sprint(Base.showerror, AssertionError(message), backtrace()))
         return false
-    end
     end
 end
 

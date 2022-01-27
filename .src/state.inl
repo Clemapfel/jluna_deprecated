@@ -11,7 +11,7 @@
 #include <symbol_proxy.hpp>
 #include <global_utilities.hpp>
 #include <.src/include.jl.hpp>
-#include <.c_wrapper/c_adapter.hpp>
+#include <.c_adapter/c_adapter.hpp>
 
 namespace jluna
 {
@@ -60,21 +60,14 @@ namespace jluna
         _get_reference =  jl_get_function(module, "get_reference");
 
         jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr);
-        jluna::Base = Main["Base"];//Proxy<State>((jl_value_t*) jl_base_module, Main._content, jl_symbol("Base"));
-        jluna::Core = Main["Core"];//Proxy<State>((jl_value_t*) jl_core_module, Main._content, jl_symbol("Core"));
+        jluna::Base = Main["Base"];
+        jluna::Core = Main["Core"];
     }
 
     void State::shutdown()
     {
         if (not jl_is_initialized())
             return;
-
-        _jluna_module = nullptr;
-        _create_reference = nullptr;
-        _free_reference = nullptr;
-        _force_free = nullptr;
-        _get_value = nullptr;
-        _get_reference = nullptr;
 
         detail::on_exit();
     }
