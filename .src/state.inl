@@ -32,8 +32,6 @@ namespace jluna
         else
             jl_init_with_image(path.c_str(), NULL);
 
-        auto c_adapter = c_adapter::initialize();
-
         jl_eval_string(detail::include);
         forward_last_exception();
 
@@ -62,14 +60,6 @@ namespace jluna
         jluna::Main = Proxy<State>((jl_value_t*) jl_main_module, nullptr);
         jluna::Base = Main["Base"];
         jluna::Core = Main["Core"];
-    }
-
-    void State::shutdown()
-    {
-        if (not jl_is_initialized())
-            return;
-
-        detail::on_exit();
     }
 
     auto State::script(const std::string& command) noexcept
@@ -250,6 +240,7 @@ namespace jluna
 
     jl_function_t* State::find_function(const std::string& function_name)
     {
+        /*
         THROW_IF_UNINITIALIZED;
 
         static jl_function_t* get_function = jl_get_function(_jluna_module, "find_function");
@@ -279,5 +270,6 @@ namespace jluna
         }
         else
           return (jl_function_t*) jl_arrayref(res, 0);
+          */
     }
 }

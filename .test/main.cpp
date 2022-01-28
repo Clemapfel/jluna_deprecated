@@ -27,6 +27,8 @@ int main()
 {
     State::initialize();
 
+
+
     // #####################
 
     Test::initialize();
@@ -626,14 +628,7 @@ int main()
 
     Test::test("C: initialize adapter", []()
     {
-        try
-        {
-            jluna::c_adapter::initialize();
-        }
-        catch(...)
-        {
-            Test::assert_that(false);
-        }
+
     });
 
     Test::test("C: hash", [](){

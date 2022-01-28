@@ -17,7 +17,7 @@ include(${CMAKE_SOURCE_DIR}/find_julia.cmake)
 
 set(RESOURCE_PATH ${CMAKE_SOURCE_DIR})
 configure_file(${CMAKE_SOURCE_DIR}/.src/include.jl.hpp.in ${CMAKE_SOURCE_DIR}/.src/include.jl.hpp @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.jl.hpp.in ${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.jl.hpp @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.in.jl ${CMAKE_SOURCE_DIR}/.c_adapter/cppcall.jl @ONLY)
 
 add_library(jluna SHARED
 

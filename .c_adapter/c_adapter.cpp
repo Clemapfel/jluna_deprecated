@@ -3,20 +3,11 @@
 #ifdef __cplusplus
 
 #include <iostream>
-#include "./cppcall.jl.hpp"
 
 extern "C"
 {
     namespace jluna::c_adapter
     {
-        bool initialize()
-        {
-            jl_init();
-            _functions = {};
-
-            jl_eval_string(cppcall_module);
-        }
-
         void call_function(size_t id)
         {
             static jl_function_t* get_args = jl_get_function((jl_module_t*) jl_eval_string("return Main._cppcall"), "get_arguments");
@@ -64,6 +55,12 @@ extern "C"
         size_t get_n_args(size_t id)
         {
             return _functions.at(id).second;
+        }
+
+        void free_function(size_t id)
+        {
+            std::cout << "freed unnamed function with id #" << id << std::endl;
+            _functions.erase(id);
         }
     }
 }

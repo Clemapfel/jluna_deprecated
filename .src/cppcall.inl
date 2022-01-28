@@ -173,12 +173,13 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*> Lambda_t>
-    jl_value_t* box(Lambda_t && lambda)
+    namespace detail
     {
-        std::string id = "#" + std::to_string(++detail::_internal_function_id_name);
-        register_function(id, lambda);
-
-
+        template<detail::LambdaType<jl_value_t*> Lambda_t>
+        jl_value_t* box(Lambda_t && lambda)
+        {
+            std::string id = "#" + std::to_string(++detail::_internal_function_id_name);
+            register_function(id, lambda);
+        }
     }
 }

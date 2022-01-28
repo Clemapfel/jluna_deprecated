@@ -1,8 +1,3 @@
-#pragma once
-
-namespace jluna::c_adapter
-{
-    const char* cppcall_module = R"(
 """
 helper module used by jluna c_adapter and cppcall
 """
@@ -17,6 +12,24 @@ module _cppcall
 
     const _library_name = "@RESOURCE_PATH@/libjluna_c_adapter.so"
     _state = Base.Ref{_cppcall.State}(State())
+
+    """
+    Wrapper object for unnamed functions, frees function once object is destroyed
+    """
+    mutable struct UnnamedFunctionProxy
+
+        _id::Symbol
+        _f::Function
+
+        function UnnamedFunctionProxy(id::Symbol)
+
+            x = new(id, function () end)
+            _f = function (xs...) cppcall(_id, xs...) end
+
+            dtor(t) = ccall((:free_function, _cppcall._library_name), Cvoid, (Csize_t,), t._id)
+            finalizer(dtor, x)
+        end
+    end
 
     """
     an exception thrown when trying to invoke cppcall with a function name that
@@ -131,5 +144,3 @@ function cppcall(function_name::Symbol, xs...) ::Any
     return _cppcall.get_result()
 end
 export cppcall
-)";
-}

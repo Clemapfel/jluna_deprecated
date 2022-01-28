@@ -13,6 +13,7 @@ namespace jluna::detail
     static inline const char* include = R"(
 
     include("@RESOURCE_PATH@/.src/julia/visibility_macros.jl")
+    include("@RESOURCE_PATH@/.c_adapter/cppcall.jl")
 
     module jluna
 
