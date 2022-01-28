@@ -118,6 +118,12 @@ namespace jluna
         return unbox<T>(res);
     }
 
+    auto State::new_undef(const std::string& variable_name)
+    {
+        State::safe_script(variable_name + " = undef");
+        return Main[variable_name];
+    }
+
     template<typename... Args_t>
     auto State::call(jl_function_t* function, Args_t&&... args)
     {

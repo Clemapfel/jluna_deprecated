@@ -27,11 +27,8 @@ int main()
 {
     State::initialize();
 
-    auto val = detail::box([](jl_value_t* v) -> void {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;});
-    auto test = Proxy<State>(val, nullptr);
-
-    test(1234);
-
+    State::new_undef("lambda") = [](jl_value_t* v) -> void {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;};
+    State::safe_script("println(lambda)");
     return 0;
 
     // #####################

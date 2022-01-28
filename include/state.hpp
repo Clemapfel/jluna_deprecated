@@ -78,6 +78,11 @@ namespace jluna
             template<typename T>
             static T safe_return(const std::string& full_name);
 
+            /// @brief calls script("$variable_name = undef") in Main, useful for creating, then assigning new variables inline
+            /// @param variable_name: exact name of variable
+            /// @returns named proxy to newly created value
+            static auto new_undef(const std::string& variable_name);
+
             /// @brief trigger the garbage collector
             static void collect_garbage();
 

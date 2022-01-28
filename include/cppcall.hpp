@@ -79,13 +79,13 @@ namespace jluna
     namespace detail
     {
         static inline size_t _internal_function_id_name = 0;
-
-        /// @brief generate julia-side function that calls the lambda
-        /// @param lambda
-        /// @returns point to julia-side function, temporary
-        template<detail::LambdaType<jl_value_t*> Lambda_t>
-        jl_value_t* box(Lambda_t && lambda);
     }
+
+    /// @brief generate julia-side function that calls the lambda
+    /// @param lambda
+    /// @returns point to julia-side function, temporary
+    template<detail::LambdaType<jl_value_t*> Lambda_t>
+    jl_value_t* box(const Lambda_t & lambda);
 }
 
 #include ".src/cppcall.inl"
