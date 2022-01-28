@@ -32,7 +32,7 @@ extern "C"
         void register_function(const std::string& name, size_t n_args, std::function<jl_value_t*(jl_value_t*)>&& lambda)
         {
             [[unlikely]]
-            if (name.find('.') != std::string::npos or name.at(0) == '#')
+            if (name.find('.') != std::string::npos)
             {
                 std::string str = "In register_function(\"" + name + "\"): function names cannot begin with \'#\' or contain \'.\' in any place";
                 throw std::invalid_argument(str.c_str());

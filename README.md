@@ -100,7 +100,7 @@ In order of priority, highest first:
 + `v0.7`: creating new modules and datatypes with member-access completely C++-Side
 + `v0.8`: thread-safe `cppcall` and proxy-data read/write
 + `v0.9`: No-Overhead performance version of proxies and `cppcall`
-+ `v1.0`: save-states, restoring a previous Julia state
++ `v1.0`: multiple julia states, save-states: restoring a previous julia state
 ---
 
 ## Documentation

@@ -27,7 +27,12 @@ int main()
 {
     State::initialize();
 
+    auto val = detail::box([](jl_value_t* v) -> void {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;});
+    auto test = Proxy<State>(val, nullptr);
 
+    test(1234);
+
+    return 0;
 
     // #####################
 

@@ -1,6 +1,4 @@
-"""
-helper module used by jluna c_adapter and cppcall
-"""
+
 module _cppcall
 
     mutable struct State
@@ -23,13 +21,22 @@ module _cppcall
 
         function UnnamedFunctionProxy(id::Symbol)
 
-            x = new(id, function () end)
-            _f = function (xs...) cppcall(_id, xs...) end
+            _id = id
+            x = new(id, function (xs...) Main.cppcall(_id, xs...) end)
 
-            dtor(t) = ccall((:free_function, _cppcall._library_name), Cvoid, (Csize_t,), t._id)
-            finalizer(dtor, x)
+            finalizer(function (t::UnnamedFunctionProxy)
+                ccall((:free_function, _cppcall._library_name), Cvoid, (Csize_t,), hash(t._id))
+            end, x)
+
+            return x
         end
     end
+
+    # make function proxy struct callable
+    (x::UnnamedFunctionProxy)(xs...) = return x._f(xs...)
+
+    # ctor wrapper for jluna
+    new_unnamed_function(s::Symbol) = return UnnamedFunctionProxy(s)
 
     """
     an exception thrown when trying to invoke cppcall with a function name that

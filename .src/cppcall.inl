@@ -179,7 +179,10 @@ namespace jluna
         jl_value_t* box(Lambda_t && lambda)
         {
             std::string id = "#" + std::to_string(++detail::_internal_function_id_name);
-            register_function(id, lambda);
+            register_function(id, std::forward<Lambda_t&&>(lambda));
+
+            static jl_function_t* new_unnamed_function = get_function("_cppcall", "new_unnamed_function");
+            return jl_call1(new_unnamed_function, (jl_value_t*) jl_symbol(id.c_str()));
         }
     }
 }
