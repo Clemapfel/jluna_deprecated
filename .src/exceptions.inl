@@ -54,23 +54,6 @@ namespace jluna
         return _value;
     }
 
-    AmbiguousCandidateException::AmbiguousCandidateException(const std::string& symbol_name, const std::vector<std::string>& candidate_modules)
-    {
-        std::stringstream str;
-        str << "querying the julia state for value with symbol \":" << symbol_name << "\" returns more than one result. Please manually specify which module the value is defined in.\n";
-        str << "candidates are:\n";
-
-        for (auto s : candidate_modules)
-            str << "\t" << s << "." << symbol_name << "\n";
-
-        message = str.str();
-    }
-
-    const char * AmbiguousCandidateException::what() const noexcept
-    {
-        return message.c_str();
-    }
-
     ImmutableVariableException::ImmutableVariableException(jl_value_t* value)
     {
         std::stringstream str;
@@ -80,19 +63,6 @@ namespace jluna
     }
 
     const char * ImmutableVariableException::what() const noexcept
-    {
-        return message.c_str();
-    }
-
-    UnnamedVariableException::UnnamedVariableException(jl_value_t* value)
-    {
-        std::stringstream str;
-
-        str << "trying to declare a proxy with value of type " << jl_typeof_str(value) << " mutating, even though its value has no julia-side name attached to it. Use jluna::make_mutable(Proxy<State>&, std::string) to attach a new name" << std::endl;
-        message = str.str();
-    }
-
-    const char * UnnamedVariableException::what() const noexcept
     {
         return message.c_str();
     }
