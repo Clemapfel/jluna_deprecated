@@ -34,9 +34,14 @@ namespace jluna
         return jl_eval_string(command.c_str());
     }
     
-    jl_value_t* box(bool value)
+    jl_value_t* box(std::bool_constant<true> value)
     {
-        return jl_box_bool(value);
+        return jl_box_bool(value.operator bool());
+    }
+
+    jl_value_t* box(std::bool_constant<false> value)
+    {
+        return jl_box_bool(value.operator bool());
     }
 
     jl_value_t* box(char value)

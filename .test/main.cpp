@@ -27,7 +27,10 @@ int main()
 {
     State::initialize();
 
-    State::new_undef("lambda") = [](jl_value_t* v) -> void {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;};
+    auto lambda = [](jl_value_t* v) -> jl_value_t* {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;};
+
+    using lambda_t = decltype(lambda);
+    State::new_undef("lambda") = box(lambda);
     State::safe_script("println(lambda)");
     return 0;
 

@@ -319,7 +319,7 @@ namespace jluna
     template<Boxable T>
     auto & Proxy<State_t>::operator=(T value)
     {
-        return this->operator=(box<T>(value));
+        return this->operator=(box(value));
     }
 
     template<typename State_t>

@@ -30,7 +30,8 @@ namespace jluna
     jl_value_t* box(const char* value);
 
     /// @brief box to bool
-    jl_value_t* box(bool value);
+    jl_value_t* box(std::bool_constant<true> value);
+    jl_value_t* box(std::bool_constant<false> value);
 
     /// @brief box to char
     jl_value_t* box(char value);

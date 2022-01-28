@@ -38,54 +38,48 @@ namespace jluna
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(jl_value_t*) or jl_value_t*(jl_value_t*)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<jl_value_t*> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(jl_value_t*, jl_value_t*) or jl_value_t*(jl_value_t*, jl_value_t*)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(3x jl_value_t*) or jl_value_t*(3x jl_value_t*)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(4x jl_value_t*) or jl_value_t*(4x jl_value_t*)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(5x jl_value_t*) or jl_value_t*(5x jl_value_t*)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(std::vector<jl_value_t*>) or jl_value_t*(std::vector<jl_value_t*>)
     /// @param name: function name
     /// @param lambda
     template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
-    void register_function(const std::string& name, Lambda_t&& lambda);
+    void register_function(const std::string& name, const Lambda_t& lambda);
 
     namespace detail
     {
         static inline size_t _internal_function_id_name = 0;
     }
-
-    /// @brief generate julia-side function that calls the lambda
-    /// @param lambda
-    /// @returns point to julia-side function, temporary
-    template<detail::LambdaType<jl_value_t*> Lambda_t>
-    jl_value_t* box(const Lambda_t & lambda);
 }
 
 #include ".src/cppcall.inl"

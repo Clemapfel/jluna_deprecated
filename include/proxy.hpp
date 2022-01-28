@@ -180,18 +180,6 @@ namespace jluna
             std::shared_ptr<ProxyValue> _content;
             std::deque<jl_sym_t*> assemble_name() const;
     };
-
-    template<typename Proxy_t>
-    inline Proxy_t make_mutating(Proxy_t&& proxy, const std::string& name)
-    {
-        //TODO
-    }
-
-    template<typename Proxy_t>
-    inline Proxy_t make_non_mutating(Proxy_t&& proxy)
-    {
-        //TODO
-    }
 }
 
 #include ".src/proxy.inl"
