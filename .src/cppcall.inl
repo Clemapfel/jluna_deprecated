@@ -131,7 +131,6 @@ namespace jluna
         });
     }
 
-
     template<detail::LambdaType<jl_value_t*> Lambda_t>
     jl_value_t* box(const Lambda_t& lambda)
     {
