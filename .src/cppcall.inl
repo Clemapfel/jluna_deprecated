@@ -28,7 +28,7 @@ namespace jluna
         }
     }
 
-    template<detail::LambdaType<> Lambda_t>
+    template<LambdaType<> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         THROW_IF_UNINITIALIZED;
@@ -41,7 +41,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         THROW_IF_UNINITIALIZED;
@@ -55,7 +55,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         c_adapter::register_function(name, 2, [lambda](jl_value_t* tuple) -> jl_value_t* {
@@ -68,7 +68,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         c_adapter::register_function(name, 3, [lambda](jl_value_t* tuple) -> jl_value_t* {
@@ -82,7 +82,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         c_adapter::register_function(name, 4, [lambda](jl_value_t* tuple) -> jl_value_t* {
@@ -97,7 +97,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         c_adapter::register_function(name, 5, [lambda](jl_value_t* tuple) -> jl_value_t* {
@@ -113,7 +113,7 @@ namespace jluna
         });
     }
 
-    template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
+    template<LambdaType<std::vector<jl_value_t*>> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda)
     {
         c_adapter::register_function(name, 1, [lambda](jl_value_t* tuple) -> jl_value_t* {
@@ -132,13 +132,14 @@ namespace jluna
         });
     }
 
+    /*
     template<LambdaType<> T>
-    extern jl_value_t* box(const T& lambda)
+    jl_value_t* box(const T& lambda)
     {}
 
     /// @brief box lambda with signature (Any) -> Any
     template<LambdaType<Any> T>
-    extern jl_value_t* box(const T& lambda)
+    jl_value_t* box(const T& lambda)
     {
         std::string id = "#" + std::to_string(++detail::_internal_function_id_name);
         register_function(id, lambda);
@@ -149,21 +150,22 @@ namespace jluna
 
     /// @brief box lambda with signature (Any, Any) -> Any
     template<LambdaType<Any, Any> T>
-    extern jl_value_t* box(const T&)
+    jl_value_t* box(const T&)
     {}
 
     /// @brief box lambda with signature (Any, Any, Any) -> Any
     template<LambdaType<Any, Any, Any> T>
-    extern jl_value_t* box(const T&)
+    jl_value_t* box(const T&)
     {}
 
     /// @brief box lambda with signature (Any, Any, Any, Any) -> Any
     template<LambdaType<Any, Any, Any, Any> T>
-    extern jl_value_t* box(const T&)
+    jl_value_t* box(const T&)
     {}
 
     /// @brief box lambda with signature (vector{Any}) -> Any
     template<LambdaType<std::vector<Any>> T>
-    extern jl_value_t* box(const T&)
+    jl_value_t* box(const T&)
     {}
+     */
 }

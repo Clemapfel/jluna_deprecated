@@ -121,7 +121,7 @@ namespace jluna
         typename U = typename T::value_type,
         std::enable_if_t<std::is_same_v<T, std::set<U>>, bool> = true>
     jl_value_t* box(const T&);
-
+    
     /// @brief box lambda with signature () -> Any
     template<LambdaType<> T>
     jl_value_t* box(const T&);

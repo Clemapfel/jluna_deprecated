@@ -23,19 +23,13 @@
 
 using namespace jluna;
 
-template<typename T, std::enable_if_t<std::is_invocable<T, jl_value_t*>::value, bool> = true>
-jl_value_t* box(T t)
-{
-    return box(t);
-}
-
 int main()
 {
-    State::initialize();
+    //State::initialize();
 
-    auto lambda = [](jl_value_t* v) -> jl_value_t* {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;};
+    //auto lambda = [](jl_value_t* v) -> jl_value_t* {std::cout << "cpp prints: " << unbox<std::string>(v) << std::endl;};
 
-    State::new_undef("lambda") = lambda;
+    //State::new_undef("lambda") = lambda;
     return 0;
 
     // ######################################################################
