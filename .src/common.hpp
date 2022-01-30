@@ -53,6 +53,15 @@ namespace jluna
         T(v, (jl_sym_t*) nullptr);
     };
 
+    /// @brief concept that describes lambda with signature T(Args_t...)
+    template<typename T, typename... Args_t>
+    concept LambdaType =
+    requires(T lambda)
+    {
+        std::is_invocable<T, Args_t...>::value;
+        typename std::invoke_result<T, Args_t...>::type;
+    };
+
     /// get sizeof array
     /// reference: https://brevzin.github.io/c++/2020/02/05/constexpr-array-size/
     template<HasValueType Array_t>

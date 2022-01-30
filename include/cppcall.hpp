@@ -7,19 +7,13 @@
 
 #include <julia.h>
 #include <typedefs.hpp>
+#include <.src/common.hpp>
 
 namespace jluna
 {
     namespace detail
     {
-        /// @brief concept that describes lambda with signature T(Args_t...)
-        template<typename T, typename... Args_t>
-        concept LambdaType =
-        requires(T lambda)
-        {
-            std::is_invocable<T, Args_t...>::value;
-            typename std::invoke_result<T, Args_t...>::type;
-        };
+        static inline size_t _internal_function_id_name = 0;
 
         /// @brief forward lambda returning void as jl_nothing
         /// @param func: lambda
@@ -37,49 +31,44 @@ namespace jluna
     /// @brief register lambda with signature void() or jl_value_t*()
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<> Lambda_t>
+    template<LambdaType<> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(jl_value_t*) or jl_value_t*(jl_value_t*)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(jl_value_t*, jl_value_t*) or jl_value_t*(jl_value_t*, jl_value_t*)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(3x jl_value_t*) or jl_value_t*(3x jl_value_t*)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(4x jl_value_t*) or jl_value_t*(4x jl_value_t*)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(5x jl_value_t*) or jl_value_t*(5x jl_value_t*)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
+    template<LambdaType<jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*, jl_value_t*> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
 
     /// @brief register lambda with signature void(std::vector<jl_value_t*>) or jl_value_t*(std::vector<jl_value_t*>)
     /// @param name: function name
     /// @param lambda
-    template<detail::LambdaType<std::vector<jl_value_t*>> Lambda_t>
+    template<LambdaType<std::vector<jl_value_t*>> Lambda_t>
     void register_function(const std::string& name, const Lambda_t& lambda);
-
-    namespace detail
-    {
-        static inline size_t _internal_function_id_name = 0;
-    }
 }
 
 #include ".src/cppcall.inl"

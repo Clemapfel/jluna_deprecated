@@ -1,102 +1,150 @@
-//
-// Copyright 2021 Clemens Cords
-// Created on 24.12.21 by clem (mail@clemens-cords.com)
+// 
+// Copyright 2022 Clemens Cords
+// Created on 30.01.22 by clem (mail@clemens-cords.com)
 //
 
 #pragma once
 
 #include <julia.h>
-#include <type_traits>
-#include <string>
-#include <set>
-#include <map>
-#include <complex>
-#include <unordered_map>
 #include <.src/common.hpp>
+#include <type_traits>
 
 namespace jluna
 {
-    /// @brief box to identity
+    /// @brief directly decay to jl_value_t*
+    template<Decayable T>
+    jl_value_t* box(const T& value);
+
+    /// @brief box identity
     jl_value_t* box(jl_value_t* value);
 
-    /// @brief box to cast first
-    template<Decayable T>
-    jl_value_t* box(T&& value);
-
-    /// @brief box to string
-    jl_value_t* box(const std::string& value);
+    /// @brief box to explicit return type
+    template<typename Return_t, CastableTo<Return_t> Arg_t>
+    jl_value_t* box(Arg_t t);
 
     /// @brief box to c string
-    jl_value_t* box(const char* value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, const char*>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to bool
-    jl_value_t* box(std::bool_constant<true> value);
-    jl_value_t* box(std::bool_constant<false> value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, std::bool_constant<true>>, bool> = true>
+    jl_value_t* box(T);
+
+    template<typename T, std::enable_if_t<std::is_same_v<T, std::bool_constant<false>>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to char
-    jl_value_t* box(char value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, char>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to int8
-    jl_value_t* box(int8_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, int8_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to int16
-    jl_value_t* box(int16_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, int16_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to int32
-    jl_value_t* box(int32_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, int32_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to int64
-    jl_value_t* box(int64_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, int64_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to uint8
-    jl_value_t* box(uint8_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, uint8_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to uint16
-    jl_value_t* box(uint16_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, uint16_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to uint32
-    jl_value_t* box(uint32_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, uint32_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to uint64
-    jl_value_t* box(uint64_t value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, uint64_t>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to float
-    jl_value_t* box(float value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, float>, bool> = true>
+    jl_value_t* box(T);jl_value_t* box(float value);
 
     /// @brief box to double
-    jl_value_t* box(double value);
+    template<typename T, std::enable_if_t<std::is_same_v<T, double>, bool> = true>
+    jl_value_t* box(T);
+
+    /// @brief box to string
+    template<typename T, std::enable_if_t<std::is_same_v<T, std::string>, bool> = true>
+    jl_value_t* box(const T&);
 
     /// @brief box to complex
     template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
     jl_value_t* box(std::complex<T> value);
 
     /// @brief box to vector
-    template<typename T>
-    jl_value_t* box(const std::vector<T>& value);
+    template<typename T,
+        typename U = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::vector<U>>, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box to pair
-    template<typename T1, typename T2>
-    jl_value_t* box(const std::pair<T1, T2>& value);
+    template<typename T,
+        typename T1 = typename T::first_type,
+        typename T2 = typename T::second_type,
+        std::enable_if_t<std::is_same_v<T, std::pair<T1, T2>>, bool> = true>
+    jl_value_t* box(T);
 
-    /// @brief box tuple
-    template<typename... Ts>
-    jl_value_t* box(const std::tuple<Ts...>& value);
+    /// @brief box to tuple
+    template<IsTuple T, std::enable_if_t<std::tuple_size<T>::value != 2, bool> = true>
+    jl_value_t* box(T);
 
     /// @brief box map to IdDict
-    template<typename Key_t, typename Value_t>
-    jl_value_t* box(const std::map<Key_t, Value_t>& value);
+    template<typename T,
+        typename Key_t = typename T::key_type,
+        typename Value_t = typename T::mapped_type,
+        std::enable_if_t<std::is_same_v<T, std::map<Key_t, Value_t>>, bool> = true>
+    jl_value_t* box(const T&);
 
     /// @brief box unordered map to Dict
-    template<typename Key_t, typename Value_t>
-    jl_value_t* box(const std::unordered_map<Key_t, Value_t>& value);
+    template<typename T,
+        typename Key_t = typename T::key_type,
+        typename Value_t = typename T::mapped_type,
+        std::enable_if_t<std::is_same_v<T, std::unordered_map<Key_t, Value_t>>, bool> = true>
+    jl_value_t* box(const T&);
 
     /// @brief box set
-    template<typename T>
-    jl_value_t* box(const std::set<T>& value);
+    template<typename T,
+        typename U = typename T::value_type,
+        std::enable_if_t<std::is_same_v<T, std::set<U>>, bool> = true>
+    jl_value_t* box(const T&);
 
-    /// @brief box to explicit return type
-    template<typename Return_t, CastableTo<Return_t> Arg_t>
-    jl_value_t* box(Arg_t t);
+    /// @brief box lambda with signature () -> Any
+    template<LambdaType<> T>
+    jl_value_t* box(const T&);
+
+    /// @brief box lambda with signature (Any) -> Any
+    template<LambdaType<Any> T>
+    jl_value_t* box(const T&);
+
+    /// @brief box lambda with signature (Any, Any) -> Any
+    template<LambdaType<Any, Any> T>
+    jl_value_t* box(const T&);
+
+    /// @brief box lambda with signature (Any, Any, Any) -> Any
+    template<LambdaType<Any, Any, Any> T>
+    jl_value_t* box(const T&);
+
+    /// @brief box lambda with signature (Any, Any, Any, Any) -> Any
+    template<LambdaType<Any, Any, Any, Any> T>
+    jl_value_t* box(const T&);
+
+    /// @brief box lambda with signature (vector{Any}) -> Any
+    template<LambdaType<std::vector<Any>> T>
+    jl_value_t* box(const T&);
 }
 
 #include ".src/box_any.inl"

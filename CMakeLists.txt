@@ -33,8 +33,11 @@ add_library(jluna SHARED
     .src/julia_extension.h
     .src/common.hpp
 
-    include/unbox_any.hpp
     include/box_any.hpp
+    .src/box_any.inl
+
+    include/unbox_any.hpp
+    .src/unbox_any.inl
 
     include/exceptions.hpp
     .src/exceptions.inl
@@ -53,9 +56,6 @@ add_library(jluna SHARED
     .src/array_proxy_iterator.inl
 
     include/typedefs.hpp
-
-    .src/box_any.inl
-    .src/unbox_any.inl
 
     include/cppcall.hpp
     .src/cppcall.inl)
