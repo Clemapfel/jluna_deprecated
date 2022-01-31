@@ -1,4 +1,4 @@
-# jluna: A modern Julia ⭤ C++ Wrapper API (v0.5)
+# THIS PROJECT IS DEPRECATED, USE: https://github.com/Clemapfel/jluna.git INSTEAD
 
 Julia is a beautiful language, it is well-designed and well-documented. julia C-API is also well-designed, less beautiful and much less... documented.
 
